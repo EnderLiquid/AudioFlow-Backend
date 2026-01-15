@@ -11,10 +11,10 @@ import top.enderliquid.audioflow.entity.Song;
 public interface SongMapper extends BaseMapper<Song> {
     IPage<SongBO> selectPageByUploaderInfoOrSongInfo(
             IPage<SongBO> page,
-            @Param("uploaderId") Long uploaderId,
             @Param("uploaderKeyword") String uploaderKeyword,
-            @Param("songId") Long songId,
+            @Param("uploaderId") Long uploaderId,
             @Param("songKeyword") String songKeyword,
+            @Param("songId") Long songId,
             @Param("isAsc") boolean isAsc
     );
 }

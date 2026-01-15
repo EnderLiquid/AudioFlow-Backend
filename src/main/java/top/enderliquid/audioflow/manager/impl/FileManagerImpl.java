@@ -1,6 +1,7 @@
 package top.enderliquid.audioflow.manager.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import top.enderliquid.audioflow.common.constant.FileConstant;
 import top.enderliquid.audioflow.manager.FileManager;
@@ -13,6 +14,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
 @Slf4j
+@Component
 public class FileManagerImpl implements FileManager {
     public Path saveMultipartFileToDisk(MultipartFile file, Path dirPath, String fileName) throws IOException {
         //创建目录

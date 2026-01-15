@@ -2,6 +2,7 @@ package top.enderliquid.audioflow.service.impl;
 
 import com.baomidou.mybatisplus.core.incrementer.IdentifierGenerator;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
 import org.apache.tika.io.TikaInputStream;
@@ -33,7 +34,9 @@ import top.enderliquid.audioflow.service.SongService;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 //todo:异步重试删除文件
@@ -54,16 +57,13 @@ public class SongServiceImpl implements SongService {
     @Autowired
     private FileManager fileManager;
 
-    @Autowired
-    private IdentifierGenerator identifierGenerator;
+    private static final Tika TIKA = new Tika();
+    private static final Parser TIKA_PARSER = new AutoDetectParser();
 
-    public static final Tika TIKA = new Tika();
-    public static final Parser TIKA_PARSER = new AutoDetectParser();
-
-    public static final char[] ILLEGAL_FILE_NAME_CHARS = new char[]
+    private static final char[] ILLEGAL_FILE_NAME_CHARS = new char[]
             {'\\', '/', ':', '*', '?', '"', '<', '>', '|'};
 
-    public static final Map<String, String> MIME_TYPE_TO_EXTENSION_MAP = new HashMap<>();
+    private static final Map<String, String> MIME_TYPE_TO_EXTENSION_MAP = new HashMap<>();
 
     static {
         // MP3 类型
@@ -103,7 +103,7 @@ public class SongServiceImpl implements SongService {
         String originFileName = StringUtils.getFilename(file.getOriginalFilename());
         String originName;
         // 提前生成歌曲Id
-        long songId = identifierGenerator.nextId(null).longValue();
+        long songId = IdWorker.getId();
         // 获取文件名
         String defaultOriginName = String.valueOf(songId);
         originName = getOriginNameFromOriginFileName(originFileName, defaultOriginName);
@@ -226,14 +226,27 @@ public class SongServiceImpl implements SongService {
         if (pageNum == null) pageNum = 1L;
         Long pageSize = dto.getPageSize();
         if (pageSize == null) pageSize = 10L;
-        IPage<SongBO> SongPage = songManager.pageByUploaderKeywordAndSongKeyword(
+        IPage<SongBO> songBOPage = songManager.pageByUploaderKeywordAndSongKeyword(
                 uploaderKeyword,
                 songKeyword,
                 isAsc,
                 pageNum,
                 pageSize
                 );
-        return null;
+        List<SongBO> songBOList = songBOPage.getRecords();
+        List<SongVO> songVOList = new ArrayList<>();
+        for (SongBO songBO : songBOList) {
+            SongVO songVO = new SongVO();
+            BeanUtils.copyProperties(songBO,songVO);
+            songVO.setFileName(songBO.getOriginName() + '.' + songBO.getExtension());
+            songVOList.add(songVO);
+        }
+        CommonPageVO<SongVO> pageVO = new CommonPageVO<>();
+        pageVO.setList(songVOList);
+        pageVO.setNum(pageNum);
+        pageVO.setSize(pageSize);
+        pageVO.setTotal(songBOPage.getTotal());
+        return pageVO;
     }
 
     //普通用户：验证歌曲所有权

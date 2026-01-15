@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import top.enderliquid.audioflow.common.constant.UserConstant;
 import top.enderliquid.audioflow.common.exception.BusinessException;
-import top.enderliquid.audioflow.common.transaction.TransactionHelper;
+import top.enderliquid.audioflow.common.util.transaction.TransactionHelper;
 import top.enderliquid.audioflow.dto.request.UserSaveDTO;
 import top.enderliquid.audioflow.dto.request.UserVerifyPasswordDTO;
 import top.enderliquid.audioflow.dto.response.UserVO;

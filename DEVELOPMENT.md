@@ -34,17 +34,13 @@ Mapper
 
 5.Service层不得创建Page，所有Page对象在Manager层构建。
 
-Mapper层
-
 **DTO规范**
 
-1.通过common/config/JacksonConfig和GlobalBindingAdvice，分别实现非Get请求json反序列化时与Get请求绑定字段到DTO时，字符串自动trim。
+1.通过common/config/JacksonConfig和GlobalBindingAdvice类，分别实现非Get请求json反序列化时与Get请求绑定字段到DTO时，字符串自动trim，且若字符串为空则设为null。
 
-2.使用DTO中的字符串字段时无需trim，但仍需考虑字符串为空或为null两种情况（若无校验注解）。
+2.DTO默认值的逻辑在service层实现，保持DTO纯洁。
 
-3.DTO默认值的逻辑在service层实现，保持DTO纯洁。
-
-4.DTO命名应以Entity名称作为前缀。
+3.DTO命名应以Entity名称作为前缀。
 
 **Controller层规范**
 
@@ -72,8 +68,8 @@ Mapper层
 
 **Manager层规范**
 
-1.如有问题，抛出异常，留给Service处理。
+1.抛出异常，留给Service层处理。
 
-2.FileManager写操作需要先写入到.tmp后缀的临时文件，再重命名。这是因为重命名操作在文件系统中通常是原子性的，如果遵循这一规范，即便写文件的过程被意外中断，也只会产生垃圾tmp文件。
+2.FileManager写操作需要先写入到.tmp后缀的临时文件，再重命名。这是因为重命名操作在文件系统中通常是原子性的，这样即便写文件的过程被意外中断，也只会产生垃圾tmp文件。
 
 3.FileManager写操作需要主动捕获IO异常。捕获到异常后，先试图清理写操作中断所产生的异常文件，再抛出该异常。

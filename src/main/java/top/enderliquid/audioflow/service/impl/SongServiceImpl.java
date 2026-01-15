@@ -232,7 +232,7 @@ public class SongServiceImpl implements SongService {
                 isAsc,
                 pageNum,
                 pageSize
-                );
+        );
         List<SongBO> songBOList = songBOPage.getRecords();
         List<SongVO> songVOList = new ArrayList<>();
         for (SongBO songBO : songBOList) {

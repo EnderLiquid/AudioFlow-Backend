@@ -12,7 +12,7 @@ import java.io.IOException;
 
 @Configuration
 public class JacksonConfig {
-    //自动Trim非Get方法传入的字符串
+    //自动Trim非Get方法传入的字符串，字符串为空则设为null
     @Bean
     public ObjectMapper objectMapper() {
         ObjectMapper objectMapper = new ObjectMapper();
@@ -23,7 +23,7 @@ public class JacksonConfig {
             @Override
             public String deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
                 String result = p.getText();
-                if (result == null) return null;
+                if (result == null || result.isBlank()) return null;
                 return result.trim();
             }
         });

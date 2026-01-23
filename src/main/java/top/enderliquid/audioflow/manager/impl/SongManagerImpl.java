@@ -11,8 +11,6 @@ import top.enderliquid.audioflow.entity.Song;
 import top.enderliquid.audioflow.manager.SongManager;
 import top.enderliquid.audioflow.mapper.SongMapper;
 
-import java.util.List;
-
 @Repository
 public class SongManagerImpl extends ServiceImpl<SongMapper, Song> implements SongManager {
     @Autowired
@@ -25,7 +23,7 @@ public class SongManagerImpl extends ServiceImpl<SongMapper, Song> implements So
     public IPage<SongBO> pageByUploaderKeywordAndSongKeyword(String uploaderKeyword, String songKeyword, boolean isAsc, long pageNum, long pageSize) {
         Long uploaderId = snowflakeIdConverter.fromString(uploaderKeyword);
         Long songId = snowflakeIdConverter.fromString(songKeyword);
-        Page<SongBO> page = new Page<SongBO>(pageNum,pageSize);
+        Page<SongBO> page = new Page<SongBO>(pageNum, pageSize);
         page = (Page<SongBO>) songMapper.selectPageByUploaderInfoOrSongInfo(
                 page,
                 uploaderKeyword,

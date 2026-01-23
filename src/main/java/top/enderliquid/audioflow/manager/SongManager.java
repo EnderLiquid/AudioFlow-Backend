@@ -6,8 +6,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import top.enderliquid.audioflow.bo.SongBO;
 import top.enderliquid.audioflow.entity.Song;
 
-import java.util.Collection;
-
 public interface SongManager extends IService<Song> {
     IPage<SongBO> pageByUploaderKeywordAndSongKeyword(String uploaderKeyword, String songKeyword, boolean isAsc, long pageNum, long pageSize);
 }

@@ -1,6 +1,5 @@
 package top.enderliquid.audioflow.service.impl;
 
-import com.baomidou.mybatisplus.core.incrementer.IdentifierGenerator;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import lombok.extern.slf4j.Slf4j;
@@ -61,7 +60,7 @@ public class SongServiceImpl implements SongService {
     private static final Parser TIKA_PARSER = new AutoDetectParser();
 
     private static final char[] ILLEGAL_FILE_NAME_CHARS = new char[]
-            {'\\', '/', ':', '*', '?', '"', '<', '>', '|'};
+            {'\\', '/', ':', '*', '?', '"', '\'', '<', '>', '|'};
 
     private static final Map<String, String> MIME_TYPE_TO_EXTENSION_MAP = new HashMap<>();
 
@@ -188,7 +187,7 @@ public class SongServiceImpl implements SongService {
             return defaultOriginName;
         }
         for (char c : ILLEGAL_FILE_NAME_CHARS) {
-            originName = originName.replace(c, '_');
+            originName = originName.replace(c, ' ');
         }
         return originName;
     }
@@ -237,7 +236,7 @@ public class SongServiceImpl implements SongService {
         List<SongVO> songVOList = new ArrayList<>();
         for (SongBO songBO : songBOList) {
             SongVO songVO = new SongVO();
-            BeanUtils.copyProperties(songBO,songVO);
+            BeanUtils.copyProperties(songBO, songVO);
             songVO.setFileName(songBO.getOriginName() + '.' + songBO.getExtension());
             songVOList.add(songVO);
         }

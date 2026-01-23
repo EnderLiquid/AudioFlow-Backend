@@ -16,8 +16,6 @@ import top.enderliquid.audioflow.entity.User;
 import top.enderliquid.audioflow.manager.UserManager;
 import top.enderliquid.audioflow.service.UserService;
 
-//Todo:写日志
-
 @Slf4j
 @Service
 public class UserServiceImpl implements UserService {
@@ -32,6 +30,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserVO saveUser(UserSaveDTO dto) {
+        log.info("尝试注册普通用户，邮箱：{}", dto.getEmail());
         User user = new User();
         user.setEmail(dto.getEmail());
         user.setName(dto.getName());
@@ -43,6 +42,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserVO saveAdminUser(UserSaveDTO dto) {
+        log.info("尝试注册管理员用户，邮箱：{}", dto.getEmail());
         User user = new User();
         user.setEmail(dto.getEmail());
         user.setName(dto.getName());
@@ -64,6 +64,7 @@ public class UserServiceImpl implements UserService {
                 throw new BusinessException("用户创建失败");
             }
         });
+        log.info("用户注册成功，邮箱：{}，用户ID：{}", user.getEmail(), user.getId());
         UserVO userVO = new UserVO();
         BeanUtils.copyProperties(user, userVO);
         return userVO;
@@ -71,6 +72,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserVO verifyUserPassword(UserVerifyPasswordDTO dto) {
+        log.info("尝试校验用户密码，邮箱：{}", dto.getEmail());
         User user = userManager.getByEmail(dto.getEmail());
         if (user == null) {
             throw new BusinessException("用户不存在");
@@ -78,6 +80,7 @@ public class UserServiceImpl implements UserService {
         if (!BCrypt.checkpw(dto.getPassword(), user.getPassword())) {
             throw new BusinessException("密码错误");
         }
+        log.info("用户密码校验成功，邮箱：{}，用户ID：{}", user.getEmail(), user.getId());
         UserVO userVO = new UserVO();
         BeanUtils.copyProperties(user, userVO);
         return userVO;

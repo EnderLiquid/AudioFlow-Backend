@@ -12,5 +12,5 @@ public interface IdConverter<T extends Serializable> {
      * @return ID或null
      */
     @Nullable
-    public T fromString(String s);
+    T fromString(String s);
 }

@@ -23,7 +23,7 @@ public class SongManagerImpl extends ServiceImpl<SongMapper, Song> implements So
     public IPage<SongBO> pageByUploaderKeywordAndSongKeyword(String uploaderKeyword, String songKeyword, boolean isAsc, long pageNum, long pageSize) {
         Long uploaderId = snowflakeIdConverter.fromString(uploaderKeyword);
         Long songId = snowflakeIdConverter.fromString(songKeyword);
-        Page<SongBO> page = new Page<SongBO>(pageNum, pageSize);
+        Page<SongBO> page = new Page<>(pageNum, pageSize);
         page = (Page<SongBO>) songMapper.selectPageByUploaderInfoOrSongInfo(
                 page,
                 uploaderKeyword,

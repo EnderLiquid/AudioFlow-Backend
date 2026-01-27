@@ -6,9 +6,9 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
 import top.enderliquid.audioflow.common.constant.UserConstant;
 import top.enderliquid.audioflow.common.exception.BusinessException;
-import top.enderliquid.audioflow.common.util.transaction.TransactionHelper;
 import top.enderliquid.audioflow.dto.request.UserSaveDTO;
 import top.enderliquid.audioflow.dto.request.UserVerifyPasswordDTO;
 import top.enderliquid.audioflow.dto.response.UserVO;
@@ -23,10 +23,10 @@ public class UserServiceImpl implements UserService {
     private int bcryptWorkFactor;
 
     @Autowired
-    private TransactionHelper transactionHelper;
+    private UserManager userManager;
 
     @Autowired
-    private UserManager userManager;
+    private TransactionTemplate transactionTemplate;
 
     @Override
     public UserVO saveUser(UserSaveDTO dto) {
@@ -53,7 +53,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private UserVO doSaveUser(User user) {
-        transactionHelper.execute(() -> {
+        transactionTemplate.execute((status) -> {
             // 检查邮箱是否已存在
             if (userManager.existsByEmail(user.getEmail())) {
                 throw new BusinessException("邮箱已被注册");
@@ -63,6 +63,7 @@ public class UserServiceImpl implements UserService {
             if (!isSuccessful) {
                 throw new BusinessException("用户创建失败");
             }
+            return null;
         });
         log.info("用户注册成功，邮箱：{}，用户ID：{}", user.getEmail(), user.getId());
         UserVO userVO = new UserVO();

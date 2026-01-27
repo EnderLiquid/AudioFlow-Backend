@@ -14,6 +14,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.xml.sax.helpers.DefaultHandler;
@@ -56,6 +57,9 @@ public class SongServiceImpl implements SongService {
     @Autowired
     private FileManager fileManager;
 
+    @Autowired
+    private TransactionTemplate transactionTemplate;
+
     private static final Tika TIKA = new Tika();
     private static final Parser TIKA_PARSER = new AutoDetectParser();
 
@@ -86,10 +90,6 @@ public class SongServiceImpl implements SongService {
     @Override
     public SongVO saveSong(MultipartFile file, Long userId) {
         log.info("用户ID为 {} 的用户请求上传歌曲", userId);
-        User uploader = userManager.getById(userId);
-        if (uploader == null) {
-            throw new BusinessException("用户不存在");
-        }
         if (file.isEmpty()) {
             throw new BusinessException("文件不能为空");
         }
@@ -122,7 +122,7 @@ public class SongServiceImpl implements SongService {
         }
         log.info("歌曲文件通过检验，原始文件名：{}，文件扩展名：{}", originName, extension);
         Path filePath;
-        //写入磁盘
+        // 写入磁盘
         try {
             filePath = fileManager.saveMultipartFileToDisk(file, Path.of(uploadDir), songId + '.' + extension);
         } catch (IOException e) {
@@ -130,7 +130,7 @@ public class SongServiceImpl implements SongService {
             throw new BusinessException("写入歌曲文件到磁盘失败", e);
         }
         log.info("歌曲文件成功写入磁盘");
-        //录入数据库
+        // 录入数据库
         Song song = new Song();
         song.setId(songId);
         song.setOriginName(originName);
@@ -142,21 +142,34 @@ public class SongServiceImpl implements SongService {
             log.warn("解析歌曲持续时长失败");
         }
         song.setDuration(duration);
-        //保存歌曲信息到数据库，由于是单个操作没有使用事务，以后改逻辑记得包进事务
-        boolean isSuccessful = songManager.save(song);
-        if (!isSuccessful) {
-            log.error("歌曲信息写入数据库失败");
+        // 在堆中为uploader分配内存，解决lambda透传问题
+        User[] uploader = new User[1];
+        try {
+            transactionTemplate.execute((status -> {
+                // 检查用户是否存在
+                uploader[0] = userManager.getById(userId);
+                if (uploader[0] == null) {
+                    throw new BusinessException("用户不存在");
+                }
+                // 保存歌曲信息到数据库
+                boolean isSuccessful = songManager.save(song);
+                if (!isSuccessful) {
+                    throw new BusinessException("歌曲信息写入数据库失败");
+                }
+                return null;
+            }));
+        } catch (BusinessException e) {
             FileConstant.DeleteResult deleteResult = fileManager.deleteFileFromDisk(filePath);
             if (deleteResult != FileConstant.DeleteResult.SUCCESS) {
-                log.error("删除已写入磁盘的歌曲文件失败");
+                log.error("删除已写入磁盘的歌曲文件失败：{}", filePath);
             }
-            throw new BusinessException("保存歌曲信息到数据库失败");
+            throw e;
         }
         log.info("歌曲信息成功写入数据库");
-        //返回视图
+        // 返回视图
         SongVO songVO = new SongVO();
         BeanUtils.copyProperties(song, songVO);
-        songVO.setUploaderId(uploader.getId());
+        songVO.setUploaderName(uploader[0].getName());
         songVO.setFileName(songId + '.' + extension);
         return songVO;
     }
@@ -248,7 +261,7 @@ public class SongServiceImpl implements SongService {
         return pageVO;
     }
 
-    //普通用户：验证歌曲所有权
+    // 普通用户：验证歌曲所有权
     @Override
     public void removeSong(Long songId, Long userId) {
         log.info("用户ID为 {} 的用户请求删除歌曲ID为 {} 的歌曲", userId, songId);
@@ -262,7 +275,7 @@ public class SongServiceImpl implements SongService {
         doRemoveSong(song);
     }
 
-    //管理员：强制删除歌曲
+    // 管理员：强制删除歌曲
     @Override
     public void removeSongForce(Long songId) {
         log.info("请求强制删除ID为 {} 的歌曲", songId);

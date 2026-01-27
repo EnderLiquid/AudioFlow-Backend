@@ -59,8 +59,7 @@ public class UserServiceImpl implements UserService {
                 throw new BusinessException("邮箱已被注册");
             }
             // 创建用户
-            boolean isSuccessful = userManager.save(user);
-            if (!isSuccessful) {
+            if (!userManager.save(user)) {
                 throw new BusinessException("用户创建失败");
             }
             return null;

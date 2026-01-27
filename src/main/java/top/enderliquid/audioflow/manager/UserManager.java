@@ -8,4 +8,6 @@ public interface UserManager extends IService<User> {
     User getByEmail(String email);
 
     boolean existsByEmail(String email);
+
+    boolean existsById(Long Id);
 }

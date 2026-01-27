@@ -93,6 +93,11 @@ public class SongServiceImpl implements SongService {
         if (file.isEmpty()) {
             throw new BusinessException("文件不能为空");
         }
+        // 检查用户是否存在
+        User uploader = userManager.getById(userId);
+        if (uploader == null) {
+            throw new BusinessException("用户不存在");
+        }
         /*
          Opera浏览器的MultipartFile对象
          调用getOriginalFilename()可能返回带路径的值，
@@ -142,18 +147,14 @@ public class SongServiceImpl implements SongService {
             log.warn("解析歌曲持续时长失败");
         }
         song.setDuration(duration);
-        // 在堆中为uploader分配内存，解决lambda透传问题
-        User[] uploader = new User[1];
         try {
             transactionTemplate.execute((status -> {
-                // 检查用户是否存在
-                uploader[0] = userManager.getById(userId);
-                if (uploader[0] == null) {
+                // 再次检测用户是否存在（防御式编程，虽然数据库应该有外键约束）
+                if (!userManager.existsById(userId)) {
                     throw new BusinessException("用户不存在");
                 }
                 // 保存歌曲信息到数据库
-                boolean isSuccessful = songManager.save(song);
-                if (!isSuccessful) {
+                if (!songManager.save(song)) {
                     throw new BusinessException("歌曲信息写入数据库失败");
                 }
                 return null;
@@ -169,7 +170,7 @@ public class SongServiceImpl implements SongService {
         // 返回视图
         SongVO songVO = new SongVO();
         BeanUtils.copyProperties(song, songVO);
-        songVO.setUploaderName(uploader[0].getName());
+        songVO.setUploaderName(uploader.getName());
         songVO.setFileName(songId + '.' + extension);
         return songVO;
     }
@@ -287,13 +288,12 @@ public class SongServiceImpl implements SongService {
     }
 
     private void doRemoveSong(Song song) {
-        boolean isSuccessful = songManager.removeById(song);
-        if (!isSuccessful) {
+        if (!songManager.removeById(song)) {
             log.error("从数据库删除歌曲信息失败");
             throw new BusinessException("删除歌曲信息失败");
         }
         log.info("从数据库删除歌曲信息成功");
-        String fileName = song.getOriginName() + '.' + song.getExtension();
+        String fileName = song.getId() + '.' + song.getExtension();
         Path filePath = Path.of(uploadDir).resolve(fileName);
         FileConstant.DeleteResult deleteResult = fileManager.deleteFileFromDisk(filePath);
         if (deleteResult != FileConstant.DeleteResult.SUCCESS) {

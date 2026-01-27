@@ -147,7 +147,7 @@ public class SongServiceImpl implements SongService {
         if (!isSuccessful) {
             log.error("歌曲信息写入数据库失败");
             FileConstant.DeleteResult deleteResult = fileManager.deleteFileFromDisk(filePath);
-            if (deleteResult == FileConstant.DeleteResult.IO_ERROR) {
+            if (deleteResult != FileConstant.DeleteResult.SUCCESS) {
                 log.error("删除已写入磁盘的歌曲文件失败");
             }
             throw new BusinessException("保存歌曲信息到数据库失败");
@@ -251,7 +251,7 @@ public class SongServiceImpl implements SongService {
     //普通用户：验证歌曲所有权
     @Override
     public void removeSong(Long songId, Long userId) {
-        log.info("用户ID为 {} 的用户请求删除ID为 {} 的歌曲", userId, songId);
+        log.info("用户ID为 {} 的用户请求删除歌曲ID为 {} 的歌曲", userId, songId);
         Song song = songManager.getById(songId);
         if (song == null) {
             throw new BusinessException("歌曲不存在");
@@ -283,7 +283,7 @@ public class SongServiceImpl implements SongService {
         String fileName = song.getOriginName() + '.' + song.getExtension();
         Path filePath = Path.of(uploadDir).resolve(fileName);
         FileConstant.DeleteResult deleteResult = fileManager.deleteFileFromDisk(filePath);
-        if (deleteResult == FileConstant.DeleteResult.IO_ERROR) {
+        if (deleteResult != FileConstant.DeleteResult.SUCCESS) {
             log.error("从磁盘删除歌曲文件失败");
         } else {
             log.info("从磁盘删除歌曲文件成功");

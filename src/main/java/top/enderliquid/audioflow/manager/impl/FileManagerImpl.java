@@ -11,7 +11,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.UUID;
 
 @Slf4j
 @Component
@@ -26,7 +25,7 @@ public class FileManagerImpl implements FileManager {
             }
         }
         Path filePath = dirPath.resolve(fileName);
-        String tempFileName = fileName + ".tmp_" + UUID.randomUUID();
+        String tempFileName = fileName + ".tmp";
         Path tempFilePath = dirPath.resolve(tempFileName);
         //创建临时文件
         try (InputStream inputStream = file.getInputStream()) {

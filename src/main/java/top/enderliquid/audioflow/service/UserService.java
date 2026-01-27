@@ -13,4 +13,6 @@ public interface UserService {
     UserVO saveAdminUser(@Valid UserSaveDTO dto);
 
     UserVO verifyUserPassword(@Valid UserVerifyPasswordDTO dto);
+
+    UserVO getUser(Long userId);
 }

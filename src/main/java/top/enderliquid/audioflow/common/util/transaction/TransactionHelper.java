@@ -21,7 +21,6 @@ public class TransactionHelper {
                 } catch (Exception e) {
                     // 1. 标记回滚
                     status.setRollbackOnly();
-
                     // 2. 异常处理
                     if (e instanceof RuntimeException) {
                         throw (RuntimeException) e;

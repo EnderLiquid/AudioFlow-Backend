@@ -34,6 +34,8 @@ Mapper
 
 5.Service层不得创建Page，所有Page对象在Manager层构建。
 
+6.在Service层完成所有参数校验。
+
 **DTO规范**
 
 1.通过common/config/JacksonConfig和GlobalBindingAdvice类，分别实现非Get请求json反序列化时与Get请求绑定字段到DTO时，字符串自动trim，且若字符串为空则设为null。

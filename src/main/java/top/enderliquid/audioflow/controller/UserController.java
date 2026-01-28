@@ -2,7 +2,6 @@ package top.enderliquid.audioflow.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.stp.StpUtil;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +23,7 @@ public class UserController {
      * 用户注册
      */
     @PostMapping("/register")
-    public HttpResponseBody<UserVO> register(@RequestBody @Valid UserSaveDTO dto) {
+    public HttpResponseBody<UserVO> register(@RequestBody UserSaveDTO dto) {
         UserVO userVO = userService.saveUser(dto);
         return HttpResponseBody.ok(userVO, "注册成功");
     }
@@ -33,7 +32,7 @@ public class UserController {
      * 用户登录
      */
     @PostMapping("/login")
-    public HttpResponseBody<UserVO> login(@RequestBody @Valid UserVerifyPasswordDTO dto) {
+    public HttpResponseBody<UserVO> login(@RequestBody UserVerifyPasswordDTO dto) {
         UserVO userVO = userService.verifyUserPassword(dto);
         StpUtil.login(userVO.getId());
         return HttpResponseBody.ok(userVO, "登录成功");

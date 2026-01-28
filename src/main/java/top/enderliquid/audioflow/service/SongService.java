@@ -10,11 +10,11 @@ import top.enderliquid.audioflow.dto.response.SongVO;
 
 @Validated
 public interface SongService {
-    SongVO saveSong(@NotNull MultipartFile file, @NotNull Long userId);
+    SongVO saveSong(@NotNull(message = "文件不能为空") MultipartFile file, @NotNull(message = "用户Id不能为空") Long userId);
 
     CommonPageVO<SongVO> pageSongsByUploaderKeywordAndSongKeyword(@Valid SongPageDTO dto);
 
-    void removeSong(@NotNull Long songId, @NotNull Long userId);
+    void removeSong(@NotNull(message = "歌曲Id不能为空") Long songId, @NotNull(message = "用户Id不能为空") Long userId);
 
-    void removeSongForce(@NotNull Long songId);
+    void removeSongForce(@NotNull(message = "用户Id不能为空") Long songId);
 }

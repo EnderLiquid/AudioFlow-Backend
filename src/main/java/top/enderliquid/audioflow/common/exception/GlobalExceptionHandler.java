@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import top.enderliquid.audioflow.common.response.HttpResponseBody;
 
@@ -76,7 +77,7 @@ public class GlobalExceptionHandler {
         String errorMessage = e.getBindingResult().getFieldErrors().stream()
                 .map(FieldError::getDefaultMessage)
                 .collect(Collectors.joining("; "));
-        log.warn("参数校验失败: {}", errorMessage);
+        log.warn("参数错误: {}", errorMessage);
         return HttpResponseBody.fail("参数错误: " + errorMessage);
     }
 
@@ -89,7 +90,7 @@ public class GlobalExceptionHandler {
         String errorMessage = e.getConstraintViolations().stream()
                 .map(ConstraintViolation::getMessage)
                 .collect(Collectors.joining("; "));
-        log.warn("参数校验失败: {}", errorMessage);
+        log.warn("参数错误: {}", errorMessage);
         return HttpResponseBody.fail("参数错误: " + errorMessage);
     }
 
@@ -112,8 +113,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MissingServletRequestParameterException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public HttpResponseBody<?> handleMissingServletRequestParameterException(MissingServletRequestParameterException e) {
-        log.warn("缺少必要参数: {}", e.getParameterName());
-        return HttpResponseBody.fail("缺少必要参数: " + e.getParameterName());
+        log.warn("请求缺少必要参数: {}", e.getParameterName());
+        return HttpResponseBody.fail("请求缺少必要参数: " + e.getParameterName());
+    }
+
+    /**
+     * 处理缺少必要部分异常
+     */
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public HttpResponseBody<?> handleMissingServletRequestPartException(MissingServletRequestPartException e) {
+        log.warn("请求缺少必要部分: {}", e.getRequestPartName());
+        return HttpResponseBody.fail("请求缺少必要部分: " + e.getRequestPartName());
     }
 
     /**

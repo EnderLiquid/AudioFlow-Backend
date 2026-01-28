@@ -19,7 +19,7 @@ public class SongPageDTO {
     Boolean isAsc;
 
     //null:默认1
-    @Min(value = 0, message = "页码不能为负数")
+    @Min(value = 1, message = "页码必须大于0")
     Long pageNum;
 
     //null:默认10

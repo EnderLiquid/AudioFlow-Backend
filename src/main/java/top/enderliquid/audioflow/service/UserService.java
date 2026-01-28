@@ -15,5 +15,5 @@ public interface UserService {
 
     UserVO verifyUserPassword(@Valid UserVerifyPasswordDTO dto);
 
-    UserVO getUser(@NotNull Long userId);
+    UserVO getUser(@NotNull(message = "用户Id不能为空") Long userId);
 }

@@ -3,8 +3,6 @@ package top.enderliquid.audioflow.controller;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.dev33.satoken.stp.StpUtil;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -29,7 +27,7 @@ public class SongController {
      */
     @SaCheckLogin
     @PostMapping("/upload")
-    public HttpResponseBody<SongVO> uploadSong(@RequestParam("file") @NotNull(message = "文件不能为空") MultipartFile file) {
+    public HttpResponseBody<SongVO> uploadSong(@RequestParam("file") MultipartFile file) {
         // 获取当前登录用户 ID
         long userId = StpUtil.getLoginIdAsLong();
         // 调用 Service
@@ -41,7 +39,7 @@ public class SongController {
      * 分页查询/搜索歌曲
      */
     @GetMapping("/list")
-    public HttpResponseBody<CommonPageVO<SongVO>> listSongs(@ModelAttribute @Valid SongPageDTO dto) {
+    public HttpResponseBody<CommonPageVO<SongVO>> listSongs(@ModelAttribute SongPageDTO dto) {
         CommonPageVO<SongVO> result = songService.pageSongsByUploaderKeywordAndSongKeyword(dto);
         return HttpResponseBody.ok(result);
     }
@@ -52,7 +50,7 @@ public class SongController {
      */
     @SaCheckLogin
     @DeleteMapping("/{id}")
-    public HttpResponseBody<Void> removeSong(@PathVariable("id") @NotNull Long songId) {
+    public HttpResponseBody<Void> removeSong(@PathVariable("id") Long songId) {
         long userId = StpUtil.getLoginIdAsLong();
         songService.removeSong(songId, userId);
         return HttpResponseBody.ok(null, "删除成功");
@@ -64,7 +62,7 @@ public class SongController {
      */
     @SaCheckRole("ADMIN")
     @DeleteMapping("/admin/{id}")
-    public HttpResponseBody<Void> removeSongForce(@PathVariable("id") @NotNull Long songId) {
+    public HttpResponseBody<Void> removeSongForce(@PathVariable("id") Long songId) {
         songService.removeSongForce(songId);
         return HttpResponseBody.ok(null, "管理员强制删除成功");
     }

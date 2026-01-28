@@ -36,7 +36,7 @@ public class UserServiceImpl implements UserService {
         user.setName(dto.getName());
         String encryptedPassword = BCrypt.hashpw(dto.getPassword(), BCrypt.gensalt(bcryptWorkFactor));
         user.setPassword(encryptedPassword);
-        user.setRole(UserConstant.Role.User);
+        user.setRole(UserConstant.Role.USER);
         return doSaveUser(user);
     }
 
@@ -48,7 +48,7 @@ public class UserServiceImpl implements UserService {
         user.setName(dto.getName());
         String encryptedPassword = BCrypt.hashpw(dto.getPassword(), BCrypt.gensalt(bcryptWorkFactor));
         user.setPassword(encryptedPassword);
-        user.setRole(UserConstant.Role.Admin);
+        user.setRole(UserConstant.Role.ADMIN);
         return doSaveUser(user);
     }
 

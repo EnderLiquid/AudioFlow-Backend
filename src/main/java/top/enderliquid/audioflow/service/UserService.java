@@ -1,6 +1,7 @@
 package top.enderliquid.audioflow.service;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.validation.annotation.Validated;
 import top.enderliquid.audioflow.dto.request.UserSaveDTO;
 import top.enderliquid.audioflow.dto.request.UserVerifyPasswordDTO;
@@ -14,5 +15,5 @@ public interface UserService {
 
     UserVO verifyUserPassword(@Valid UserVerifyPasswordDTO dto);
 
-    UserVO getUser(Long userId);
+    UserVO getUser(@NotNull Long userId);
 }

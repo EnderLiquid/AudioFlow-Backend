@@ -1,10 +1,9 @@
 package top.enderliquid.audioflow.service.impl;
 
-import cn.hutool.crypto.digest.BCrypt;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 import top.enderliquid.audioflow.common.constant.UserConstant;
@@ -19,8 +18,6 @@ import top.enderliquid.audioflow.service.UserService;
 @Slf4j
 @Service
 public class UserServiceImpl implements UserService {
-    @Value("${password.encrypt.bcrypt.work-factor}")
-    private int bcryptWorkFactor;
 
     @Autowired
     private UserManager userManager;
@@ -28,13 +25,16 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private TransactionTemplate transactionTemplate;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @Override
     public UserVO saveUser(UserSaveDTO dto) {
         log.info("请求注册普通用户，邮箱：{}", dto.getEmail());
         User user = new User();
         user.setEmail(dto.getEmail());
         user.setName(dto.getName());
-        String encryptedPassword = BCrypt.hashpw(dto.getPassword(), BCrypt.gensalt(bcryptWorkFactor));
+        String encryptedPassword = passwordEncoder.encode(dto.getPassword());
         user.setPassword(encryptedPassword);
         user.setRole(UserConstant.Role.USER);
         return doSaveUser(user);
@@ -46,7 +46,7 @@ public class UserServiceImpl implements UserService {
         User user = new User();
         user.setEmail(dto.getEmail());
         user.setName(dto.getName());
-        String encryptedPassword = BCrypt.hashpw(dto.getPassword(), BCrypt.gensalt(bcryptWorkFactor));
+        String encryptedPassword = passwordEncoder.encode(dto.getPassword());
         user.setPassword(encryptedPassword);
         user.setRole(UserConstant.Role.ADMIN);
         return doSaveUser(user);
@@ -77,7 +77,10 @@ public class UserServiceImpl implements UserService {
         if (user == null) {
             throw new BusinessException("用户不存在");
         }
-        if (!BCrypt.checkpw(dto.getPassword(), user.getPassword())) {
+        if (!passwordEncoder.matches(
+                dto.getPassword(), // 明文
+                user.getPassword() // 密文
+        )) {
             throw new BusinessException("密码错误");
         }
         log.info("用户密码校验成功，邮箱：{}，用户ID：{}", user.getEmail(), user.getId());

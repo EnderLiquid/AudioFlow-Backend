@@ -1,34 +1,21 @@
 package top.enderliquid.audioflow;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import top.enderliquid.audioflow.manager.UserManager;
-import top.enderliquid.audioflow.dto.request.UserSaveDTO;
-import top.enderliquid.audioflow.entity.User;
-import top.enderliquid.audioflow.service.UserService;
-
-import java.util.List;
+import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 
 @SpringBootTest
 class AudioFlowApplicationTests {
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private UserManager userManager;
-
     @Test
-    public void saveTestUser() {
-        UserSaveDTO dto = new UserSaveDTO();
-        dto.setName("神人");
-        dto.setEmail("114514@homo.com");
-        dto.setPassword("1145141919");
-        userService.saveUser(dto);
+    public void benchmarkArgon2() {
+        Argon2PasswordEncoder encoder = new Argon2PasswordEncoder(16, 32, 1, 16384, 3);
+        String raw = "my_password_123";
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < 10; i++) {
+            encoder.encode(raw);
+        }
+        long end = System.currentTimeMillis();
+        System.out.println("平均耗时: " + (end - start) / 10 + "ms");
+        System.out.println("密文长度: " + encoder.encode(raw).length());
     }
-    @Test
-    public void listUsers() {
-        List<User> list = userManager.list();
-        list.forEach(System.out::println);
-    }
-
 }

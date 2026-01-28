@@ -48,9 +48,7 @@ Mapper
 
 1.每个Controller类都要添加@Vaildated注解。
 
-2.方法参数中的DTO用@Vaild注解校验。
-
-3.方法根据应用具体语义命名。
+2.方法根据应用具体语义命名。
 
 **Service层规范**
 

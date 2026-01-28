@@ -13,10 +13,10 @@ import lombok.NoArgsConstructor;
 public class UserVerifyPasswordDTO {
     @NotBlank(message = "邮箱不能为空")
     @Email(message = "邮箱格式不正确")
-    @Size(min = 1, max = 50, message = "邮箱长度必须在1-50个字符之间")
+    @Size(min = 1, max = 100, message = "邮箱长度必须在1-100个字符之间")
     private String email;
 
     @NotBlank(message = "密码不能为空")
-    @Size(min = 8, max = 20, message = "密码长度必须在8-20个字符之间")
+    @Size(min = 6, max = 50, message = "密码长度必须在6-50个字符之间")
     private String password;
 }

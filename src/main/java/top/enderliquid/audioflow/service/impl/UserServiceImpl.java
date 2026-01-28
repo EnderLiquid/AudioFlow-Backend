@@ -19,7 +19,7 @@ import top.enderliquid.audioflow.service.UserService;
 @Slf4j
 @Service
 public class UserServiceImpl implements UserService {
-    @Value("${user.password.bcrypt.work-factor}")
+    @Value("${password.encrypt.bcrypt.work-factor}")
     private int bcryptWorkFactor;
 
     @Autowired

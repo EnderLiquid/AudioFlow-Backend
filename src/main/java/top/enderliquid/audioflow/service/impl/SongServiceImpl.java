@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
-import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.metadata.XMPDM;
 import org.apache.tika.parser.AutoDetectParser;
@@ -12,14 +11,12 @@ import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.xml.sax.helpers.DefaultHandler;
 import top.enderliquid.audioflow.bo.SongBO;
-import top.enderliquid.audioflow.common.constant.FileConstant;
 import top.enderliquid.audioflow.common.exception.BusinessException;
 import top.enderliquid.audioflow.dto.request.SongPageDTO;
 import top.enderliquid.audioflow.dto.response.CommonPageVO;
@@ -33,7 +30,6 @@ import top.enderliquid.audioflow.service.SongService;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -42,9 +38,6 @@ import java.util.Map;
 @Slf4j
 @Service
 public class SongServiceImpl implements SongService {
-
-    @Value("${audio.upload.dir}")
-    private String uploadDir;
 
     @Autowired
     private UserManager userManager;
@@ -88,6 +81,7 @@ public class SongServiceImpl implements SongService {
     @Override
     public SongVO saveSong(MultipartFile file, Long userId) {
         log.info("用户ID为 {} 的用户请求上传歌曲", userId);
+        // 检测文件是否为空
         if (file.isEmpty()) {
             throw new BusinessException("文件不能为空");
         }
@@ -124,23 +118,20 @@ public class SongServiceImpl implements SongService {
             throw new BusinessException("不支持的文件类型");
         }
         log.info("歌曲文件通过检验，原始文件名：{}，文件扩展名：{}", originName, extension);
-        Path filePath;
-        // 写入磁盘
-        try {
-            filePath = fileManager.saveMultipartFileToDisk(file, Path.of(uploadDir), songId + '.' + extension);
-        } catch (IOException e) {
-            log.error("写入歌曲文件到磁盘失败", e);
-            throw new BusinessException("写入歌曲文件到磁盘失败", e);
+        String fileName = songId + '.' + extension;
+        // 保存歌曲文件
+        if (!fileManager.save(file, fileName)) {
+            throw new BusinessException("歌曲文件保存失败");
         }
-        log.info("歌曲文件成功写入磁盘");
-        // 录入数据库
+        log.info("歌曲文件保存成功");
+        // 保存歌曲信息
         Song song = new Song();
         song.setId(songId);
         song.setOriginName(originName);
         song.setExtension(extension);
         song.setSize(file.getSize());
         song.setUploaderId(userId);
-        long duration = getDurationFromPathInMills(filePath);
+        long duration = getDurationFromPathInMills(file);
         if (duration == 0) {
             log.warn("解析歌曲持续时长失败");
         }
@@ -153,18 +144,17 @@ public class SongServiceImpl implements SongService {
                 }
                 // 保存歌曲信息到数据库
                 if (!songManager.save(song)) {
-                    throw new BusinessException("歌曲信息写入数据库失败");
+                    throw new BusinessException("歌曲信息保存失败");
                 }
                 return null;
             }));
         } catch (BusinessException e) {
-            FileConstant.DeleteResult deleteResult = fileManager.deleteFileFromDisk(filePath);
-            if (deleteResult != FileConstant.DeleteResult.SUCCESS) {
-                log.error("删除已写入磁盘的歌曲文件失败：{}", filePath);
+            if (!fileManager.delete(fileName)) {
+                log.error("删除已保存的歌曲文件失败：{}", fileName);
             }
             throw e;
         }
-        log.info("歌曲信息成功写入数据库");
+        log.info("歌曲信息保存成功");
         // 返回视图
         SongVO songVO = new SongVO();
         BeanUtils.copyProperties(song, songVO);
@@ -173,8 +163,8 @@ public class SongServiceImpl implements SongService {
         return songVO;
     }
 
+    // 从文件全称获取原始文件名
     private String getOriginNameFromOriginFileName(String originFileName, String defaultOriginName) {
-        // 获取原始文件名
         if (originFileName == null) {
             return defaultOriginName;
         }
@@ -198,18 +188,19 @@ public class SongServiceImpl implements SongService {
         if (originName.length() > 128) {
             return defaultOriginName;
         }
+        // 去除非法字符
         for (char c : ILLEGAL_FILE_NAME_CHARS) {
             originName = originName.replace(c, ' ');
         }
         return originName;
     }
 
-    private long getDurationFromPathInMills(Path path) {
+    private long getDurationFromPathInMills(MultipartFile file) {
         DefaultHandler handler = new DefaultHandler();
         Metadata metadata = new Metadata();
         ParseContext parseContext = new ParseContext();
         String durationStr;
-        try (InputStream inputStream = TikaInputStream.get(path)) {
+        try (InputStream inputStream = file.getInputStream()) {
             TIKA_PARSER.parse(inputStream, handler, metadata, parseContext);
             durationStr = metadata.get(XMPDM.DURATION);
         } catch (Exception e) {
@@ -287,17 +278,15 @@ public class SongServiceImpl implements SongService {
 
     private void doRemoveSong(Song song) {
         if (!songManager.removeById(song)) {
-            log.error("从数据库删除歌曲信息失败");
+            log.error("删除歌曲信息失败");
             throw new BusinessException("删除歌曲信息失败");
         }
-        log.info("从数据库删除歌曲信息成功");
+        log.info("删除歌曲信息成功");
         String fileName = song.getId() + '.' + song.getExtension();
-        Path filePath = Path.of(uploadDir).resolve(fileName);
-        FileConstant.DeleteResult deleteResult = fileManager.deleteFileFromDisk(filePath);
-        if (deleteResult != FileConstant.DeleteResult.SUCCESS) {
-            log.error("从磁盘删除歌曲文件失败");
+        if (!fileManager.delete(fileName)) {
+            log.error("删除歌曲文件失败");
         } else {
-            log.info("从磁盘删除歌曲文件成功");
+            log.info("删除歌曲文件成功");
         }
     }
 }

@@ -44,9 +44,11 @@ Mapper
 
 **Controller层规范**
 
-1.方法根据应用具体语义命名。
+1.每个Controller类都要添加@Vaildated注解。
 
 2.方法参数中的DTO用@Vaild注解校验。
+
+3.方法根据应用具体语义命名。
 
 **Service层规范**
 
@@ -56,7 +58,7 @@ Mapper
 
 3.方法参数中的DTO用@Vaild注解校验。
 
-4.CRUD命名规范
+4.CRUD命名规范：
 
 增：save
 
@@ -65,7 +67,3 @@ Mapper
 改：update
 
 查：get（单个）、list（多个）、page（分页）
-
-**Manager层规范**
-
-1.FileManager写操作需要先写入到.tmp后缀的临时文件，再重命名。这是因为重命名操作在文件系统中通常是原子性的，这样即便写文件的过程被意外中断，也只会产生垃圾tmp文件。

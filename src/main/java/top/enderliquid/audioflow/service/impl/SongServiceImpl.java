@@ -237,11 +237,14 @@ public class SongServiceImpl implements SongService {
         );
         List<SongBO> songBOList = songBOPage.getRecords();
         List<SongVO> songVOList = new ArrayList<>();
-        for (SongBO songBO : songBOList) {
-            SongVO songVO = new SongVO();
-            BeanUtils.copyProperties(songBO, songVO);
-            songVO.setFileName(songBO.getOriginName() + '.' + songBO.getExtension());
-            songVOList.add(songVO);
+        if (songBOList != null && !songBOList.isEmpty()) {
+            for (SongBO songBO : songBOList) {
+                if (songBO == null) continue;
+                SongVO songVO = new SongVO();
+                BeanUtils.copyProperties(songBO, songVO);
+                songVO.setFileName(songBO.getOriginName() + '.' + songBO.getExtension());
+                songVOList.add(songVO);
+            }
         }
         CommonPageVO<SongVO> pageVO = new CommonPageVO<>();
         pageVO.setList(songVOList);

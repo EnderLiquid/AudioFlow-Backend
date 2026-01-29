@@ -24,6 +24,8 @@ public class SongManagerImpl extends ServiceImpl<SongMapper, Song> implements So
         Long uploaderId = snowflakeIdConverter.fromString(uploaderKeyword);
         Long songId = snowflakeIdConverter.fromString(songKeyword);
         Page<SongBO> page = new Page<>(pageNum, pageSize);
+        // 实际上无需赋值，page的值也会被修改
+        // 返回page本身，不会返回null
         page = (Page<SongBO>) songMapper.selectPageByUploaderInfoOrSongInfo(
                 page,
                 uploaderKeyword,

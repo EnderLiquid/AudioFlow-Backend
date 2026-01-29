@@ -26,8 +26,8 @@ public class SecurityConfig {
     @Value("${password.encrypt.argon2.iterations:3}")
     private int argon2Iterations;
 
-    // 默认新建密码策略
-    @Value("password.encrypt.id-for-encode:argon2")
+    // 新建密码策略
+    @Value("${password.encrypt.id-for-encode:argon2}")
     private String idForEncode;
 
     @Bean

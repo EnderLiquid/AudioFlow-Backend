@@ -25,6 +25,7 @@ public class UserController {
     @PostMapping("/register")
     public HttpResponseBody<UserVO> register(@RequestBody UserSaveDTO dto) {
         UserVO userVO = userService.saveUser(dto);
+        StpUtil.login(userVO.getId());
         return HttpResponseBody.ok(userVO, "注册成功");
     }
 

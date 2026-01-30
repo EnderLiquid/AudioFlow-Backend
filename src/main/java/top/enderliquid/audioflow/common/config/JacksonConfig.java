@@ -11,7 +11,7 @@ import java.io.IOException;
 
 @Configuration
 public class JacksonConfig {
-    // 自动 Trim JSON 表单 (application/json) 传入的字符串
+    // 自动 Trim JSON 表单 (application/json) 请求传入的字符串
     // 字符串为空则设为 null
     @Bean
     public Jackson2ObjectMapperBuilderCustomizer jacksonTrimmingCustomizer() {

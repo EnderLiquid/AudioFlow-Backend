@@ -100,7 +100,7 @@ public class SongServiceImpl implements SongService {
         String originName;
         // 提前生成歌曲Id
         long songId = IdWorker.getId();
-        // 获取文件名
+        // 获取原始文件名
         String defaultOriginName = String.valueOf(songId);
         originName = getOriginNameFromOriginFileName(originFileName, defaultOriginName);
         if (originName.equals(defaultOriginName)) {
@@ -117,13 +117,13 @@ public class SongServiceImpl implements SongService {
         if (extension == null) {
             throw new BusinessException("不支持的文件类型");
         }
-        log.info("歌曲文件通过检验，原始文件名：{}，文件扩展名：{}", originName, extension);
-        String fileName = songId + '.' + extension;
+        log.info("歌曲文件通过检验，原始文件名: {}，文件扩展名: {}", originName, extension);
+        String fileName = getFileNameFromSongIdAndExtension(songId, extension);
         // 保存歌曲文件
         if (!fileManager.save(file, fileName)) {
             throw new BusinessException("歌曲文件保存失败");
         }
-        log.info("歌曲文件保存成功");
+        log.info("歌曲文件保存成功，保存文件名: {}", fileName);
         // 保存歌曲信息
         Song song = new Song();
         song.setId(songId);
@@ -131,7 +131,7 @@ public class SongServiceImpl implements SongService {
         song.setExtension(extension);
         song.setSize(file.getSize());
         song.setUploaderId(userId);
-        long duration = getDurationFromPathInMills(file);
+        long duration = getAudioDurationInMills(file);
         if (duration == 0) {
             log.warn("解析歌曲持续时长失败");
         }
@@ -150,7 +150,7 @@ public class SongServiceImpl implements SongService {
             }));
         } catch (BusinessException e) {
             if (!fileManager.delete(fileName)) {
-                log.error("删除已保存的歌曲文件失败：{}", fileName);
+                log.error("删除已保存的歌曲文件失败: {}", fileName);
             }
             throw e;
         }
@@ -159,7 +159,7 @@ public class SongServiceImpl implements SongService {
         SongVO songVO = new SongVO();
         BeanUtils.copyProperties(song, songVO);
         songVO.setUploaderName(uploader.getName());
-        songVO.setFileName(songId + '.' + extension);
+        songVO.setFileName(fileName);
         return songVO;
     }
 
@@ -195,7 +195,12 @@ public class SongServiceImpl implements SongService {
         return originName;
     }
 
-    private long getDurationFromPathInMills(MultipartFile file) {
+    //从歌曲 ID 和扩展名拼接文件名
+    private String getFileNameFromSongIdAndExtension(Long songId, String extension) {
+        return songId + "." + extension;
+    }
+
+    private long getAudioDurationInMills(MultipartFile file) {
         DefaultHandler handler = new DefaultHandler();
         Metadata metadata = new Metadata();
         ParseContext parseContext = new ParseContext();
@@ -242,7 +247,7 @@ public class SongServiceImpl implements SongService {
                 if (songBO == null) continue;
                 SongVO songVO = new SongVO();
                 BeanUtils.copyProperties(songBO, songVO);
-                songVO.setFileName(songBO.getOriginName() + '.' + songBO.getExtension());
+                songVO.setFileName(getFileNameFromSongIdAndExtension(songBO.getId(), songBO.getExtension()));
                 songVOList.add(songVO);
             }
         }
@@ -254,7 +259,7 @@ public class SongServiceImpl implements SongService {
         return pageVO;
     }
 
-    // 普通用户：验证歌曲所有权
+    // 普通用户: 验证歌曲所有权
     @Override
     public void removeSong(Long songId, Long userId) {
         log.info("用户ID为 {} 的用户请求删除歌曲ID为 {} 的歌曲", userId, songId);
@@ -268,7 +273,7 @@ public class SongServiceImpl implements SongService {
         doRemoveSong(song);
     }
 
-    // 管理员：强制删除歌曲
+    // 管理员: 强制删除歌曲
     @Override
     public void removeSongForce(Long songId) {
         log.info("请求强制删除ID为 {} 的歌曲", songId);
@@ -285,7 +290,7 @@ public class SongServiceImpl implements SongService {
             throw new BusinessException("删除歌曲信息失败");
         }
         log.info("删除歌曲信息成功");
-        String fileName = song.getId() + '.' + song.getExtension();
+        String fileName = getFileNameFromSongIdAndExtension(song.getId(), song.getExtension());
         if (!fileManager.delete(fileName)) {
             log.error("删除歌曲文件失败");
         } else {

@@ -44,7 +44,7 @@ public class GlobalExceptionHandler {
 
     /**
      * 处理自定义业务异常
-     * 场景：业务代码中手动抛出的 BusinessException
+     * 场景: 业务代码中手动抛出的 BusinessException
      */
     @ExceptionHandler(BusinessException.class)
     @ResponseStatus(HttpStatus.OK) // 业务异常返回 200，通过 code 判断成功失败
@@ -99,7 +99,7 @@ public class GlobalExceptionHandler {
 
     /**
      * 请求体读取失败
-     * 场景：前端未传 Body、Body 为空、JSON 格式错误
+     * 场景: 前端未传 Body、Body 为空、JSON 格式错误
      */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -110,7 +110,7 @@ public class GlobalExceptionHandler {
 
     /**
      * 不支持的媒体类型
-     * 场景：接口需要 application/json，前端传了 form-data
+     * 场景: 接口需要 application/json，前端传了 form-data
      */
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
     @ResponseStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE) // 415
@@ -192,7 +192,7 @@ public class GlobalExceptionHandler {
 
     /**
      * 参数类型不匹配
-     * 场景：前端传了 String "abc" 给 Integer 类型的字段
+     * 场景: 前端传了 String "abc" 给 Integer 类型的字段
      */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -206,7 +206,7 @@ public class GlobalExceptionHandler {
 
     /**
      * 处理资源不存在异常 (Spring Boot 3.2+ 默认 404)
-     * 场景：静态资源或接口路径错误
+     * 场景: 静态资源或接口路径错误
      */
     @ExceptionHandler(NoResourceFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
@@ -227,7 +227,7 @@ public class GlobalExceptionHandler {
 
     /**
      * 请求方法不支持
-     * 场景：接口定义了 POST，前端用了 GET
+     * 场景: 接口定义了 POST，前端用了 GET
      */
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED) // 405

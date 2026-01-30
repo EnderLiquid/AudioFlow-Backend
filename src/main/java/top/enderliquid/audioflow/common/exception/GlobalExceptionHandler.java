@@ -7,6 +7,7 @@ import cn.dev33.satoken.exception.SaTokenException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -38,6 +39,7 @@ public class GlobalExceptionHandler {
 
     @Value("${response.exception.expose-uncaught-exception-detail:false}")
     boolean exposeUncaughtExceptionDetail;
+
     // ==================== 1. 业务逻辑异常 ====================
 
     /**
@@ -90,7 +92,7 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.FORBIDDEN) // 403
     public HttpResponseBody<?> handlerSaTokenException(SaTokenException e) {
         log.warn("鉴权异常: {}", e.getMessage());
-        return HttpResponseBody.fail("鉴权失败: " + e.getMessage());
+        return HttpResponseBody.fail("鉴权失败: {%s}".formatted(e.getMessage()));
     }
 
     // ==================== 3. 请求解析与格式异常 ====================
@@ -103,7 +105,7 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public HttpResponseBody<?> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
         log.warn("请求体读取失败: {}", e.getMessage());
-        return HttpResponseBody.fail("请求体缺失或JSON格式错误，请检查发送的数据");
+        return HttpResponseBody.fail("请求体缺失或JSON格式错误");
     }
 
     /**
@@ -114,7 +116,7 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE) // 415
     public HttpResponseBody<?> handleHttpMediaTypeNotSupportedException(HttpMediaTypeNotSupportedException e) {
         log.warn("不支持的媒体类型: {}", e.getContentType());
-        return HttpResponseBody.fail("不支持的内容类型: " + e.getContentType());
+        return HttpResponseBody.fail("不支持的媒体类型: {%s}".formatted(e.getContentType()));
     }
 
     /**
@@ -124,7 +126,7 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public HttpResponseBody<?> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException e) {
         log.warn("文件上传大小超出限制: {}", e.getMessage());
-        return HttpResponseBody.fail("文件大小超出限制，请检查配置");
+        return HttpResponseBody.fail("文件大小超出限制");
     }
 
     // ==================== 4. 参数校验异常 ====================
@@ -139,7 +141,7 @@ public class GlobalExceptionHandler {
                 .map(FieldError::getDefaultMessage)
                 .collect(Collectors.joining("; "));
         log.warn("参数校验错误(Body): {}", errorMessage);
-        return HttpResponseBody.fail("参数错误: " + errorMessage);
+        return HttpResponseBody.fail("Body参数错误: {%s}".formatted(errorMessage));
     }
 
     /**
@@ -152,7 +154,7 @@ public class GlobalExceptionHandler {
                 .map(ConstraintViolation::getMessage)
                 .collect(Collectors.joining("; "));
         log.warn("参数校验错误(URL): {}", errorMessage);
-        return HttpResponseBody.fail("参数错误: " + errorMessage);
+        return HttpResponseBody.fail("URL参数错误: {%s}".formatted(errorMessage));
     }
 
     /**
@@ -165,7 +167,7 @@ public class GlobalExceptionHandler {
                 .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
                 .collect(Collectors.joining("; "));
         log.warn("参数绑定失败: {}", errorMessage);
-        return HttpResponseBody.fail("参数绑定失败: " + errorMessage);
+        return HttpResponseBody.fail("参数绑定失败: {%s}".formatted(errorMessage));
     }
 
     /**
@@ -174,18 +176,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MissingServletRequestParameterException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public HttpResponseBody<?> handleMissingServletRequestParameterException(MissingServletRequestParameterException e) {
-        log.warn("缺少必要参数: {}", e.getParameterName());
-        return HttpResponseBody.fail("请求缺少必要参数: " + e.getParameterName());
+        log.warn("请求缺少必要参数: {}", e.getParameterName());
+        return HttpResponseBody.fail("请求缺少必要参数: {%s}".formatted(e.getParameterName()));
     }
 
     /**
-     * 缺少必要的 Multipart 参数 (如文件上传)
+     * 缺少必要的 Multipart 参数 (文件上传)
      */
     @ExceptionHandler(MissingServletRequestPartException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public HttpResponseBody<?> handleMissingServletRequestPartException(MissingServletRequestPartException e) {
-        log.warn("缺少必要部分: {}", e.getRequestPartName());
-        return HttpResponseBody.fail("请求缺少必要部分: " + e.getRequestPartName());
+        log.warn("请求缺少必要部分: {}", e.getRequestPartName());
+        return HttpResponseBody.fail("请求缺少必要部分: {%s}".formatted(e.getRequestPartName()));
     }
 
     /**
@@ -197,7 +199,7 @@ public class GlobalExceptionHandler {
     public HttpResponseBody<?> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e) {
         String requiredType = e.getRequiredType() != null ? e.getRequiredType().getSimpleName() : "未知类型";
         log.warn("参数类型不匹配: {} 应为 {}", e.getName(), requiredType);
-        return HttpResponseBody.fail("参数类型不匹配: " + e.getName());
+        return HttpResponseBody.fail("参数类型不匹配: {%s} 应为 {%s}".formatted(e.getName(), requiredType));
     }
 
     // ==================== 5. 路由与 HTTP 协议异常 ====================
@@ -209,8 +211,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NoResourceFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public HttpResponseBody<?> handleNoResourceFoundException(NoResourceFoundException e) {
-        log.warn("资源不存在: [{} {}]", e.getHttpMethod(), e.getResourcePath());
-        return HttpResponseBody.fail("请求的资源不存在: " + e.getResourcePath());
+        log.warn("请求的资源不存在: [{} {}]", e.getHttpMethod(), e.getResourcePath());
+        return HttpResponseBody.fail("请求的资源不存在: [{%s} {%s}]".formatted(e.getHttpMethod(), e.getResourcePath()));
     }
 
     /**
@@ -220,7 +222,7 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public HttpResponseBody<?> handleNoHandlerFoundException(NoHandlerFoundException e) {
         log.warn("接口不存在: [{} {}]", e.getHttpMethod(), e.getRequestURL());
-        return HttpResponseBody.fail("接口不存在: " + e.getRequestURL());
+        return HttpResponseBody.fail("接口不存在: [{%s} {%s}]".formatted(e.getHttpMethod(), e.getRequestURL()));
     }
 
     /**
@@ -231,7 +233,7 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED) // 405
     public HttpResponseBody<?> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException e) {
         log.warn("请求方法不支持: {}", e.getMethod());
-        return HttpResponseBody.fail("请求方法不支持: " + e.getMethod());
+        return HttpResponseBody.fail("请求方法不支持: {%s}".formatted(e.getMethod()));
     }
 
     // ==================== 6. 全局兜底异常 ====================
@@ -242,8 +244,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR) // 500
     public HttpResponseBody<?> handleException(Exception e) {
-        log.error("系统未知异常", e);
-        if (exposeUncaughtExceptionDetail) return HttpResponseBody.fail("系统内部错误: " + e.getMessage());
-        return HttpResponseBody.fail("系统内部错误，请联系管理员");
+        log.error("未捕获异常", e);
+        String requestID = MDC.get("requestId");
+        if (exposeUncaughtExceptionDetail) {
+            return HttpResponseBody.fail("系统内部错误: {%s}%n请求ID: {%s}".formatted(e.getMessage(), requestID));
+        }
+        return HttpResponseBody.fail("系统内部错误，请联系管理员%n请求ID: {%s}".formatted(requestID));
     }
 }

@@ -12,7 +12,7 @@ import top.enderliquid.audioflow.dto.response.UserVO;
 import top.enderliquid.audioflow.service.UserService;
 
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/api/user/")
 @Validated
 public class UserController {
 
@@ -22,7 +22,7 @@ public class UserController {
     /**
      * 用户注册
      */
-    @PostMapping("/register")
+    @PostMapping("register")
     public HttpResponseBody<UserVO> register(@RequestBody UserSaveDTO dto) {
         UserVO userVO = userService.saveUser(dto);
         StpUtil.login(userVO.getId());
@@ -32,7 +32,7 @@ public class UserController {
     /**
      * 用户登录
      */
-    @PostMapping("/login")
+    @PostMapping("login")
     public HttpResponseBody<UserVO> login(@RequestBody UserVerifyPasswordDTO dto) {
         UserVO userVO = userService.verifyUserPassword(dto);
         StpUtil.login(userVO.getId());
@@ -43,7 +43,7 @@ public class UserController {
      * 用户注销
      */
     @SaCheckLogin
-    @PostMapping("/logout")
+    @PostMapping("logout")
     public HttpResponseBody<Void> logout() {
         StpUtil.logout();
         return HttpResponseBody.ok(null, "注销成功");

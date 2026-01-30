@@ -14,7 +14,7 @@ import top.enderliquid.audioflow.dto.response.SongVO;
 import top.enderliquid.audioflow.service.SongService;
 
 @RestController
-@RequestMapping("/api/song")
+@RequestMapping("/api/song/")
 @Validated
 public class SongController {
 
@@ -26,7 +26,7 @@ public class SongController {
      * 需要登录
      */
     @SaCheckLogin
-    @PostMapping("/upload")
+    @PostMapping("upload")
     public HttpResponseBody<SongVO> uploadSong(@RequestParam("file") MultipartFile file) {
         // 获取当前登录用户 ID
         long userId = StpUtil.getLoginIdAsLong();
@@ -38,8 +38,8 @@ public class SongController {
     /**
      * 分页查询/搜索歌曲
      */
-    @GetMapping("/list")
-    public HttpResponseBody<CommonPageVO<SongVO>> listSongs(@ModelAttribute SongPageDTO dto) {
+    @GetMapping("page")
+    public HttpResponseBody<CommonPageVO<SongVO>> pageSongs(@ModelAttribute SongPageDTO dto) {
         CommonPageVO<SongVO> result = songService.pageSongsByUploaderKeywordAndSongKeyword(dto);
         return HttpResponseBody.ok(result);
     }
@@ -49,8 +49,8 @@ public class SongController {
      * 需要登录
      */
     @SaCheckLogin
-    @DeleteMapping("/{id}")
-    public HttpResponseBody<Void> removeSong(@PathVariable("id") Long songId) {
+    @PostMapping("remove")
+    public HttpResponseBody<Void> removeSong(@RequestParam("id") Long songId) {
         long userId = StpUtil.getLoginIdAsLong();
         songService.removeSong(songId, userId);
         return HttpResponseBody.ok(null, "删除成功");
@@ -61,8 +61,8 @@ public class SongController {
      * 需要 ADMIN 角色
      */
     @SaCheckRole("ADMIN")
-    @DeleteMapping("/admin/{id}")
-    public HttpResponseBody<Void> removeSongForce(@PathVariable("id") Long songId) {
+    @PostMapping("remove/admin")
+    public HttpResponseBody<Void> removeSongForce(@RequestParam("id") Long songId) {
         songService.removeSongForce(songId);
         return HttpResponseBody.ok(null, "管理员强制删除成功");
     }

@@ -38,7 +38,7 @@
         </where>
 
         <!-- 3. 排序逻辑 -->
-        ORDER BY s.upload_time
+        ORDER BY s.create_time
         <choose>
             <when test="isAsc">ASC</when>
             <otherwise>DESC</otherwise>

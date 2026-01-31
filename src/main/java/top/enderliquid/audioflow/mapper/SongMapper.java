@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import top.enderliquid.audioflow.bo.SongBO;
+import top.enderliquid.audioflow.dto.bo.SongBO;
 import top.enderliquid.audioflow.entity.Song;
 
 @Mapper

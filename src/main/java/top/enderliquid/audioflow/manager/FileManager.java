@@ -1,11 +1,28 @@
 package top.enderliquid.audioflow.manager;
 
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.lang.Nullable;
+
+import java.io.InputStream;
 
 public interface FileManager {
-    boolean save(String fileName, MultipartFile file);
 
+    /**
+     * 上传文件
+     * @return 返回存储源类型 (sourceType)，若保存失败则返回 null
+     */
+    @Nullable
+    String save(String fileName, InputStream content);
+
+    /**
+     * 获取文件访问 URL
+     * @return 文件访问 URL，若获取失败则返回 null
+     */
+    @Nullable
     String getUrl(String fileName, String sourceType);
 
-    boolean delete(String fileName);
+    /**
+     * 删除文件
+     * @return 删除是否成功
+     */
+    boolean delete(String fileName, String sourceType);
 }

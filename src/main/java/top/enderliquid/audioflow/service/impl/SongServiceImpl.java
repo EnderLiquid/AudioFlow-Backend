@@ -120,14 +120,26 @@ public class SongServiceImpl implements SongService {
         log.info("歌曲文件通过检验，原始文件名: {}，文件扩展名: {}", originName, extension);
         String fileName = songId + "." + extension;
         // 保存歌曲文件
-        if (!fileManager.save(fileName, file)) {
+        String sourceType;
+        try (InputStream inputStream = file.getInputStream()) {
+            sourceType = fileManager.save(fileName, inputStream);
+        } catch (IOException e) {
+            sourceType = null;
+        }
+        if (sourceType == null) {
             throw new BusinessException("歌曲文件保存失败");
         }
         log.info("歌曲文件保存成功，保存文件名: {}", fileName);
         // 保存歌曲信息
         Song song = new Song();
         song.setId(songId);
+
+        //TODO:重写名称与描述解析逻辑
+        song.setName(originName);
+        song.setDescription("");
+
         song.setFileName(fileName);
+        song.setSourceType(sourceType);
         song.setSize(file.getSize());
         song.setUploaderId(userId);
         long duration = getAudioDurationInMills(file);
@@ -148,7 +160,7 @@ public class SongServiceImpl implements SongService {
                 return null;
             }));
         } catch (BusinessException e) {
-            if (!fileManager.delete(fileName)) {
+            if (!fileManager.delete(fileName, sourceType)) {
                 log.error("删除已保存的歌曲文件失败: {}", fileName);
             }
             throw e;
@@ -286,7 +298,7 @@ public class SongServiceImpl implements SongService {
         }
         log.info("删除歌曲信息成功");
         String fileName = song.getFileName();
-        if (!fileManager.delete(fileName)) {
+        if (!fileManager.delete(fileName, song.getSourceType())) {
             log.error("删除歌曲文件失败");
         } else {
             log.info("删除歌曲文件成功");

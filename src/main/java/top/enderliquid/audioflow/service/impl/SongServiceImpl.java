@@ -2,6 +2,7 @@ package top.enderliquid.audioflow.service.impl;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
 import org.apache.tika.metadata.Metadata;
@@ -11,14 +12,15 @@ import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.xml.sax.helpers.DefaultHandler;
 import top.enderliquid.audioflow.common.exception.BusinessException;
 import top.enderliquid.audioflow.dto.bo.SongBO;
 import top.enderliquid.audioflow.dto.request.SongPageDTO;
+import top.enderliquid.audioflow.dto.request.SongSaveDTO;
 import top.enderliquid.audioflow.dto.response.CommonPageVO;
 import top.enderliquid.audioflow.dto.response.SongVO;
 import top.enderliquid.audioflow.entity.Song;
@@ -48,14 +50,8 @@ public class SongServiceImpl implements SongService {
     @Autowired
     private FileManager fileManager;
 
-    @Autowired
-    private TransactionTemplate transactionTemplate;
-
     private static final Tika TIKA = new Tika();
     private static final Parser TIKA_PARSER = new AutoDetectParser();
-
-    private static final char[] ILLEGAL_FILE_NAME_CHARS = new char[]
-            {'\\', '/', ':', '*', '?', '"', '\'', '<', '>', '|'};
 
     private static final Map<String, String> MIME_TYPE_TO_EXTENSION_MAP = new HashMap<>();
 
@@ -79,10 +75,10 @@ public class SongServiceImpl implements SongService {
     }
 
     @Override
-    public SongVO saveSong(MultipartFile file, Long userId) {
+    public SongVO saveSong(@Valid SongSaveDTO dto, Long userId) {
         log.info("用户ID为 {} 的用户请求上传歌曲", userId);
         // 检测文件是否为空
-        if (file.isEmpty()) {
+        if (dto.getFile().isEmpty()) {
             throw new BusinessException("文件不能为空");
         }
         // 检查用户是否存在
@@ -90,25 +86,25 @@ public class SongServiceImpl implements SongService {
         if (uploader == null) {
             throw new BusinessException("用户不存在");
         }
-        /*
-         Opera浏览器的MultipartFile对象
-         调用getOriginalFilename()可能返回带路径的值，
-         因此需要显式分离出文件全称。
-         注意，MultipartFile对象调用getOriginalFilename()可能返回null。
-        */
-        String originFileName = StringUtils.getFilename(file.getOriginalFilename());
-        String originName;
+        String name = dto.getName();
         // 提前生成歌曲Id
         long songId = IdWorker.getId();
         // 获取原始文件名
-        String defaultOriginName = String.valueOf(songId);
-        originName = getOriginNameFromOriginFileName(originFileName, defaultOriginName);
-        if (originName.equals(defaultOriginName)) {
-            log.warn("文件名非法，使用歌曲ID作为原始文件名");
+        if (name == null) {
+            String defaultName = String.valueOf(songId);
+            // Opera浏览器的MultipartFile对象
+            // 调用getOriginalFilename()可能返回带路径的值，
+            // 因此需要显式分离出文件全称。
+            // 注意，MultipartFile对象调用getOriginalFilename()可能返回null。
+            String originFileName = StringUtils.getFilename(dto.getFile().getOriginalFilename());
+            name = getNameFromOriginFileName(originFileName);
+            if (name == null) name = defaultName;
         }
         // 忽略原始文件扩展名，通过Magic Number推断文件类型
         String mimeType;
-        try (InputStream inputStream = file.getInputStream()) {
+        InputStream inputStream = getInputStream(dto.getFile());
+        if (inputStream == null) throw new BusinessException("读取文件失败");
+        try {
             mimeType = TIKA.detect(inputStream);
         } catch (IOException e) {
             throw new BusinessException("无法获取文件类型", e);
@@ -117,51 +113,42 @@ public class SongServiceImpl implements SongService {
         if (extension == null) {
             throw new BusinessException("不支持的文件类型");
         }
-        log.info("歌曲文件通过检验，原始文件名: {}，文件扩展名: {}", originName, extension);
         String fileName = songId + "." + extension;
+        log.info("歌曲文件通过检验，歌曲名称: {}", name);
         // 保存歌曲文件
         String sourceType;
-        try (InputStream inputStream = file.getInputStream()) {
-            sourceType = fileManager.save(fileName, inputStream);
-        } catch (IOException e) {
-            sourceType = null;
-        }
+        inputStream = getInputStream(dto.getFile());
+        if (inputStream == null) throw new BusinessException("读取文件失败");
+        sourceType = fileManager.save(fileName, inputStream);
         if (sourceType == null) {
             throw new BusinessException("歌曲文件保存失败");
         }
-        log.info("歌曲文件保存成功，保存文件名: {}", fileName);
+        log.info("歌曲文件保存成功，文件存储名: {}，文件储存源: {}", fileName, sourceType);
         // 保存歌曲信息
         Song song = new Song();
         song.setId(songId);
-
-        //TODO:重写名称与描述解析逻辑
-        song.setName(originName);
-        song.setDescription("");
-
+        song.setName(name);
+        song.setDescription(dto.getDescription());
         song.setFileName(fileName);
         song.setSourceType(sourceType);
-        song.setSize(file.getSize());
+        song.setSize(dto.getFile().getSize());
         song.setUploaderId(userId);
-        long duration = getAudioDurationInMills(file);
-        if (duration == 0) {
+        Long duration = null;
+        inputStream = getInputStream(dto.getFile());
+        if (inputStream != null) duration = getAudioDurationInMills(inputStream);
+        if (duration == null) {
             log.warn("解析歌曲持续时长失败");
+            duration = 0L;
         }
         song.setDuration(duration);
         try {
-            transactionTemplate.execute((status -> {
-                // 再次检测用户是否存在（防御式编程，虽然数据库应该有外键约束）
-                if (!userManager.existsById(userId)) {
-                    throw new BusinessException("用户不存在");
-                }
-                // 保存歌曲信息到数据库
-                if (!songManager.save(song)) {
-                    throw new BusinessException("歌曲信息保存失败");
-                }
-                return null;
-            }));
+            // 保存歌曲信息到数据库（数据库外键约束保证用户存在）
+            if (!songManager.save(song)) {
+                throw new BusinessException("歌曲信息保存失败");
+            }
         } catch (BusinessException e) {
             if (!fileManager.delete(fileName, sourceType)) {
-                log.error("删除已保存的歌曲文件失败: {}", fileName);
+                log.error("删除已保存的歌曲文件失败，文件存储名: {}，文件储存源: {}", fileName, sourceType);
             }
             throw e;
         }
@@ -170,62 +157,62 @@ public class SongServiceImpl implements SongService {
         SongVO songVO = new SongVO();
         BeanUtils.copyProperties(song, songVO);
         songVO.setUploaderName(uploader.getName());
-        songVO.setFileUrl(fileManager.getUrl(song.getFileName(),song.getSourceType()));
+        songVO.setFileUrl(fileManager.getUrl(song.getFileName(), song.getSourceType()));
         return songVO;
     }
 
-    // 从文件全称获取原始文件名
-    private String getOriginNameFromOriginFileName(String originFileName, String defaultOriginName) {
+    @Nullable
+    private InputStream getInputStream(MultipartFile file) {
+        try {
+            return file.getInputStream();
+        } catch (IOException e) {
+            log.error("获取文件输入流失败：{}", file.getName());
+            return null;
+        }
+    }
+
+    // 从文件全称获取文件名
+    @Nullable
+    private String getNameFromOriginFileName(String originFileName) {
         if (originFileName == null) {
-            return defaultOriginName;
+            return null;
         }
         originFileName = originFileName.trim();
         if (originFileName.isEmpty()) {
-            return defaultOriginName;
+            return null;
         }
-        String originName;
+        String name;
         // 获取第一个'.'的下标
         int index = originFileName.lastIndexOf('.');
         if (index == -1) {
             // 文件全称中没有'.'
-            originName = originFileName;
+            name = originFileName;
         } else {
-            originName = originFileName.substring(0, index);
+            name = originFileName.substring(0, index).trim();
         }
-        originName = originName.trim();
-        if (originName.isEmpty()) {
-            return defaultOriginName;
-        }
-        if (originName.length() > 128) {
-            return defaultOriginName;
-        }
-        // 去除非法字符
-        for (char c : ILLEGAL_FILE_NAME_CHARS) {
-            originName = originName.replace(c, ' ');
-        }
-        return originName;
+        return name;
     }
 
-    private long getAudioDurationInMills(MultipartFile file) {
+    private Long getAudioDurationInMills(InputStream inputStream) {
         //TODO:方法无效，需要调试
         DefaultHandler handler = new DefaultHandler();
         Metadata metadata = new Metadata();
         ParseContext parseContext = new ParseContext();
         String durationStr;
-        try (InputStream inputStream = file.getInputStream()) {
+        try (inputStream) {
             TIKA_PARSER.parse(inputStream, handler, metadata, parseContext);
             durationStr = metadata.get(XMPDM.DURATION);
         } catch (Exception e) {
-            return 0;
+            return null;
         }
         if (durationStr == null || durationStr.isEmpty()) {
-            return 0;
+            return null;
         }
         double durationSeconds;
         try {
             durationSeconds = Double.parseDouble(durationStr);
         } catch (NumberFormatException e) {
-            return 0;
+            return null;
         }
         return Math.round(durationSeconds * 1000);
     }
@@ -254,7 +241,7 @@ public class SongServiceImpl implements SongService {
                 if (songBO == null) continue;
                 SongVO songVO = new SongVO();
                 BeanUtils.copyProperties(songBO, songVO);
-                songVO.setFileUrl(fileManager.getUrl(songBO.getFileName(),songBO.getSourceType()));
+                songVO.setFileUrl(fileManager.getUrl(songBO.getFileName(), songBO.getSourceType()));
                 songVOList.add(songVO);
             }
         }

@@ -3,14 +3,14 @@ package top.enderliquid.audioflow.service;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.multipart.MultipartFile;
 import top.enderliquid.audioflow.dto.request.SongPageDTO;
+import top.enderliquid.audioflow.dto.request.SongSaveDTO;
 import top.enderliquid.audioflow.dto.response.CommonPageVO;
 import top.enderliquid.audioflow.dto.response.SongVO;
 
 @Validated
 public interface SongService {
-    SongVO saveSong(@NotNull(message = "文件不能为空") MultipartFile file, @NotNull(message = "用户Id不能为空") Long userId);
+    SongVO saveSong(@Valid SongSaveDTO dto, @NotNull(message = "用户Id不能为空") Long userId);
 
     CommonPageVO<SongVO> pageSongsByUploaderKeywordAndSongKeyword(@Valid SongPageDTO dto);
 

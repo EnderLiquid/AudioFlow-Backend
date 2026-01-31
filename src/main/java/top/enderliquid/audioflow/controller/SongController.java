@@ -6,9 +6,9 @@ import cn.dev33.satoken.stp.StpUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import top.enderliquid.audioflow.common.response.HttpResponseBody;
 import top.enderliquid.audioflow.dto.request.SongPageDTO;
+import top.enderliquid.audioflow.dto.request.SongSaveDTO;
 import top.enderliquid.audioflow.dto.response.CommonPageVO;
 import top.enderliquid.audioflow.dto.response.SongVO;
 import top.enderliquid.audioflow.service.SongService;
@@ -27,11 +27,11 @@ public class SongController {
      */
     @SaCheckLogin
     @PostMapping("upload")
-    public HttpResponseBody<SongVO> uploadSong(@RequestParam("file") MultipartFile file) {
+    public HttpResponseBody<SongVO> uploadSong(@ModelAttribute SongSaveDTO dto) {
         // 获取当前登录用户 ID
         long userId = StpUtil.getLoginIdAsLong();
         // 调用 Service
-        SongVO songVO = songService.saveSong(file, userId);
+        SongVO songVO = songService.saveSong(dto, userId);
         return HttpResponseBody.ok(songVO, "上传成功");
     }
 

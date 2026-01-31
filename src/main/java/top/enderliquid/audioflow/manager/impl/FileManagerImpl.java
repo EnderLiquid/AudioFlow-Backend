@@ -33,7 +33,7 @@ public class FileManagerImpl implements FileManager {
             log.error("文件保存策略不存在");
             return null;
         }
-        if(!strategy.save(fileName, content)) return null;
+        if (!strategy.save(fileName, content)) return null;
         return activeStorageType;
     }
 

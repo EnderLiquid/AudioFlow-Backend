@@ -8,6 +8,7 @@ public interface FileManager {
 
     /**
      * 上传文件
+     *
      * @return 返回存储源类型 (sourceType)，若保存失败则返回 null
      */
     @Nullable
@@ -15,6 +16,7 @@ public interface FileManager {
 
     /**
      * 获取文件访问 URL
+     *
      * @return 文件访问 URL，若获取失败则返回 null
      */
     @Nullable
@@ -22,6 +24,7 @@ public interface FileManager {
 
     /**
      * 删除文件
+     *
      * @return 删除是否成功
      */
     boolean delete(String fileName, String sourceType);

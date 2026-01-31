@@ -10,8 +10,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SongBO {
-    private LocalDateTime createTime;
-    private LocalDateTime updateTime;
     private Long id;
     private String name;
     private String description;
@@ -21,4 +19,6 @@ public class SongBO {
     private Long duration;
     private Long uploaderId;
     private String uploaderName;
+    private LocalDateTime createTime;
+    private LocalDateTime updateTime;
 }

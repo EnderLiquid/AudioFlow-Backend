@@ -27,7 +27,7 @@
                 AND (
                 <trim prefixOverrides="OR">
                     <if test="songKeyword != null">
-                        OR s.origin_name LIKE CONCAT('%', #{songKeyword}, '%')
+                        OR s.name LIKE CONCAT('%', #{songKeyword}, '%')
                     </if>
                     <if test="songId != null">
                         OR s.id = #{songId}

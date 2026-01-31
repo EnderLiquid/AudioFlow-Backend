@@ -16,8 +16,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.xml.sax.helpers.DefaultHandler;
-import top.enderliquid.audioflow.bo.SongBO;
 import top.enderliquid.audioflow.common.exception.BusinessException;
+import top.enderliquid.audioflow.dto.bo.SongBO;
 import top.enderliquid.audioflow.dto.request.SongPageDTO;
 import top.enderliquid.audioflow.dto.response.CommonPageVO;
 import top.enderliquid.audioflow.dto.response.SongVO;
@@ -159,7 +159,8 @@ public class SongServiceImpl implements SongService {
         SongVO songVO = new SongVO();
         BeanUtils.copyProperties(song, songVO);
         songVO.setUploaderName(uploader.getName());
-        songVO.setFileName(fileName);
+        //TODO:解析url
+        songVO.setFileUrl("");
         return songVO;
     }
 
@@ -201,6 +202,7 @@ public class SongServiceImpl implements SongService {
     }
 
     private long getAudioDurationInMills(MultipartFile file) {
+        //TODO:方法无效，需要调试
         DefaultHandler handler = new DefaultHandler();
         Metadata metadata = new Metadata();
         ParseContext parseContext = new ParseContext();
@@ -247,7 +249,8 @@ public class SongServiceImpl implements SongService {
                 if (songBO == null) continue;
                 SongVO songVO = new SongVO();
                 BeanUtils.copyProperties(songBO, songVO);
-                songVO.setFileName(getFileNameFromSongIdAndExtension(songBO.getId(), songBO.getExtension()));
+                //TODO:解析url
+                songVO.setFileUrl("");
                 songVOList.add(songVO);
             }
         }

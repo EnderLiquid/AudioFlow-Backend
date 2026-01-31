@@ -1,15 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "<http://mybatis.org/dtd/mybatis-3-mapper.dtd>">
 <mapper namespace="top.enderliquid.audioflow.mapper.SongMapper">
-    <select id="selectPageByUploaderInfoOrSongInfo" resultType="top.enderliquid.audioflow.bo.SongBO">
+    <select id="selectPageByUploaderInfoOrSongInfo" resultType="top.enderliquid.audioflow.dto.bo.SongBO">
         SELECT
-        s.id,
-        s.extension,
-        s.origin_name AS originName,
-        s.size,
-        s.upload_time AS uploadTime,
-        s.duration,
-        s.uploader_id AS uploaderId,
+        s.*,
         u.name AS uploaderName
         FROM song s
         LEFT JOIN user u ON s.uploader_id = u.id
@@ -31,12 +25,14 @@
             <!-- 2. 筛选歌曲 (ID精确匹配 OR 歌名模糊匹配) -->
             <if test="songKeyword != null or songId != null">
                 AND (
-                <if test="songKeyword != null">
-                    OR s.origin_name LIKE CONCAT('%', #{songKeyword}, '%')
-                </if>
-                <if test="songId != null">
-                    OR s.id = #{songId}
-                </if>
+                <trim prefixOverrides="OR">
+                    <if test="songKeyword != null">
+                        OR s.origin_name LIKE CONCAT('%', #{songKeyword}, '%')
+                    </if>
+                    <if test="songId != null">
+                        OR s.id = #{songId}
+                    </if>
+                </trim>
                 )
             </if>
         </where>

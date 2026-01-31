@@ -25,10 +25,16 @@ public class Song {
 
     String extension;
 
+    @TableField("source_type")
+    String sourceType;
+
     Long size;
 
-    @TableField(value = "upload_time", insertStrategy = FieldStrategy.NEVER, updateStrategy = FieldStrategy.NEVER)
-    LocalDateTime uploadTime;
+    @TableField(value = "create_time", insertStrategy = FieldStrategy.NEVER, updateStrategy = FieldStrategy.NEVER)
+    private LocalDateTime createTime;
+
+    @TableField(value = "update_time", insertStrategy = FieldStrategy.NEVER, updateStrategy = FieldStrategy.NEVER)
+    private LocalDateTime updateTime;
 
     Long duration;
 

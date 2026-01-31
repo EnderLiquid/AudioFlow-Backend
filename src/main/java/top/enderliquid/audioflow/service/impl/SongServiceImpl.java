@@ -118,17 +118,16 @@ public class SongServiceImpl implements SongService {
             throw new BusinessException("不支持的文件类型");
         }
         log.info("歌曲文件通过检验，原始文件名: {}，文件扩展名: {}", originName, extension);
-        String fileName = getFileNameFromSongIdAndExtension(songId, extension);
+        String fileName = songId + "." + extension;
         // 保存歌曲文件
-        if (!fileManager.save(file, fileName)) {
+        if (!fileManager.save(fileName, file)) {
             throw new BusinessException("歌曲文件保存失败");
         }
         log.info("歌曲文件保存成功，保存文件名: {}", fileName);
         // 保存歌曲信息
         Song song = new Song();
         song.setId(songId);
-        song.setOriginName(originName);
-        song.setExtension(extension);
+        song.setFileName(fileName);
         song.setSize(file.getSize());
         song.setUploaderId(userId);
         long duration = getAudioDurationInMills(file);
@@ -159,8 +158,7 @@ public class SongServiceImpl implements SongService {
         SongVO songVO = new SongVO();
         BeanUtils.copyProperties(song, songVO);
         songVO.setUploaderName(uploader.getName());
-        //TODO:解析url
-        songVO.setFileUrl("");
+        songVO.setFileUrl(fileManager.getUrl(song.getFileName(),song.getSourceType()));
         return songVO;
     }
 
@@ -194,11 +192,6 @@ public class SongServiceImpl implements SongService {
             originName = originName.replace(c, ' ');
         }
         return originName;
-    }
-
-    //从歌曲 ID 和扩展名拼接文件名
-    private String getFileNameFromSongIdAndExtension(Long songId, String extension) {
-        return songId + "." + extension;
     }
 
     private long getAudioDurationInMills(MultipartFile file) {
@@ -249,8 +242,7 @@ public class SongServiceImpl implements SongService {
                 if (songBO == null) continue;
                 SongVO songVO = new SongVO();
                 BeanUtils.copyProperties(songBO, songVO);
-                //TODO:解析url
-                songVO.setFileUrl("");
+                songVO.setFileUrl(fileManager.getUrl(songBO.getFileName(),songBO.getSourceType()));
                 songVOList.add(songVO);
             }
         }
@@ -293,7 +285,7 @@ public class SongServiceImpl implements SongService {
             throw new BusinessException("删除歌曲信息失败");
         }
         log.info("删除歌曲信息成功");
-        String fileName = getFileNameFromSongIdAndExtension(song.getId(), song.getExtension());
+        String fileName = song.getFileName();
         if (!fileManager.delete(fileName)) {
             log.error("删除歌曲文件失败");
         } else {

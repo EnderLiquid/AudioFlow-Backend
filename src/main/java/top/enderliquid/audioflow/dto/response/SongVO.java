@@ -10,12 +10,13 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SongVO {
-    private Long id;
-    String originName;
-    String extension;
-    private Long size;
-    private String fileUrl;
     private LocalDateTime createTime;
+    private LocalDateTime updateTime;
+    private Long id;
+    private String name;
+    private String description;
+    private String fileUrl;
+    private Long size;
     private Long duration;
     private Long uploaderId;
     private String uploaderName;

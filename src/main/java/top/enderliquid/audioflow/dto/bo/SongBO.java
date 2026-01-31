@@ -10,14 +10,15 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SongBO {
-    Long id;
-    String originName;
-    String extension;
-    String sourceType;
-    Long size;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
-    Long duration;
-    Long uploaderId;
-    String uploaderName;
+    private Long id;
+    private String name;
+    private String description;
+    private String fileName;
+    private String sourceType;
+    private Long size;
+    private Long duration;
+    private Long uploaderId;
+    private String uploaderName;
 }

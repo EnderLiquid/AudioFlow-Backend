@@ -20,7 +20,7 @@ public class FileManagerImpl implements FileManager {
     @Value("${file.storage.local.dir}")
     private String localStorageDir;
 
-    public boolean save(MultipartFile file, String fileName) {
+    public boolean save(String fileName, MultipartFile file) {
         // 创建目录
         Path dirPath;
         try {
@@ -73,6 +73,11 @@ public class FileManagerImpl implements FileManager {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public String getUrl(String fileName, String sourceType) {
+        return "";
     }
 
     @Override

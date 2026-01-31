@@ -17,18 +17,6 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = false)
 @TableName("song")
 public class Song {
-    @TableId
-    Long id;
-
-    @TableField("origin_name")
-    String originName;
-
-    String extension;
-
-    @TableField("source_type")
-    String sourceType;
-
-    Long size;
 
     @TableField(value = "create_time", insertStrategy = FieldStrategy.NEVER, updateStrategy = FieldStrategy.NEVER)
     private LocalDateTime createTime;
@@ -36,8 +24,23 @@ public class Song {
     @TableField(value = "update_time", insertStrategy = FieldStrategy.NEVER, updateStrategy = FieldStrategy.NEVER)
     private LocalDateTime updateTime;
 
-    Long duration;
+    @TableId
+    private Long id;
+
+    private String name;
+
+    private String description;
+
+    @TableField("file_name")
+    private String fileName;
+
+    @TableField("source_type")
+    private String sourceType;
+
+    private Long size;
+
+    private Long duration;
 
     @TableField("uploader_id")
-    Long uploaderId;
+    private Long uploaderId;
 }

@@ -2,7 +2,6 @@ package top.enderliquid.audioflow.service.impl;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
-import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
 import org.apache.tika.metadata.Metadata;
@@ -75,7 +74,7 @@ public class SongServiceImpl implements SongService {
     }
 
     @Override
-    public SongVO saveSong(@Valid SongSaveDTO dto, Long userId) {
+    public SongVO saveSong(SongSaveDTO dto, Long userId) {
         log.info("用户ID为 {} 的用户请求上传歌曲", userId);
         // 检测文件是否为空
         if (dto.getFile().isEmpty()) {

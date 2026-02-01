@@ -86,7 +86,7 @@ public class SongController {
     public void getSongUrl(@PathVariable Long songId, HttpServletResponse response) {
         String url = songService.getSongUrl(songId);
         try {
-            if (url == null){
+            if (url == null) {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "获取歌曲文件URL失败");
                 return;
             }

@@ -55,7 +55,6 @@ public class UserController {
     @SaCheckLogin
     @GetMapping("info")
     public HttpResponseBody<UserVO> getUserInfo() {
-        // 从 Sa-Token 获取当前登录的 ID
         long userId = StpUtil.getLoginIdAsLong();
         UserVO userVO = userService.getUser(userId);
         return HttpResponseBody.ok(userVO);

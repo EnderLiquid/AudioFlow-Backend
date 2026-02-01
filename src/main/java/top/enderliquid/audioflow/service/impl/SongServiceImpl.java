@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.xml.sax.helpers.DefaultHandler;
 import top.enderliquid.audioflow.common.exception.BusinessException;
 import top.enderliquid.audioflow.dto.bo.SongBO;
+import top.enderliquid.audioflow.dto.param.SongPageParam;
 import top.enderliquid.audioflow.dto.request.SongPageDTO;
 import top.enderliquid.audioflow.dto.request.SongSaveDTO;
 import top.enderliquid.audioflow.dto.request.SongUpdateDTO;
@@ -220,21 +221,12 @@ public class SongServiceImpl implements SongService {
     @Override
     public CommonPageVO<SongVO> pageSongsByUploaderKeywordAndSongKeyword(SongPageDTO dto) {
         log.info("请求分页查询歌曲");
-        String uploaderKeyword = dto.getUploaderKeyword();
-        String songKeyword = dto.getSongKeyword();
-        Boolean isAsc = dto.getIsAsc();
-        if (isAsc == null) isAsc = false;
-        Long pageNum = dto.getPageNum();
-        if (pageNum == null) pageNum = 1L;
-        Long pageSize = dto.getPageSize();
-        if (pageSize == null) pageSize = 10L;
-        IPage<SongBO> songBOPage = songManager.pageByUploaderKeywordAndSongKeyword(
-                uploaderKeyword,
-                songKeyword,
-                isAsc,
-                pageNum,
-                pageSize
-        );
+        SongPageParam param = new SongPageParam();
+        BeanUtils.copyProperties(dto, param);
+        if (param.getIsAsc() == null) param.setIsAsc(false);
+        if (param.getPageNum() == null) param.setPageNum(1L);
+        if (param.getPageSize() == null) param.setPageSize(1L);
+        IPage<SongBO> songBOPage = songManager.pageByUploaderKeywordAndSongKeyword(param);
         List<SongBO> songBOList = songBOPage.getRecords();
         List<SongVO> songVOList = new ArrayList<>();
         if (songBOList != null && !songBOList.isEmpty()) {
@@ -247,8 +239,8 @@ public class SongServiceImpl implements SongService {
         }
         CommonPageVO<SongVO> pageVO = new CommonPageVO<>();
         pageVO.setList(songVOList);
-        pageVO.setNum(pageNum);
-        pageVO.setSize(pageSize);
+        pageVO.setPageNum(songBOPage.getCurrent());
+        pageVO.setPageSize(songBOPage.getSize());
         pageVO.setTotal(songBOPage.getTotal());
         log.info("分页查询歌曲成功");
         return pageVO;
@@ -294,13 +286,14 @@ public class SongServiceImpl implements SongService {
         if (song == null) {
             throw new BusinessException("歌曲不存在");
         }
-        User uploader = userManager.getById(song.getUploaderId());
-        if (uploader == null) {
-            throw new BusinessException("上传用户不存在");
-        }
         SongVO songVO = new SongVO();
         BeanUtils.copyProperties(song, songVO);
-        songVO.setUploaderName(uploader.getName());
+        User uploader = userManager.getById(song.getUploaderId());
+        if (uploader != null) {
+            songVO.setUploaderName(uploader.getName());
+        } else {
+            songVO.setUploaderName("未知用户");
+        }
         log.info("获取歌曲信息成功");
         return songVO;
     }
@@ -345,13 +338,15 @@ public class SongServiceImpl implements SongService {
         if (!songManager.updateById(song)) {
             throw new BusinessException("歌曲信息更新失败");
         }
-        User uploader = userManager.getById(song.getUploaderId());
-        if (uploader == null) {
-            throw new BusinessException("上传用户不存在");
-        }
         SongVO songVO = new SongVO();
         BeanUtils.copyProperties(song, songVO);
-        songVO.setUploaderName(uploader.getName());
+
+        User uploader = userManager.getById(song.getUploaderId());
+        if (uploader != null) {
+            songVO.setUploaderName(uploader.getName());
+        } else {
+            songVO.setUploaderName("未知用户");
+        }
         log.info("更新歌曲信息成功");
         return songVO;
     }

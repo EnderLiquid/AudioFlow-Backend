@@ -116,7 +116,7 @@ public class SongController {
      */
     @SaCheckLogin
     @SaCheckRole("ADMIN")
-    @PostMapping("update")
+    @PostMapping("update/admin")
     public HttpResponseBody<SongVO> updateSongForce(@RequestBody SongUpdateDTO dto) {
         SongVO songVO = songService.updateSongForce(dto);
         return HttpResponseBody.ok(songVO);

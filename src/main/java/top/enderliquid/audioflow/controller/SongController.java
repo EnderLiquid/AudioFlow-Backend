@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import top.enderliquid.audioflow.common.response.HttpResponseBody;
 import top.enderliquid.audioflow.dto.request.SongPageDTO;
 import top.enderliquid.audioflow.dto.request.SongSaveDTO;
+import top.enderliquid.audioflow.dto.request.SongUpdateDTO;
 import top.enderliquid.audioflow.dto.response.CommonPageVO;
 import top.enderliquid.audioflow.dto.response.SongVO;
 import top.enderliquid.audioflow.service.SongService;
@@ -63,6 +64,7 @@ public class SongController {
      * 管理员强制删除歌曲
      * 需要 ADMIN 角色
      */
+    @SaCheckLogin
     @SaCheckRole("ADMIN")
     @GetMapping("remove/admin/{songId}")
     public HttpResponseBody<Void> removeSongForce(@PathVariable Long songId) {
@@ -94,5 +96,29 @@ public class SongController {
         } catch (IOException e) {
             log.error("歌曲URL查询接口响应失败");
         }
+    }
+
+    /**
+     * 更新自己的歌曲信息
+     * 需要登录
+     */
+    @SaCheckLogin
+    @PostMapping("update")
+    public HttpResponseBody<SongVO> updateSong(@RequestBody SongUpdateDTO dto) {
+        long userId = StpUtil.getLoginIdAsLong();
+        SongVO songVO = songService.updateSong(dto, userId);
+        return HttpResponseBody.ok(songVO);
+    }
+
+    /**
+     * 管理员强制更新歌曲信息
+     * 需要 ADMIN 角色
+     */
+    @SaCheckLogin
+    @SaCheckRole("ADMIN")
+    @PostMapping("update")
+    public HttpResponseBody<SongVO> updateSongForce(@RequestBody SongUpdateDTO dto) {
+        SongVO songVO = songService.updateSongForce(dto);
+        return HttpResponseBody.ok(songVO);
     }
 }

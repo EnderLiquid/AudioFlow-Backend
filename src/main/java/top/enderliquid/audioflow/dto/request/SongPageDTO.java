@@ -9,10 +9,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SongPageDTO {
-    // null 或空: 不限制用户关键词
+    // null: 不限制用户关键词
     private String uploaderKeyword;
 
-    // null 或空: 不限制歌曲关键词
+    // null: 不限制歌曲关键词
     private String songKeyword;
 
     // null: 默认 false ，倒序

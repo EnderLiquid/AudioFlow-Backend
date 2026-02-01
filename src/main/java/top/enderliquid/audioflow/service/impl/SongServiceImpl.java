@@ -20,6 +20,7 @@ import top.enderliquid.audioflow.common.exception.BusinessException;
 import top.enderliquid.audioflow.dto.bo.SongBO;
 import top.enderliquid.audioflow.dto.request.SongPageDTO;
 import top.enderliquid.audioflow.dto.request.SongSaveDTO;
+import top.enderliquid.audioflow.dto.request.SongUpdateDTO;
 import top.enderliquid.audioflow.dto.response.CommonPageVO;
 import top.enderliquid.audioflow.dto.response.SongVO;
 import top.enderliquid.audioflow.entity.Song;
@@ -253,32 +254,26 @@ public class SongServiceImpl implements SongService {
         return pageVO;
     }
 
-    // 普通用户: 验证歌曲所有权
     @Override
     public void removeSong(Long songId, Long userId) {
         log.info("请求删除歌曲，用户ID: {} ，歌曲ID: {}", userId, songId);
-        Song song = songManager.getById(songId);
-        if (song == null) {
-            throw new BusinessException("歌曲不存在");
-        }
-        if (!song.getUploaderId().equals(userId)) {
-            throw new BusinessException("无权删除他人上传的歌曲");
-        }
-        doRemoveSong(song);
+        doRemoveSong(songId, userId, false);
     }
 
-    // 管理员: 强制删除歌曲
     @Override
     public void removeSongForce(Long songId) {
         log.info("请求强制删除歌曲，用户ID: {}", songId);
+        doRemoveSong(songId, null, true);
+    }
+
+    private void doRemoveSong(Long songId, Long userId, boolean isForce) {
         Song song = songManager.getById(songId);
         if (song == null) {
             throw new BusinessException("歌曲不存在");
         }
-        doRemoveSong(song);
-    }
-
-    private void doRemoveSong(Song song) {
+        if (!isForce && !song.getUploaderId().equals(userId)) {
+            throw new BusinessException("无权删除他人上传的歌曲");
+        }
         if (!songManager.removeById(song)) {
             log.error("删除歌曲信息失败");
             throw new BusinessException("删除歌曲信息失败");
@@ -299,13 +294,13 @@ public class SongServiceImpl implements SongService {
         if (song == null) {
             throw new BusinessException("歌曲不存在");
         }
-        User user = userManager.getById(song.getUploaderId());
-        if (user == null) {
+        User uploader = userManager.getById(song.getUploaderId());
+        if (uploader == null) {
             throw new BusinessException("上传用户不存在");
         }
         SongVO songVO = new SongVO();
         BeanUtils.copyProperties(song, songVO);
-        songVO.setUploaderName(user.getName());
+        songVO.setUploaderName(uploader.getName());
         log.info("获取歌曲信息成功");
         return songVO;
     }
@@ -320,5 +315,44 @@ public class SongServiceImpl implements SongService {
         String url = fileManager.getUrl(song.getFileName(), song.getSourceType());
         if (url != null) log.info("获取歌曲播放链接成功");
         return url;
+    }
+
+    @Override
+    public SongVO updateSong(SongUpdateDTO dto, Long userId) {
+        log.info("请求更新歌曲信息，歌曲ID: {}", dto.getSongId());
+        return doUpdateSong(dto, userId, false);
+    }
+
+    @Override
+    public SongVO updateSongForce(SongUpdateDTO dto) {
+        log.info("请求强制更新歌曲信息，歌曲ID: {}", dto.getSongId());
+        return doUpdateSong(dto, null, true);
+    }
+
+    private SongVO doUpdateSong(SongUpdateDTO dto, Long userId, boolean isForce) {
+        if (dto.getName() == null && dto.getDescription() == null) {
+            throw new BusinessException("更新信息不能全为空");
+        }
+        Song song = songManager.getById(dto.getSongId());
+        if (song == null) {
+            throw new BusinessException("歌曲不存在");
+        }
+        if (!isForce && !song.getUploaderId().equals(userId)) {
+            throw new BusinessException("无权更新他人上传歌曲的信息");
+        }
+        if (dto.getName() != null) song.setName(dto.getName());
+        if (dto.getDescription() != null) song.setDescription(dto.getDescription());
+        if (!songManager.updateById(song)) {
+            throw new BusinessException("歌曲信息更新失败");
+        }
+        User uploader = userManager.getById(song.getUploaderId());
+        if (uploader == null) {
+            throw new BusinessException("上传用户不存在");
+        }
+        SongVO songVO = new SongVO();
+        BeanUtils.copyProperties(song, songVO);
+        songVO.setUploaderName(uploader.getName());
+        log.info("更新歌曲信息成功");
+        return songVO;
     }
 }

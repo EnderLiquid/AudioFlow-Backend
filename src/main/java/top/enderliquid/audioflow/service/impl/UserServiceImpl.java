@@ -9,6 +9,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import top.enderliquid.audioflow.common.constant.UserConstant;
 import top.enderliquid.audioflow.common.exception.BusinessException;
 import top.enderliquid.audioflow.dto.request.UserSaveDTO;
+import top.enderliquid.audioflow.dto.request.UserUpdatePasswordDTO;
 import top.enderliquid.audioflow.dto.request.UserVerifyPasswordDTO;
 import top.enderliquid.audioflow.dto.response.UserVO;
 import top.enderliquid.audioflow.entity.User;
@@ -64,9 +65,9 @@ public class UserServiceImpl implements UserService {
             }
             return null;
         });
-        log.info("用户注册成功，邮箱: {}，用户ID: {}", user.getEmail(), user.getId());
         UserVO userVO = new UserVO();
         BeanUtils.copyProperties(user, userVO);
+        log.info("注册用户成功，用户ID: {}", user.getId());
         return userVO;
     }
 
@@ -83,21 +84,48 @@ public class UserServiceImpl implements UserService {
         )) {
             throw new BusinessException("密码错误");
         }
-        log.info("用户密码校验成功，邮箱: {}，用户ID: {}", user.getEmail(), user.getId());
         UserVO userVO = new UserVO();
         BeanUtils.copyProperties(user, userVO);
+        log.info("用户密码校验成功，用户ID: {}", user.getId());
         return userVO;
     }
 
     @Override
     public UserVO getUser(Long userId) {
-        log.info("请求获取用户ID为 {} 的用户信息", userId);
+        log.info("请求获取用户信息，用户ID: {}", userId);
         User user = userManager.getById(userId);
         if (user == null) {
             throw new BusinessException("用户不存在");
         }
         UserVO userVO = new UserVO();
         BeanUtils.copyProperties(user, userVO);
+        log.info("获取用户信息成功");
+        return userVO;
+    }
+
+    @Override
+    public UserVO updateUserPassword(UserUpdatePasswordDTO dto, Long userId) {
+        log.info("请求更新用户密码，用户ID: {}", userId);
+        if (dto.getNewPassword().equals(dto.getOldPassword())) {
+            throw new BusinessException("新密码与旧密码相同");
+        }
+        User user = userManager.getById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+        if (!passwordEncoder.matches(
+                dto.getOldPassword(), // 明文
+                user.getPassword() // 密文
+        )) {
+            throw new BusinessException("旧密码错误");
+        }
+        user.setPassword(dto.getNewPassword());
+        if (!userManager.updateById(user)) {
+            throw new BusinessException("更新密码失败");
+        }
+        UserVO userVO = new UserVO();
+        BeanUtils.copyProperties(user, userVO);
+        log.info("更新用户密码成功");
         return userVO;
     }
 }

@@ -6,7 +6,7 @@
         s.*,
         u.name AS uploaderName
         FROM song s
-        LEFT JOIN user u ON s.uploader_id = u.id
+        INNER JOIN user u ON s.uploader_id = u.id
         <where>
             <!-- 1. 筛选上传者 (ID精确匹配 OR 名字模糊匹配) -->
             <if test="uploaderKeyword != null or uploaderId != null">

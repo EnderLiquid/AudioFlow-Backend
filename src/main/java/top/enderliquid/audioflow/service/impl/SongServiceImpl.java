@@ -225,7 +225,7 @@ public class SongServiceImpl implements SongService {
         BeanUtils.copyProperties(dto, param);
         if (param.getIsAsc() == null) param.setIsAsc(false);
         if (param.getPageNum() == null) param.setPageNum(1L);
-        if (param.getPageSize() == null) param.setPageSize(1L);
+        if (param.getPageSize() == null) param.setPageSize(10L);
         IPage<SongBO> songBOPage = songManager.pageByUploaderKeywordAndSongKeyword(param);
         List<SongBO> songBOList = songBOPage.getRecords();
         List<SongVO> songVOList = new ArrayList<>();

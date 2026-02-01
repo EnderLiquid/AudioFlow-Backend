@@ -13,7 +13,6 @@ public class SongVO {
     private Long id;
     private String name;
     private String description;
-    private String fileUrl;
     private Long size;
     private Long duration;
     private Long uploaderId;

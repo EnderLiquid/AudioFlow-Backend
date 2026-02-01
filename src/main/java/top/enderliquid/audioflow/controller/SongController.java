@@ -3,6 +3,8 @@ package top.enderliquid.audioflow.controller;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.dev33.satoken.stp.StpUtil;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -13,6 +15,9 @@ import top.enderliquid.audioflow.dto.response.CommonPageVO;
 import top.enderliquid.audioflow.dto.response.SongVO;
 import top.enderliquid.audioflow.service.SongService;
 
+import java.io.IOException;
+
+@Slf4j
 @RestController
 @RequestMapping("/api/song/")
 @Validated
@@ -28,9 +33,7 @@ public class SongController {
     @SaCheckLogin
     @PostMapping("upload")
     public HttpResponseBody<SongVO> uploadSong(@ModelAttribute SongSaveDTO dto) {
-        // 获取当前登录用户 ID
         long userId = StpUtil.getLoginIdAsLong();
-        // 调用 Service
         SongVO songVO = songService.saveSong(dto, userId);
         return HttpResponseBody.ok(songVO, "上传成功");
     }
@@ -49,8 +52,8 @@ public class SongController {
      * 需要登录
      */
     @SaCheckLogin
-    @PostMapping("remove")
-    public HttpResponseBody<Void> removeSong(@RequestParam("id") Long songId) {
+    @GetMapping("remove/{songId}")
+    public HttpResponseBody<Void> removeSong(@PathVariable Long songId) {
         long userId = StpUtil.getLoginIdAsLong();
         songService.removeSong(songId, userId);
         return HttpResponseBody.ok(null, "删除成功");
@@ -61,9 +64,35 @@ public class SongController {
      * 需要 ADMIN 角色
      */
     @SaCheckRole("ADMIN")
-    @PostMapping("remove/admin")
-    public HttpResponseBody<Void> removeSongForce(@RequestParam("id") Long songId) {
+    @GetMapping("remove/admin/{songId}")
+    public HttpResponseBody<Void> removeSongForce(@PathVariable Long songId) {
         songService.removeSongForce(songId);
         return HttpResponseBody.ok(null, "管理员强制删除成功");
+    }
+
+    /**
+     * 获取歌曲信息
+     */
+    @GetMapping("info/{songId}")
+    public HttpResponseBody<SongVO> getSongInfo(@PathVariable Long songId) {
+        SongVO songVO = songService.getSong(songId);
+        return HttpResponseBody.ok(songVO, null);
+    }
+
+    /**
+     * 获取歌曲播放URL
+     */
+    @GetMapping("play/{songId}")
+    public void getSongUrl(@PathVariable Long songId, HttpServletResponse response) {
+        String url = songService.getSongUrl(songId);
+        try {
+            if (url == null){
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "获取歌曲文件URL失败");
+                return;
+            }
+            response.sendRedirect(url);
+        } catch (IOException e) {
+            log.error("歌曲URL查询接口响应失败");
+        }
     }
 }

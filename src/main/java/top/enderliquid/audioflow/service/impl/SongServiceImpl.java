@@ -110,7 +110,7 @@ public class SongServiceImpl implements SongService {
         }
         String extension = MIME_TYPE_TO_EXTENSION_MAP.get(mimeType);
         if (extension == null) {
-            throw new BusinessException("不支持的文件类型");
+            throw new BusinessException("不支持该文件类型");
         }
         String fileName = songId + "." + extension;
         log.info("歌曲文件通过检验，歌曲名称: {}", name);
@@ -156,7 +156,6 @@ public class SongServiceImpl implements SongService {
         SongVO songVO = new SongVO();
         BeanUtils.copyProperties(song, songVO);
         songVO.setUploaderName(uploader.getName());
-        songVO.setFileUrl(fileManager.getUrl(song.getFileName(), song.getSourceType()));
         return songVO;
     }
 
@@ -193,7 +192,6 @@ public class SongServiceImpl implements SongService {
     }
 
     private Long getAudioDurationInMills(InputStream inputStream) {
-        //TODO:方法无效，需要调试
         DefaultHandler handler = new DefaultHandler();
         Metadata metadata = new Metadata();
         ParseContext parseContext = new ParseContext();
@@ -240,7 +238,6 @@ public class SongServiceImpl implements SongService {
                 if (songBO == null) continue;
                 SongVO songVO = new SongVO();
                 BeanUtils.copyProperties(songBO, songVO);
-                songVO.setFileUrl(fileManager.getUrl(songBO.getFileName(), songBO.getSourceType()));
                 songVOList.add(songVO);
             }
         }
@@ -289,5 +286,32 @@ public class SongServiceImpl implements SongService {
         } else {
             log.info("删除歌曲文件成功");
         }
+    }
+
+    @Override
+    public SongVO getSong(Long songId) {
+        log.info("请求获取歌曲ID为 {} 的歌曲信息", songId);
+        Song song = songManager.getById(songId);
+        if (song == null) {
+            throw new BusinessException("歌曲不存在");
+        }
+        User user = userManager.getById(song.getUploaderId());
+        if (user == null) {
+            throw new BusinessException("上传用户不存在");
+        }
+        SongVO songVO = new SongVO();
+        BeanUtils.copyProperties(song, songVO);
+        songVO.setUploaderName(user.getName());
+        return songVO;
+    }
+
+    @Override
+    public String getSongUrl(Long songId) {
+        log.info("请求获取歌曲ID为 {} 的歌曲播放链接", songId);
+        Song song = songManager.getById(songId);
+        if (song == null) {
+            throw new BusinessException("歌曲不存在");
+        }
+        return fileManager.getUrl(song.getFileName(), song.getSourceType());
     }
 }

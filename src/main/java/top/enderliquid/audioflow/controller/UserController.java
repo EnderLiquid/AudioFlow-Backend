@@ -7,6 +7,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import top.enderliquid.audioflow.common.response.HttpResponseBody;
 import top.enderliquid.audioflow.dto.request.UserSaveDTO;
+import top.enderliquid.audioflow.dto.request.UserUpdatePasswordDTO;
 import top.enderliquid.audioflow.dto.request.UserVerifyPasswordDTO;
 import top.enderliquid.audioflow.dto.response.UserVO;
 import top.enderliquid.audioflow.service.UserService;
@@ -57,6 +58,17 @@ public class UserController {
     public HttpResponseBody<UserVO> getUserInfo() {
         long userId = StpUtil.getLoginIdAsLong();
         UserVO userVO = userService.getUser(userId);
+        return HttpResponseBody.ok(userVO);
+    }
+
+    /**
+     * 更改用户密码
+     */
+    @SaCheckLogin
+    @PostMapping("update/password")
+    public HttpResponseBody<UserVO> changePassword(UserUpdatePasswordDTO dto) {
+        long userId = StpUtil.getLoginIdAsLong();
+        UserVO userVO = userService.updateUserPassword(dto, userId);
         return HttpResponseBody.ok(userVO);
     }
 }

@@ -32,28 +32,22 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserVO saveUser(UserSaveDTO dto) {
         log.info("请求注册普通用户，邮箱: {}", dto.getEmail());
-        User user = new User();
-        user.setEmail(dto.getEmail());
-        user.setName(dto.getName());
-        String encryptedPassword = passwordEncoder.encode(dto.getPassword());
-        user.setPassword(encryptedPassword);
-        user.setRole(UserConstant.Role.USER);
-        return doSaveUser(user);
+        return doSaveUser(dto, UserConstant.Role.USER);
     }
 
     @Override
     public UserVO saveAdminUser(UserSaveDTO dto) {
         log.info("请求注册管理员用户，邮箱: {}", dto.getEmail());
+        return doSaveUser(dto, UserConstant.Role.ADMIN);
+    }
+
+    private UserVO doSaveUser(UserSaveDTO dto, UserConstant.Role role) {
         User user = new User();
         user.setEmail(dto.getEmail());
         user.setName(dto.getName());
         String encryptedPassword = passwordEncoder.encode(dto.getPassword());
         user.setPassword(encryptedPassword);
-        user.setRole(UserConstant.Role.ADMIN);
-        return doSaveUser(user);
-    }
-
-    private UserVO doSaveUser(User user) {
+        user.setRole(role);
         transactionTemplate.execute((status) -> {
             // 检查邮箱是否已存在
             if (userManager.existsByEmail(user.getEmail())) {

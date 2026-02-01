@@ -75,7 +75,7 @@ public class SongServiceImpl implements SongService {
 
     @Override
     public SongVO saveSong(SongSaveDTO dto, Long userId) {
-        log.info("用户ID为 {} 的用户请求上传歌曲", userId);
+        log.info("请求上传歌曲，用户ID: {}", userId);
         // 检测文件是否为空
         if (dto.getFile().isEmpty()) {
             throw new BusinessException("文件不能为空");
@@ -156,6 +156,7 @@ public class SongServiceImpl implements SongService {
         SongVO songVO = new SongVO();
         BeanUtils.copyProperties(song, songVO);
         songVO.setUploaderName(uploader.getName());
+        log.info("上传歌曲成功");
         return songVO;
     }
 
@@ -191,6 +192,7 @@ public class SongServiceImpl implements SongService {
         return name;
     }
 
+    @Nullable
     private Long getAudioDurationInMills(InputStream inputStream) {
         DefaultHandler handler = new DefaultHandler();
         Metadata metadata = new Metadata();
@@ -216,6 +218,7 @@ public class SongServiceImpl implements SongService {
 
     @Override
     public CommonPageVO<SongVO> pageSongsByUploaderKeywordAndSongKeyword(SongPageDTO dto) {
+        log.info("请求分页查询歌曲");
         String uploaderKeyword = dto.getUploaderKeyword();
         String songKeyword = dto.getSongKeyword();
         Boolean isAsc = dto.getIsAsc();
@@ -246,13 +249,14 @@ public class SongServiceImpl implements SongService {
         pageVO.setNum(pageNum);
         pageVO.setSize(pageSize);
         pageVO.setTotal(songBOPage.getTotal());
+        log.info("分页查询歌曲成功");
         return pageVO;
     }
 
     // 普通用户: 验证歌曲所有权
     @Override
     public void removeSong(Long songId, Long userId) {
-        log.info("用户ID为 {} 的用户请求删除歌曲ID为 {} 的歌曲", userId, songId);
+        log.info("请求删除歌曲，用户ID: {} ，歌曲ID: {}", userId, songId);
         Song song = songManager.getById(songId);
         if (song == null) {
             throw new BusinessException("歌曲不存在");
@@ -266,7 +270,7 @@ public class SongServiceImpl implements SongService {
     // 管理员: 强制删除歌曲
     @Override
     public void removeSongForce(Long songId) {
-        log.info("请求强制删除ID为 {} 的歌曲", songId);
+        log.info("请求强制删除歌曲，用户ID: {}", songId);
         Song song = songManager.getById(songId);
         if (song == null) {
             throw new BusinessException("歌曲不存在");
@@ -290,7 +294,7 @@ public class SongServiceImpl implements SongService {
 
     @Override
     public SongVO getSong(Long songId) {
-        log.info("请求获取歌曲ID为 {} 的歌曲信息", songId);
+        log.info("请求获取歌曲信息，歌曲ID: {}", songId);
         Song song = songManager.getById(songId);
         if (song == null) {
             throw new BusinessException("歌曲不存在");
@@ -302,16 +306,19 @@ public class SongServiceImpl implements SongService {
         SongVO songVO = new SongVO();
         BeanUtils.copyProperties(song, songVO);
         songVO.setUploaderName(user.getName());
+        log.info("获取歌曲信息成功");
         return songVO;
     }
 
     @Override
     public String getSongUrl(Long songId) {
-        log.info("请求获取歌曲ID为 {} 的歌曲播放链接", songId);
+        log.info("请求获取歌曲播放链接，歌曲ID: {}", songId);
         Song song = songManager.getById(songId);
         if (song == null) {
-            throw new BusinessException("歌曲不存在");
+            return null;
         }
-        return fileManager.getUrl(song.getFileName(), song.getSourceType());
+        String url = fileManager.getUrl(song.getFileName(), song.getSourceType());
+        if (url != null) log.info("获取歌曲播放链接成功");
+        return url;
     }
 }

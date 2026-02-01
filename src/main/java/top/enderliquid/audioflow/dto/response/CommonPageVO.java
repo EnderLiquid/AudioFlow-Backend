@@ -12,6 +12,6 @@ import java.util.List;
 public class CommonPageVO<T> {
     private List<T> list;
     private Long total;
-    private Long num;
-    private Long size;
+    private Long pageNum;
+    private Long pageSize;
 }

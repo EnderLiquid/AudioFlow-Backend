@@ -224,7 +224,7 @@ public class SongServiceImpl implements SongService {
         SongPageParam param = new SongPageParam();
         BeanUtils.copyProperties(dto, param);
         if (param.getIsAsc() == null) param.setIsAsc(false);
-        if (param.getPageNum() == null) param.setPageNum(1L);
+        if (param.getPageIndex() == null) param.setPageIndex(1L);
         if (param.getPageSize() == null) param.setPageSize(10L);
         IPage<SongBO> songBOPage = songManager.pageByUploaderKeywordAndSongKeyword(param);
         List<SongBO> songBOList = songBOPage.getRecords();
@@ -239,7 +239,7 @@ public class SongServiceImpl implements SongService {
         }
         CommonPageVO<SongVO> pageVO = new CommonPageVO<>();
         pageVO.setList(songVOList);
-        pageVO.setPageNum(songBOPage.getCurrent());
+        pageVO.setPageIndex(songBOPage.getCurrent());
         pageVO.setPageSize(songBOPage.getSize());
         pageVO.setTotal(songBOPage.getTotal());
         log.info("分页查询歌曲成功");

@@ -20,7 +20,7 @@ public class SongPageDTO {
 
     // null: 默认 1
     @Min(value = 1, message = "页码必须大于0")
-    private Long pageNum;
+    private Long pageIndex;
 
     // null: 默认 10
     @Min(value = 1, message = "分页大小必须大于0")

@@ -34,16 +34,4 @@ public class JacksonConfig {
             });
         };
     }
-
-    @Bean
-    @Primary
-    @ConditionalOnMissingBean(ObjectMapper.class)
-    public ObjectMapper jacksonObjectMapper(Jackson2ObjectMapperBuilder builder) {
-        ObjectMapper objectMapper = builder.createXmlMapper(false).build();
-        SimpleModule simpleModule = new SimpleModule();
-        // 将Long类型序列化为String类型
-        simpleModule.addSerializer(Long.class, ToStringSerializer.instance);
-        objectMapper.registerModule(simpleModule);
-        return objectMapper;
-    }
 }

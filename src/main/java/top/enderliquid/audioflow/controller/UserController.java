@@ -41,12 +41,12 @@ public class UserController {
     }
 
     /**
-     * 用户注销
+     * 用户注销（仅当前设备）
      */
     @SaCheckLogin
     @PostMapping("logout")
     public HttpResponseBody<Void> logout() {
-        StpUtil.logout();
+        StpUtil.logoutByTokenValue(StpUtil.getTokenValue());
         return HttpResponseBody.ok(null, "注销成功");
     }
 
@@ -69,6 +69,7 @@ public class UserController {
     public HttpResponseBody<UserVO> changePassword(UserUpdatePasswordDTO dto) {
         long userId = StpUtil.getLoginIdAsLong();
         UserVO userVO = userService.updateUserPassword(dto, userId);
-        return HttpResponseBody.ok(userVO);
+        StpUtil.kickout(userId);
+        return HttpResponseBody.ok(userVO, "密码修改成功，请重新登录");
     }
 }

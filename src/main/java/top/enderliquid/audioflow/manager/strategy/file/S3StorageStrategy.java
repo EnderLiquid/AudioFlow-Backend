@@ -53,35 +53,26 @@ public class S3StorageStrategy implements FileStorageStrategy {
             log.warn("S3 凭证未配置，S3StorageStrategy 将不会被初始化");
             return;
         }
-
         AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKey, secretKey);
         StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(credentials);
-
         S3Configuration s3Config = S3Configuration.builder()
                 .pathStyleAccessEnabled(true)
                 .build();
-
         software.amazon.awssdk.services.s3.S3ClientBuilder clientBuilder = S3Client.builder()
                 .credentialsProvider(credentialsProvider)
                 .serviceConfiguration(s3Config)
                 .region(Region.of(region));
-
         if (endpoint != null && !endpoint.isEmpty()) {
             clientBuilder.endpointOverride(URI.create(endpoint));
         }
-
         s3Client = clientBuilder.build();
-
         software.amazon.awssdk.services.s3.presigner.S3Presigner.Builder presignerBuilder = S3Presigner.builder()
                 .credentialsProvider(credentialsProvider)
                 .region(Region.of(region));
-
         if (endpoint != null && !endpoint.isEmpty()) {
             presignerBuilder.endpointOverride(URI.create(endpoint));
         }
-
         s3Presigner = presignerBuilder.build();
-
         log.info("S3StorageStrategy 初始化完成，存储桶名称: {}", bucketName);
     }
 
@@ -106,13 +97,11 @@ public class S3StorageStrategy implements FileStorageStrategy {
             log.error("S3Client 未初始化");
             return false;
         }
-
         try {
             PutObjectRequest putRequest = PutObjectRequest.builder()
                     .bucket(bucketName)
                     .key(fileName)
                     .build();
-
             s3Client.putObject(putRequest, RequestBody.fromInputStream(content, content.available()));
             log.debug("文件上传成功，文件名: {}，存储桶名称: {}", fileName, bucketName);
             return true;
@@ -131,7 +120,6 @@ public class S3StorageStrategy implements FileStorageStrategy {
             log.error("S3Presigner 未初始化");
             return null;
         }
-
         try {
             GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
                     .signatureDuration(Duration.ofSeconds(presignedUrlExpirationSeconds))
@@ -139,7 +127,6 @@ public class S3StorageStrategy implements FileStorageStrategy {
                             .bucket(bucketName)
                             .key(fileName))
                     .build();
-
             PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(presignRequest);
             return presignedRequest.url().toString();
         } catch (SdkException e) {
@@ -154,13 +141,11 @@ public class S3StorageStrategy implements FileStorageStrategy {
             log.error("S3Client 未初始化");
             return false;
         }
-
         try {
             DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
                     .bucket(bucketName)
                     .key(fileName)
                     .build();
-
             s3Client.deleteObject(deleteRequest);
             log.debug("文件删除成功，文件名: {}，存储桶名称: {}", fileName, bucketName);
             return true;

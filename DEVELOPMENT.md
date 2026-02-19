@@ -38,6 +38,13 @@
 
 1.每个Controller类都要添加@Vaildated注解。
 2.方法根据应用具体语义命名。
+3.API 设计规范：
+    - **HTTP 方法限制**：线上仅开放 `GET` 和 `POST`。
+    - **Method Override**：所有写操作统一使用 `POST`。对于 `PUT`/`PATCH`/`DELETE` 语义，需在请求头中携带 `X-HTTP-Method-Override`。
+    - **资源命名**：路径使用复数名词（如 `/api/songs`、`/api/users`），全小写，短横线分词。
+    - **路径参数**：优先使用路径参数 `{id}` 定位资源。
+    - **Session 管理**：登录/登出归入 `/api/sessions` 资源。
+
 
 ### Service层规范
 

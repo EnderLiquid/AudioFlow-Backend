@@ -23,7 +23,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Bean
     public FilterRegistrationBean<HttpMethodOverrideFilter> httpMethodOverrideFilterRegistration() {
         FilterRegistrationBean<HttpMethodOverrideFilter> registration = new FilterRegistrationBean<>(new HttpMethodOverrideFilter());
-        // Ensure it runs before most other filters and definitely before Spring MVC dispatching
+        // 确保过滤器在大多数其他过滤器之前运行，并在Spring MVC分发之前执行
         registration.setOrder(Ordered.HIGHEST_PRECEDENCE + 10);
         return registration;
     }

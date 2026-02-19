@@ -13,8 +13,8 @@ import java.util.Locale;
 import java.util.Set;
 
 /**
- * Filter that detects the X-HTTP-Method-Override header in POST requests
- * and wraps the request to return the overridden method.
+ * 过滤器，用于检测POST请求中的X-HTTP-Method-Override请求头
+ * 并包装请求以返回被覆盖的HTTP方法。
  */
 public class HttpMethodOverrideFilter extends OncePerRequestFilter {
 

@@ -33,3 +33,8 @@ build/
 ### VS Code ###
 .vscode/
 .worktrees/
+
+### Environment Variables ###
+.env
+.env.local
+.env.*.local

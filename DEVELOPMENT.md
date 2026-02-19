@@ -36,9 +36,8 @@
 
 ### Controller层规范
 
-1.每个Controller类都要添加@Vaildated注解。
-2.方法根据应用具体语义命名。
-3.API 设计规范：
+1.方法根据应用具体语义命名。
+2.API 设计规范：
     - **HTTP 方法限制**：线上仅开放 `GET` 和 `POST`。
     - **Method Override**：所有写操作统一使用 `POST`。对于 `PUT`/`PATCH`/`DELETE` 语义，需在请求头中携带 `X-HTTP-Method-Override`。
     - **资源命名**：路径使用复数名词（如 `/api/songs`、`/api/users`），全小写，短横线分词。
@@ -65,9 +64,9 @@
 
 #### 日志打印位置
 
-- Service层方法入口：打印请求日志，包含关键参数。
-- Service层方法出口：打印成功日志。
-- 异常分支：Service层导致业务失败的异常抛出BusinessException，其他情况使用warn或error打印失败日志。
+- **Service层方法入口**：打印请求日志，包含关键参数。
+- **Service层方法出口**：打印成功日志。
+- **异常分支**：Service层导致业务失败的异常抛出BusinessException，其他情况使用warn或error打印失败日志。
 
 #### 日志内容格式
 

@@ -2,6 +2,7 @@ package top.enderliquid.audioflow.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.stp.StpUtil;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +25,7 @@ public class UserController {
      * 用户注册
      */
     @PostMapping
-    public HttpResponseBody<UserVO> register(@RequestBody UserSaveDTO dto) {
+    public HttpResponseBody<UserVO> register(@Valid @RequestBody UserSaveDTO dto) {
         UserVO userVO = userService.saveUser(dto);
         StpUtil.login(userVO.getId());
         return HttpResponseBody.ok(userVO, "注册成功");
@@ -46,7 +47,7 @@ public class UserController {
      */
     @SaCheckLogin
     @PatchMapping("me/password")
-    public HttpResponseBody<UserVO> changePassword(@RequestBody UserUpdatePasswordDTO dto) {
+    public HttpResponseBody<UserVO> changePassword(@Valid @RequestBody UserUpdatePasswordDTO dto) {
         long userId = StpUtil.getLoginIdAsLong();
         UserVO userVO = userService.updateUserPassword(dto, userId);
         StpUtil.kickout(userId);

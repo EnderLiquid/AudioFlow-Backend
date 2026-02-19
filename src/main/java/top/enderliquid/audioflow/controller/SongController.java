@@ -4,6 +4,7 @@ import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.dev33.satoken.stp.StpUtil;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -20,7 +21,7 @@ import java.io.IOException;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/song/")
+@RequestMapping("/api/songs")
 @Validated
 public class SongController {
 
@@ -32,8 +33,8 @@ public class SongController {
      * 需要登录
      */
     @SaCheckLogin
-    @PostMapping("upload")
-    public HttpResponseBody<SongVO> uploadSong(@ModelAttribute SongSaveDTO dto) {
+    @PostMapping
+    public HttpResponseBody<SongVO> uploadSong(@Valid @ModelAttribute SongSaveDTO dto) {
         long userId = StpUtil.getLoginIdAsLong();
         SongVO songVO = songService.saveSong(dto, userId);
         return HttpResponseBody.ok(songVO, "上传成功");
@@ -42,8 +43,8 @@ public class SongController {
     /**
      * 分页查询/搜索歌曲
      */
-    @GetMapping("page")
-    public HttpResponseBody<CommonPageVO<SongVO>> pageSongs(@ModelAttribute SongPageDTO dto) {
+    @GetMapping
+    public HttpResponseBody<CommonPageVO<SongVO>> pageSongs(@Valid @ModelAttribute SongPageDTO dto) {
         CommonPageVO<SongVO> result = songService.pageSongsByUploaderKeywordAndSongKeyword(dto);
         return HttpResponseBody.ok(result);
     }
@@ -53,10 +54,10 @@ public class SongController {
      * 需要登录
      */
     @SaCheckLogin
-    @GetMapping("remove/{songId}")
-    public HttpResponseBody<Void> removeSong(@PathVariable Long songId) {
+    @DeleteMapping("{id}")
+    public HttpResponseBody<Void> removeSong(@PathVariable Long id) {
         long userId = StpUtil.getLoginIdAsLong();
-        songService.removeSong(songId, userId);
+        songService.removeSong(id, userId);
         return HttpResponseBody.ok(null, "删除成功");
     }
 
@@ -66,27 +67,27 @@ public class SongController {
      */
     @SaCheckLogin
     @SaCheckRole("ADMIN")
-    @GetMapping("remove/admin/{songId}")
-    public HttpResponseBody<Void> removeSongForce(@PathVariable Long songId) {
-        songService.removeSongForce(songId);
+    @DeleteMapping("{id}/force")
+    public HttpResponseBody<Void> removeSongForce(@PathVariable Long id) {
+        songService.removeSongForce(id);
         return HttpResponseBody.ok(null, "管理员强制删除成功");
     }
 
     /**
      * 获取歌曲信息
      */
-    @GetMapping("info/{songId}")
-    public HttpResponseBody<SongVO> getSongInfo(@PathVariable Long songId) {
-        SongVO songVO = songService.getSong(songId);
+    @GetMapping("{id}")
+    public HttpResponseBody<SongVO> getSongInfo(@PathVariable Long id) {
+        SongVO songVO = songService.getSong(id);
         return HttpResponseBody.ok(songVO, null);
     }
 
     /**
      * 获取歌曲播放URL
      */
-    @GetMapping("play/{songId}")
-    public void getSongUrl(@PathVariable Long songId, HttpServletResponse response) {
-        String url = songService.getSongUrl(songId);
+    @GetMapping("{id}/play")
+    public void getSongUrl(@PathVariable Long id, HttpServletResponse response) {
+        String url = songService.getSongUrl(id);
         try {
             if (url == null) {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "获取歌曲文件URL失败");
@@ -94,7 +95,7 @@ public class SongController {
             }
             response.sendRedirect(url);
         } catch (IOException e) {
-            log.error("歌曲URL查询接口响应失败");
+            log.error("歌曲URL查询接口响应失败", e);
         }
     }
 
@@ -103,8 +104,9 @@ public class SongController {
      * 需要登录
      */
     @SaCheckLogin
-    @PostMapping("update")
-    public HttpResponseBody<SongVO> updateSong(@RequestBody SongUpdateDTO dto) {
+    @PatchMapping("{id}")
+    public HttpResponseBody<SongVO> updateSong(@PathVariable Long id, @Valid @RequestBody SongUpdateDTO dto) {
+        dto.setSongId(id);
         long userId = StpUtil.getLoginIdAsLong();
         SongVO songVO = songService.updateSong(dto, userId);
         return HttpResponseBody.ok(songVO);
@@ -116,8 +118,9 @@ public class SongController {
      */
     @SaCheckLogin
     @SaCheckRole("ADMIN")
-    @PostMapping("update/admin")
-    public HttpResponseBody<SongVO> updateSongForce(@RequestBody SongUpdateDTO dto) {
+    @PatchMapping("{id}/force")
+    public HttpResponseBody<SongVO> updateSongForce(@PathVariable Long id, @Valid @RequestBody SongUpdateDTO dto) {
+        dto.setSongId(id);
         SongVO songVO = songService.updateSongForce(dto);
         return HttpResponseBody.ok(songVO);
     }

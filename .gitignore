@@ -38,3 +38,7 @@ build/
 .env
 .env.local
 .env.*.local
+
+### External Config Directory ###
+/config/
+!/config/.gitkeep

@@ -56,24 +56,52 @@ public class S3StorageStrategy implements FileStorageStrategy {
         AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKey, secretKey);
         StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(credentials);
         S3Configuration s3Config = S3Configuration.builder()
-                .pathStyleAccessEnabled(true)
+                .pathStyleAccessEnabled(false)
                 .build();
+        
+        // 解析 endpoint 模板变量
+        String resolvedEndpoint = resolveEndpointTemplate(endpoint, region, bucketName);
+        
         software.amazon.awssdk.services.s3.S3ClientBuilder clientBuilder = S3Client.builder()
                 .credentialsProvider(credentialsProvider)
                 .serviceConfiguration(s3Config)
                 .region(Region.of(region));
-        if (endpoint != null && !endpoint.isEmpty()) {
-            clientBuilder.endpointOverride(URI.create(endpoint));
+        if (resolvedEndpoint != null && !resolvedEndpoint.isEmpty()) {
+            clientBuilder.endpointOverride(URI.create(resolvedEndpoint));
         }
         s3Client = clientBuilder.build();
         software.amazon.awssdk.services.s3.presigner.S3Presigner.Builder presignerBuilder = S3Presigner.builder()
                 .credentialsProvider(credentialsProvider)
                 .region(Region.of(region));
-        if (endpoint != null && !endpoint.isEmpty()) {
-            presignerBuilder.endpointOverride(URI.create(endpoint));
+        if (resolvedEndpoint != null && !resolvedEndpoint.isEmpty()) {
+            presignerBuilder.endpointOverride(URI.create(resolvedEndpoint));
         }
         s3Presigner = presignerBuilder.build();
-        log.info("S3StorageStrategy 初始化完成，存储桶名称: {}", bucketName);
+        log.info("S3StorageStrategy 初始化完成，存储桶名称: {}, endpoint: {}", bucketName, 
+                resolvedEndpoint != null ? resolvedEndpoint : "AWS 默认");
+    }
+    
+    /**
+     * 解析 endpoint 模板变量
+     * 支持的变量：{region}、{bucket}
+     * 
+     * @param endpoint 原始 endpoint 配置
+     * @param region 区域
+     * @param bucket 存储桶名称
+     * @return 解析后的 endpoint
+     */
+    private String resolveEndpointTemplate(String endpoint, String region, String bucket) {
+        if (endpoint == null || endpoint.isEmpty()) {
+            return null;
+        }
+        String result = endpoint;
+        if (result.contains("{region}")) {
+            result = result.replace("{region}", region);
+        }
+        if (result.contains("{bucket}")) {
+            result = result.replace("{bucket}", bucket);
+        }
+        return result;
     }
 
     @PreDestroy

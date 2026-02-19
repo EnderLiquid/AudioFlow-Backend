@@ -113,7 +113,7 @@ public class UserServiceImpl implements UserService {
         )) {
             throw new BusinessException("旧密码错误");
         }
-        user.setPassword(dto.getNewPassword());
+        user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
         if (!userManager.updateById(user)) {
             throw new BusinessException("更新密码失败");
         }

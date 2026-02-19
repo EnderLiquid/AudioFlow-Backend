@@ -254,7 +254,7 @@ public class SongServiceImpl implements SongService {
 
     @Override
     public void removeSongForce(Long songId) {
-        log.info("请求强制删除歌曲，用户ID: {}", songId);
+        log.info("请求强制删除歌曲，歌曲ID: {}", songId);
         doRemoveSong(songId, null, true);
     }
 

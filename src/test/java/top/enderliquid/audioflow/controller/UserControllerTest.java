@@ -51,9 +51,8 @@ class UserControllerTest extends BaseControllerTest {
 
     @Test
     void shouldReturnErrorWhenEmailAlreadyExists() throws Exception {
-        testDataHelper.createTestUser();
-
-        String email = "test_user@example.com";
+        var user = testDataHelper.createTestUser();
+        String email = user.getEmail();
         Map<String, String> requestDto = new HashMap<>();
         requestDto.put("name", "another_user");
         requestDto.put("email", email);
@@ -87,8 +86,7 @@ class UserControllerTest extends BaseControllerTest {
     @Test
     void shouldReturnUserInfoWhenLoggedIn() throws Exception {
         var user = testDataHelper.createTestUser();
-
-        String email = "test_user@example.com";
+        String email = user.getEmail();
         String password = "test_password_123";
 
         Map<String, String> loginDto = new HashMap<>();
@@ -123,8 +121,7 @@ class UserControllerTest extends BaseControllerTest {
     @Test
     void shouldUpdatePasswordSuccessfullyWhenCorrectOldPassword() throws Exception {
         var user = testDataHelper.createTestUser();
-
-        String email = "test_user@example.com";
+        String email = user.getEmail();
         String password = "test_password_123";
 
         Map<String, String> loginDto = new HashMap<>();
@@ -161,8 +158,7 @@ class UserControllerTest extends BaseControllerTest {
     @Test
     void shouldReturnErrorWhenOldPasswordIncorrect() throws Exception {
         var user = testDataHelper.createTestUser();
-
-        String email = "test_user@example.com";
+        String email = user.getEmail();
         String password = "test_password_123";
 
         Map<String, String> loginDto = new HashMap<>();

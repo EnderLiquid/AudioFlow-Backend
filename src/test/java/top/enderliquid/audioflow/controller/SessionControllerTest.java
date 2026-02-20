@@ -29,9 +29,8 @@ class SessionControllerTest extends BaseControllerTest {
 
     @Test
     void shouldLoginSuccessfullyWhenCredentialsCorrect() throws Exception {
-        testDataHelper.createTestUser();
-
-        String email = "test_user@example.com";
+        var user = testDataHelper.createTestUser();
+        String email = user.getEmail();
         String password = "test_password_123";
 
         Map<String, String> requestDto = new HashMap<>();
@@ -50,9 +49,8 @@ class SessionControllerTest extends BaseControllerTest {
 
     @Test
     void shouldReturnErrorWhenPasswordIncorrect() throws Exception {
-        testDataHelper.createTestUser();
-
-        String email = "test_user@example.com";
+        var user = testDataHelper.createTestUser();
+        String email = user.getEmail();
         String wrongPassword = "wrong_password";
 
         Map<String, String> requestDto = new HashMap<>();
@@ -70,9 +68,8 @@ class SessionControllerTest extends BaseControllerTest {
 
     @Test
     void shouldLogoutSuccessfullyWhenLoggedIn() throws Exception {
-        testDataHelper.createTestUser();
-
-        String email = "test_user@example.com";
+        var user = testDataHelper.createTestUser();
+        String email = user.getEmail();
         String password = "test_password_123";
 
         Map<String, String> loginDto = new HashMap<>();

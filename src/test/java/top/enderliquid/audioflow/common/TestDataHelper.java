@@ -1,6 +1,7 @@
 package top.enderliquid.audioflow.common;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import top.enderliquid.audioflow.entity.User;
 import top.enderliquid.audioflow.entity.Song;
@@ -16,6 +17,9 @@ public class TestDataHelper {
     @Autowired
     private SongManager songManager;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     public void cleanDatabase() {
         songManager.lambdaUpdate().remove();
         userManager.lambdaUpdate().remove();
@@ -25,7 +29,7 @@ public class TestDataHelper {
         User user = new User();
         user.setName("test_user");
         user.setEmail("test_user@example.com");
-        user.setPassword("test_password_123");
+        user.setPassword(passwordEncoder.encode("test_password_123"));
         userManager.save(user);
         return user;
     }

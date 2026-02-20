@@ -110,6 +110,9 @@ public class SongServiceImpl implements SongService {
         } catch (IOException e) {
             throw new BusinessException("无法获取文件类型", e);
         }
+        if (mimeType == null) {
+            throw new BusinessException("无法获取文件类型");
+        }
         String extension = MIME_TYPE_TO_EXTENSION_MAP.get(mimeType);
         if (extension == null) {
             throw new BusinessException("不支持该文件类型");
@@ -120,7 +123,7 @@ public class SongServiceImpl implements SongService {
         String sourceType;
         inputStream = getInputStream(dto.getFile());
         if (inputStream == null) throw new BusinessException("读取文件失败");
-        sourceType = fileManager.save(fileName, inputStream);
+        sourceType = fileManager.save(fileName, inputStream, mimeType);
         if (sourceType == null) {
             throw new BusinessException("歌曲文件保存失败");
         }

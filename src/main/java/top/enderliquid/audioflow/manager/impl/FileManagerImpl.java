@@ -27,13 +27,13 @@ public class FileManagerImpl implements FileManager {
     private final Map<String, FileStorageStrategy> strategyMap;
 
     @Override
-    public String save(String fileName, InputStream content) {
+    public String save(String fileName, InputStream content, String mimeType) {
         FileStorageStrategy strategy = strategyMap.get(activeStorageType);
         if (strategy == null) {
             log.error("文件保存策略不存在");
             return null;
         }
-        if (!strategy.save(fileName, content)) return null;
+        if (!strategy.save(fileName, content, mimeType)) return null;
         return activeStorageType;
     }
 

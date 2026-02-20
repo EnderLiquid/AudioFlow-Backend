@@ -120,7 +120,7 @@ public class S3StorageStrategy implements FileStorageStrategy {
     }
 
     @Override
-    public boolean save(String fileName, InputStream content) {
+    public boolean save(String fileName, InputStream content, String mimeType) {
         if (s3Client == null) {
             log.error("S3Client 未初始化");
             return false;
@@ -129,6 +129,8 @@ public class S3StorageStrategy implements FileStorageStrategy {
             PutObjectRequest putRequest = PutObjectRequest.builder()
                     .bucket(bucketName)
                     .key(fileName)
+                    .contentDisposition("inline")
+                    .contentType(mimeType)
                     .build();
             s3Client.putObject(putRequest, RequestBody.fromInputStream(content, content.available()));
             log.debug("文件上传成功，文件名: {}，存储桶名称: {}", fileName, bucketName);

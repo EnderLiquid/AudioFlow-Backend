@@ -26,7 +26,8 @@ public class LocalStorageStrategy implements FileStorageStrategy {
         return "local";
     }
 
-    public boolean save(String fileName, InputStream content) {
+    public boolean save(String fileName, InputStream content, String mimeType) {
+        // 本地存储不需要使用 mimeType，但接受参数以保持接口一致性
         // 创建目录
         Path dirPath;
         try {

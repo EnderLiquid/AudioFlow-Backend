@@ -9,10 +9,13 @@ public interface FileManager {
     /**
      * 上传文件
      *
+     * @param fileName 文件名
+     * @param content 文件流
+     * @param mimeType 文件 MIME 类型
      * @return 返回存储源类型 (sourceType)，若保存失败则返回 null
      */
     @Nullable
-    String save(String fileName, InputStream content);
+    String save(String fileName, InputStream content, String mimeType);
 
     /**
      * 获取文件访问 URL

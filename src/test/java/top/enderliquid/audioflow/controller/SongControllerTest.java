@@ -217,4 +217,136 @@ class SongControllerTest extends BaseControllerTest {
                 .andExpect(status().is(401))
                 .andExpect(jsonPath("$.success").value(false));
     }
+
+    @Test
+    void shouldUpdateSuccessfullyWhenOwner() throws Exception {
+        String email = testUser.getEmail();
+        String password = "test_password_123";
+
+        var loginDto = new java.util.HashMap<String, String>();
+        loginDto.put("email", email);
+        loginDto.put("password", password);
+        String loginJson = objectMapper.writeValueAsString(loginDto);
+
+        var result = mockMvc.perform(post("/api/sessions")
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .content(loginJson))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String cookie = result.getResponse().getCookie("satoken").getValue();
+
+        var updateDto = new java.util.HashMap<String, Object>();
+        updateDto.put("songId", testSong.getId());
+        updateDto.put("name", "Updated Title");
+        updateDto.put("description", "Updated Description");
+        String updateJson = objectMapper.writeValueAsString(updateDto);
+
+        mockMvc.perform(patch("/api/songs/{id}", testSong.getId())
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .content(updateJson)
+                .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.name").value("Updated Title"));
+    }
+
+    @Test
+    void shouldReturnErrorWhenUpdateWithoutLogin() throws Exception {
+        var updateDto = new java.util.HashMap<String, Object>();
+        updateDto.put("songId", testSong.getId());
+        updateDto.put("name", "Updated Title");
+        String updateJson = objectMapper.writeValueAsString(updateDto);
+
+        mockMvc.perform(patch("/api/songs/{id}", testSong.getId())
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .content(updateJson))
+                .andExpect(status().is(401))
+                .andExpect(jsonPath("$.success").value(false));
+    }
+
+    @Test
+    void shouldReturnErrorWhenUpdateByNonOwner() throws Exception {
+        User anotherUser = testDataHelper.createTestUser();
+        String email = anotherUser.getEmail();
+        String password = "test_password_123";
+
+        var loginDto = new java.util.HashMap<String, String>();
+        loginDto.put("email", email);
+        loginDto.put("password", password);
+        String loginJson = objectMapper.writeValueAsString(loginDto);
+
+        var result = mockMvc.perform(post("/api/sessions")
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .content(loginJson))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String cookie = result.getResponse().getCookie("satoken").getValue();
+
+        var updateDto = new java.util.HashMap<String, Object>();
+        updateDto.put("songId", testSong.getId());
+        updateDto.put("name", "Updated Title");
+        String updateJson = objectMapper.writeValueAsString(updateDto);
+
+        mockMvc.perform(patch("/api/songs/{id}", testSong.getId())
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .content(updateJson)
+                .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(false));
+    }
+
+    @Test
+    void shouldReturnErrorWhenForceDeleteByNonAdmin() throws Exception {
+        String email = testUser.getEmail();
+        String password = "test_password_123";
+
+        var loginDto = new java.util.HashMap<String, String>();
+        loginDto.put("email", email);
+        loginDto.put("password", password);
+        String loginJson = objectMapper.writeValueAsString(loginDto);
+
+        var result = mockMvc.perform(post("/api/sessions")
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .content(loginJson))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String cookie = result.getResponse().getCookie("satoken").getValue();
+
+        mockMvc.perform(delete("/api/songs/{id}/force", testSong.getId())
+                .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
+                .andExpect(status().is(403));
+    }
+
+    @Test
+    void shouldReturnErrorWhenForceUpdateByNonAdmin() throws Exception {
+        String email = testUser.getEmail();
+        String password = "test_password_123";
+
+        var loginDto = new java.util.HashMap<String, String>();
+        loginDto.put("email", email);
+        loginDto.put("password", password);
+        String loginJson = objectMapper.writeValueAsString(loginDto);
+
+        var result = mockMvc.perform(post("/api/sessions")
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .content(loginJson))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String cookie = result.getResponse().getCookie("satoken").getValue();
+
+        var updateDto = new java.util.HashMap<String, Object>();
+        updateDto.put("songId", testSong.getId());
+        updateDto.put("name", "Force Updated Title");
+        String updateJson = objectMapper.writeValueAsString(updateDto);
+
+        mockMvc.perform(patch("/api/songs/{id}/force", testSong.getId())
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .content(updateJson)
+                .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
+                .andExpect(status().is(403));
+    }
 }

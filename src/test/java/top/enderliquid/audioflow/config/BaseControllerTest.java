@@ -25,7 +25,10 @@ public abstract class BaseControllerTest {
 
     @BeforeEach
     void clearSession() {
-        StpUtil.logout();
+        try {
+            StpUtil.logout();
+        } catch (Exception e) {
+        }
     }
 
     protected void mockLogin(Long userId) {

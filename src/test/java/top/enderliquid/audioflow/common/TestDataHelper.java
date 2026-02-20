@@ -8,6 +8,8 @@ import top.enderliquid.audioflow.entity.Song;
 import top.enderliquid.audioflow.manager.UserManager;
 import top.enderliquid.audioflow.manager.SongManager;
 
+import java.util.UUID;
+
 @Component
 public class TestDataHelper {
 
@@ -27,8 +29,9 @@ public class TestDataHelper {
 
     public User createTestUser() {
         User user = new User();
-        user.setName("test_user");
-        user.setEmail("test_user@example.com");
+        String uniqueId = UUID.randomUUID().toString().substring(0, 8);
+        user.setName("test_user_" + uniqueId);
+        user.setEmail("test_user_" + uniqueId + "@example.com");
         user.setPassword(passwordEncoder.encode("test_password_123"));
         userManager.save(user);
         return user;

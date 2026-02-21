@@ -320,3 +320,45 @@ src/main/java/top/enderliquid/audioflow/
 | 版本 | 日期 | 作者 | 变更说明 |
 |-----|------|------|---------|
 | 1.0 | 2025-02-21 | opencode | 初始设计文档 |
+
+---
+
+## 使用说明
+
+### 启用限流功能
+1. 确保 Redis 服务已启动并配置正确
+2. 在 application.yml 中配置限流默认值
+3. 在需要限流的接口添加 @RateLimit 注解
+
+### 示例
+
+#### 登录接口（3次/分钟）
+```java
+@PostMapping
+@RateLimit(refillRate = "3/60", capacity = "3", limitType = LimitType.BOTH)
+public HttpResponseBody<UserVO> login(@RequestBody UserVerifyPasswordDTO dto) { }
+```
+
+#### 上传接口（3次/分钟）
+```java
+@PostMapping
+@RateLimit(refillRate = "3/60", capacity = "3", limitType = LimitType.USER)
+public HttpResponseBody<SongVO> uploadSong(@ModelAttribute SongSaveDTO dto) { }
+```
+
+### 配置参数说明
+
+- **refillRate**: 令牌补充速度，格式为"数值/秒数"
+  - "5/1" = 每秒补充5个令牌
+  - "3/60" = 每分钟补充3个令牌
+
+- **capacity**: 桶容量（最大令牌数）
+
+- **limitType**: 限流维度
+  - IP: 仅限IP地址
+  - USER: 仅限用户账号
+  - BOTH: IP和账号双重限制
+
+### 监控和日志
+- 限流请求会记录 WARN 级别日志
+- 可通过日志分析限流命中情况

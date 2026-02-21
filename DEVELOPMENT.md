@@ -28,6 +28,11 @@
 5.Service层不得创建Page，所有Page对象在Manager层构建。
 6.在Service层完成所有参数校验。
 
+### 代码风格规范
+
+1.禁止使用 `var` 关键字，所有变量必须使用显式类型声明。
+2.禁止使用 Java 10+ 的类型推断特性。
+
 ### DTO规范
 
 1.通过common/config/JacksonConfig和GlobalBindingAdvice类，分别实现非Get请求json反序列化时与Get请求绑定字段到DTO时，字符串自动trim，且若字符串为空则设为null。
@@ -44,7 +49,6 @@
     - **路径参数**：优先使用路径参数 `{id}` 定位资源。
     - **Session 管理**：登录/登出归入 `/api/sessions` 资源。
 
-
 ### Service层规范
 
 1.每个Service接口类都要添加@Vaildated注解。
@@ -56,7 +60,6 @@
 - 删：remove
 - 改：update
 - 查：get（单个）、list（多个）、page（分页）
-  
 
 ### 日志规范
 

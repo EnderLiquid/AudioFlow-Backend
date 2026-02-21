@@ -11,7 +11,6 @@ import top.enderliquid.audioflow.common.TestDataHelper;
 import top.enderliquid.audioflow.config.BaseControllerTest;
 import top.enderliquid.audioflow.entity.Song;
 import top.enderliquid.audioflow.entity.User;
-import top.enderliquid.audioflow.manager.UserManager;
 
 import java.nio.file.Files;
 
@@ -26,9 +25,6 @@ class SongControllerTest extends BaseControllerTest {
 
     @Autowired
     protected ObjectMapper objectMapper;
-
-    @Autowired
-    protected UserManager userManager;
 
     protected User testUser;
     protected Song testSong;
@@ -64,7 +60,7 @@ class SongControllerTest extends BaseControllerTest {
 
     @Test
     void shouldReturnSongInfoWhenSongExists() throws Exception {
-        mockMvc.perform(get("/api/songs/{id}", testSong.getId()))
+        mockMvc.perform(get("/api/songs/{songId}", testSong.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.id").value(testSong.getId()))
@@ -83,7 +79,7 @@ class SongControllerTest extends BaseControllerTest {
 
     @Test
     void shouldRedirectWhenGetSongPlayUrl() throws Exception {
-        MvcResult result = mockMvc.perform(get("/api/songs/{id}/play", testSong.getId()))
+        MvcResult result = mockMvc.perform(get("/api/songs/{songId}/play", testSong.getId()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(header().exists("Location"))
                 .andReturn();
@@ -118,7 +114,7 @@ class SongControllerTest extends BaseControllerTest {
 
         String cookie = result.getResponse().getCookie("satoken").getValue();
 
-        mockMvc.perform(delete("/api/songs/{id}", testSong.getId())
+        mockMvc.perform(delete("/api/songs/{songId}", testSong.getId())
                         .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -127,7 +123,7 @@ class SongControllerTest extends BaseControllerTest {
 
     @Test
     void shouldReturnErrorWhenDeleteWithoutLogin() throws Exception {
-        mockMvc.perform(delete("/api/songs/{id}", testSong.getId()))
+        mockMvc.perform(delete("/api/songs/{songId}", testSong.getId()))
                 .andExpect(status().is(401))
                 .andExpect(jsonPath("$.success").value(false));
     }
@@ -151,7 +147,7 @@ class SongControllerTest extends BaseControllerTest {
 
         String cookie = result.getResponse().getCookie("satoken").getValue();
 
-        mockMvc.perform(delete("/api/songs/{id}", testSong.getId())
+        mockMvc.perform(delete("/api/songs/{songId}", testSong.getId())
                         .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(false));
@@ -236,12 +232,11 @@ class SongControllerTest extends BaseControllerTest {
         String cookie = result.getResponse().getCookie("satoken").getValue();
 
         java.util.HashMap<String, Object> updateDto = new java.util.HashMap<>();
-        updateDto.put("songId", testSong.getId());
         updateDto.put("name", "Updated Title");
         updateDto.put("description", "Updated Description");
         String updateJson = objectMapper.writeValueAsString(updateDto);
 
-        mockMvc.perform(patch("/api/songs/{id}", testSong.getId())
+        mockMvc.perform(patch("/api/songs/{songId}", testSong.getId())
                         .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
                         .content(updateJson)
                         .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
@@ -253,11 +248,10 @@ class SongControllerTest extends BaseControllerTest {
     @Test
     void shouldReturnErrorWhenUpdateWithoutLogin() throws Exception {
         java.util.HashMap<String, Object> updateDto = new java.util.HashMap<>();
-        updateDto.put("songId", testSong.getId());
         updateDto.put("name", "Updated Title");
         String updateJson = objectMapper.writeValueAsString(updateDto);
 
-        mockMvc.perform(patch("/api/songs/{id}", testSong.getId())
+        mockMvc.perform(patch("/api/songs/{songId}", testSong.getId())
                         .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
                         .content(updateJson))
                 .andExpect(status().is(401))
@@ -288,7 +282,7 @@ class SongControllerTest extends BaseControllerTest {
         updateDto.put("name", "Updated Title");
         String updateJson = objectMapper.writeValueAsString(updateDto);
 
-        mockMvc.perform(patch("/api/songs/{id}", testSong.getId())
+        mockMvc.perform(patch("/api/songs/{songId}", testSong.getId())
                         .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
                         .content(updateJson)
                         .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
@@ -314,7 +308,7 @@ class SongControllerTest extends BaseControllerTest {
 
         String cookie = result.getResponse().getCookie("satoken").getValue();
 
-        mockMvc.perform(delete("/api/songs/{id}/force", testSong.getId())
+        mockMvc.perform(delete("/api/songs/{songId}/force", testSong.getId())
                         .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
                 .andExpect(status().is(403));
     }
@@ -342,7 +336,7 @@ class SongControllerTest extends BaseControllerTest {
         updateDto.put("name", "Force Updated Title");
         String updateJson = objectMapper.writeValueAsString(updateDto);
 
-        mockMvc.perform(patch("/api/songs/{id}/force", testSong.getId())
+        mockMvc.perform(patch("/api/songs/{songId}/force", testSong.getId())
                         .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
                         .content(updateJson)
                         .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))

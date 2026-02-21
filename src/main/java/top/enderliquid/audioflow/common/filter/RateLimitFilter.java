@@ -6,6 +6,7 @@ import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
@@ -17,6 +18,9 @@ import top.enderliquid.audioflow.common.exception.RateLimitException;
 import top.enderliquid.audioflow.common.service.RateLimitService;
 
 import java.io.IOException;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Slf4j
 @Component
@@ -27,6 +31,7 @@ public class RateLimitFilter implements Filter {
     private RateLimitService rateLimitService;
 
     @Autowired
+    @Qualifier("requestMappingHandlerMapping")
     private RequestMappingHandlerMapping handlerMapping;
 
     @Override
@@ -44,7 +49,7 @@ public class RateLimitFilter implements Filter {
             applyRateLimit(httpRequest, rateLimit);
             chain.doFilter(request, response);
         } catch (RateLimitException e) {
-            throw e;
+            handleRateLimitException((jakarta.servlet.http.HttpServletResponse) response, e);
         }
     }
 
@@ -122,5 +127,13 @@ public class RateLimitFilter implements Filter {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    private void handleRateLimitException(jakarta.servlet.http.HttpServletResponse response, RateLimitException e) throws IOException {
+        response.setStatus(403);
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write(
+            "{\"success\":false,\"message\":\"" + e.getMessage() + "\",\"data\":null,\"code\":403}"
+        );
     }
 }

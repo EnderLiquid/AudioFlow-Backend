@@ -1,10 +1,12 @@
 package top.enderliquid.audioflow.common.config;
 
+import cn.dev33.satoken.interceptor.SaInterceptor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -26,6 +28,12 @@ public class WebMvcConfig implements WebMvcConfigurer {
         // 确保过滤器在大多数其他过滤器之前运行，并在Spring MVC分发之前执行
         registration.setOrder(Ordered.HIGHEST_PRECEDENCE + 10);
         return registration;
+    }
+
+    // 注册 Sa-Token 拦截器，打开注解式鉴权功能
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new SaInterceptor()).addPathPatterns("/**");
     }
 }
 

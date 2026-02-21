@@ -10,7 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import top.enderliquid.audioflow.common.constant.UserConstant;
+import top.enderliquid.audioflow.common.enums.Role;
 
 import java.time.LocalDateTime;
 
@@ -29,7 +29,7 @@ public class User {
 
     private String password;
 
-    private UserConstant.Role role;
+    private Role role;
 
     @TableField(value = "create_time", fill = FieldFill.INSERT)
     private LocalDateTime createTime;

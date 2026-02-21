@@ -194,7 +194,7 @@ public class SongServiceImpl implements SongService {
         } else {
             name = originFileName.substring(0, index).trim();
         }
-        return name;
+        return name.substring(0, Math.min(name.length(), 63));
     }
 
     @Nullable

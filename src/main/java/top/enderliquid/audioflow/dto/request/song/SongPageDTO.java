@@ -1,6 +1,7 @@
 package top.enderliquid.audioflow.dto.request.song;
 
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,9 +11,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class SongPageDTO {
     // null: 不限制用户关键词
+    @Size(min = 1, max = 64, message = "关键字长度必须在1-64个字符之间")
     private String uploaderKeyword;
 
     // null: 不限制歌曲关键词
+    @Size(min = 1, max = 64, message = "关键字长度必须在1-64个字符之间")
     private String songKeyword;
 
     // null: 默认 false ，倒序

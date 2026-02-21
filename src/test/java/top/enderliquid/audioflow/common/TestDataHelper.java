@@ -3,10 +3,10 @@ package top.enderliquid.audioflow.common;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import top.enderliquid.audioflow.entity.User;
 import top.enderliquid.audioflow.entity.Song;
-import top.enderliquid.audioflow.manager.UserManager;
+import top.enderliquid.audioflow.entity.User;
 import top.enderliquid.audioflow.manager.SongManager;
+import top.enderliquid.audioflow.manager.UserManager;
 
 import java.util.UUID;
 

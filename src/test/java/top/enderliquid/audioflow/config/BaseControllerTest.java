@@ -27,19 +27,19 @@ public abstract class BaseControllerTest {
     void clearSession() {
         try {
             StpUtil.logout();
-        } catch (Exception e) {
+        } catch (Exception ignore) {
         }
     }
 
     protected void mockLogin(Long userId) {
         StpUtil.login(userId);
-        log.debug("模拟登录用户ID: {}", userId);
+        log.debug("模拟登录，用户ID: {}", userId);
     }
 
     protected void mockAdminLogin(Long userId) {
         StpUtil.login(userId);
         StpUtil.getSession().set("role", "ADMIN");
-        log.debug("模拟管理员登录用户ID: {}", userId);
+        log.debug("模拟管理员登录，用户ID: {}", userId);
     }
 
     protected <T> String toJson(T obj) {

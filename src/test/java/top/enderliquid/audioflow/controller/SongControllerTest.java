@@ -4,16 +4,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.web.multipart.MultipartFile;
 import top.enderliquid.audioflow.common.TestDataHelper;
 import top.enderliquid.audioflow.config.BaseControllerTest;
 import top.enderliquid.audioflow.entity.Song;
 import top.enderliquid.audioflow.entity.User;
 import top.enderliquid.audioflow.manager.UserManager;
 
-import java.io.InputStream;
 import java.nio.file.Files;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -44,8 +43,8 @@ class SongControllerTest extends BaseControllerTest {
     @Test
     void shouldReturnSongPageWhenQueryWithPagination() throws Exception {
         mockMvc.perform(get("/api/songs")
-                .param("pageIndex", "1")
-                .param("pageSize", "10"))
+                        .param("pageIndex", "1")
+                        .param("pageSize", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.list").isArray());
@@ -56,8 +55,8 @@ class SongControllerTest extends BaseControllerTest {
         testDataHelper.cleanDatabase();
 
         mockMvc.perform(get("/api/songs")
-                .param("pageIndex", "1")
-                .param("pageSize", "10"))
+                        .param("pageIndex", "1")
+                        .param("pageSize", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.list").isArray());
@@ -84,7 +83,7 @@ class SongControllerTest extends BaseControllerTest {
 
     @Test
     void shouldRedirectWhenGetSongPlayUrl() throws Exception {
-        var result = mockMvc.perform(get("/api/songs/{id}/play", testSong.getId()))
+        MvcResult result = mockMvc.perform(get("/api/songs/{id}/play", testSong.getId()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(header().exists("Location"))
                 .andReturn();
@@ -106,21 +105,21 @@ class SongControllerTest extends BaseControllerTest {
         String email = testUser.getEmail();
         String password = "test_password_123";
 
-        var loginDto = new java.util.HashMap<String, String>();
+        java.util.HashMap<String, String> loginDto = new java.util.HashMap<>();
         loginDto.put("email", email);
         loginDto.put("password", password);
         String loginJson = objectMapper.writeValueAsString(loginDto);
 
-        var result = mockMvc.perform(post("/api/sessions")
-                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
-                .content(loginJson))
+        MvcResult result = mockMvc.perform(post("/api/sessions")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(loginJson))
                 .andExpect(status().isOk())
                 .andReturn();
 
         String cookie = result.getResponse().getCookie("satoken").getValue();
 
         mockMvc.perform(delete("/api/songs/{id}", testSong.getId())
-                .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
+                        .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("删除成功"));
@@ -139,21 +138,21 @@ class SongControllerTest extends BaseControllerTest {
         String email = anotherUser.getEmail();
         String password = "test_password_123";
 
-        var loginDto = new java.util.HashMap<String, String>();
+        java.util.HashMap<String, String> loginDto = new java.util.HashMap<>();
         loginDto.put("email", email);
         loginDto.put("password", password);
         String loginJson = objectMapper.writeValueAsString(loginDto);
 
-        var result = mockMvc.perform(post("/api/sessions")
-                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
-                .content(loginJson))
+        MvcResult result = mockMvc.perform(post("/api/sessions")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(loginJson))
                 .andExpect(status().isOk())
                 .andReturn();
 
         String cookie = result.getResponse().getCookie("satoken").getValue();
 
         mockMvc.perform(delete("/api/songs/{id}", testSong.getId())
-                .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
+                        .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(false));
     }
@@ -163,35 +162,35 @@ class SongControllerTest extends BaseControllerTest {
         String email = testUser.getEmail();
         String password = "test_password_123";
 
-        var loginDto = new java.util.HashMap<String, String>();
+        java.util.HashMap<String, String> loginDto = new java.util.HashMap<>();
         loginDto.put("email", email);
         loginDto.put("password", password);
         String loginJson = objectMapper.writeValueAsString(loginDto);
 
-        var result = mockMvc.perform(post("/api/sessions")
-                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
-                .content(loginJson))
+        MvcResult result = mockMvc.perform(post("/api/sessions")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(loginJson))
                 .andExpect(status().isOk())
                 .andReturn();
 
         String cookie = result.getResponse().getCookie("satoken").getValue();
 
-        org.springframework.core.io.ClassPathResource audioResource = 
-            new org.springframework.core.io.ClassPathResource("audio/test-song.mp3");
-        var audioFile = audioResource.getFile();
+        ClassPathResource audioResource =
+                new ClassPathResource("audio/test-song.mp3");
+        java.io.File audioFile = audioResource.getFile();
 
         MockMultipartFile file = new MockMultipartFile(
-            "file",
-            "test-song.mp3",
-            "audio/mpeg",
-            Files.readAllBytes(audioFile.toPath())
+                "file",
+                "test-song.mp3",
+                "audio/mpeg",
+                Files.readAllBytes(audioFile.toPath())
         );
 
         mockMvc.perform(multipart("/api/songs")
-                .file(file)
-                .param("name", "New Song")
-                .param("description", "New Description")
-                .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
+                        .file(file)
+                        .param("name", "New Song")
+                        .param("description", "New Description")
+                        .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("上传成功"));
@@ -199,21 +198,21 @@ class SongControllerTest extends BaseControllerTest {
 
     @Test
     void shouldReturnErrorWhenUploadWithoutLogin() throws Exception {
-        org.springframework.core.io.ClassPathResource audioResource = 
-            new org.springframework.core.io.ClassPathResource("audio/test-song.mp3");
-        var audioFile = audioResource.getFile();
+        ClassPathResource audioResource =
+                new ClassPathResource("audio/test-song.mp3");
+        java.io.File audioFile = audioResource.getFile();
 
         MockMultipartFile file = new MockMultipartFile(
-            "file",
-            "test-song.mp3",
-            "audio/mpeg",
-            Files.readAllBytes(audioFile.toPath())
+                "file",
+                "test-song.mp3",
+                "audio/mpeg",
+                Files.readAllBytes(audioFile.toPath())
         );
 
         mockMvc.perform(multipart("/api/songs")
-                .file(file)
-                .param("name", "New Song")
-                .param("description", "New Description"))
+                        .file(file)
+                        .param("name", "New Song")
+                        .param("description", "New Description"))
                 .andExpect(status().is(401))
                 .andExpect(jsonPath("$.success").value(false));
     }
@@ -223,29 +222,29 @@ class SongControllerTest extends BaseControllerTest {
         String email = testUser.getEmail();
         String password = "test_password_123";
 
-        var loginDto = new java.util.HashMap<String, String>();
+        java.util.HashMap<String, String> loginDto = new java.util.HashMap<>();
         loginDto.put("email", email);
         loginDto.put("password", password);
         String loginJson = objectMapper.writeValueAsString(loginDto);
 
-        var result = mockMvc.perform(post("/api/sessions")
-                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
-                .content(loginJson))
+        MvcResult result = mockMvc.perform(post("/api/sessions")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(loginJson))
                 .andExpect(status().isOk())
                 .andReturn();
 
         String cookie = result.getResponse().getCookie("satoken").getValue();
 
-        var updateDto = new java.util.HashMap<String, Object>();
+        java.util.HashMap<String, Object> updateDto = new java.util.HashMap<>();
         updateDto.put("songId", testSong.getId());
         updateDto.put("name", "Updated Title");
         updateDto.put("description", "Updated Description");
         String updateJson = objectMapper.writeValueAsString(updateDto);
 
         mockMvc.perform(patch("/api/songs/{id}", testSong.getId())
-                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
-                .content(updateJson)
-                .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(updateJson)
+                        .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.name").value("Updated Title"));
@@ -253,14 +252,14 @@ class SongControllerTest extends BaseControllerTest {
 
     @Test
     void shouldReturnErrorWhenUpdateWithoutLogin() throws Exception {
-        var updateDto = new java.util.HashMap<String, Object>();
+        java.util.HashMap<String, Object> updateDto = new java.util.HashMap<>();
         updateDto.put("songId", testSong.getId());
         updateDto.put("name", "Updated Title");
         String updateJson = objectMapper.writeValueAsString(updateDto);
 
         mockMvc.perform(patch("/api/songs/{id}", testSong.getId())
-                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
-                .content(updateJson))
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(updateJson))
                 .andExpect(status().is(401))
                 .andExpect(jsonPath("$.success").value(false));
     }
@@ -271,28 +270,28 @@ class SongControllerTest extends BaseControllerTest {
         String email = anotherUser.getEmail();
         String password = "test_password_123";
 
-        var loginDto = new java.util.HashMap<String, String>();
+        java.util.HashMap<String, String> loginDto = new java.util.HashMap<>();
         loginDto.put("email", email);
         loginDto.put("password", password);
         String loginJson = objectMapper.writeValueAsString(loginDto);
 
-        var result = mockMvc.perform(post("/api/sessions")
-                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
-                .content(loginJson))
+        MvcResult result = mockMvc.perform(post("/api/sessions")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(loginJson))
                 .andExpect(status().isOk())
                 .andReturn();
 
         String cookie = result.getResponse().getCookie("satoken").getValue();
 
-        var updateDto = new java.util.HashMap<String, Object>();
+        java.util.HashMap<String, Object> updateDto = new java.util.HashMap<>();
         updateDto.put("songId", testSong.getId());
         updateDto.put("name", "Updated Title");
         String updateJson = objectMapper.writeValueAsString(updateDto);
 
         mockMvc.perform(patch("/api/songs/{id}", testSong.getId())
-                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
-                .content(updateJson)
-                .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(updateJson)
+                        .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(false));
     }
@@ -302,21 +301,21 @@ class SongControllerTest extends BaseControllerTest {
         String email = testUser.getEmail();
         String password = "test_password_123";
 
-        var loginDto = new java.util.HashMap<String, String>();
+        java.util.HashMap<String, String> loginDto = new java.util.HashMap<>();
         loginDto.put("email", email);
         loginDto.put("password", password);
         String loginJson = objectMapper.writeValueAsString(loginDto);
 
-        var result = mockMvc.perform(post("/api/sessions")
-                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
-                .content(loginJson))
+        MvcResult result = mockMvc.perform(post("/api/sessions")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(loginJson))
                 .andExpect(status().isOk())
                 .andReturn();
 
         String cookie = result.getResponse().getCookie("satoken").getValue();
 
         mockMvc.perform(delete("/api/songs/{id}/force", testSong.getId())
-                .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
+                        .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
                 .andExpect(status().is(403));
     }
 
@@ -325,28 +324,28 @@ class SongControllerTest extends BaseControllerTest {
         String email = testUser.getEmail();
         String password = "test_password_123";
 
-        var loginDto = new java.util.HashMap<String, String>();
+        java.util.HashMap<String, String> loginDto = new java.util.HashMap<>();
         loginDto.put("email", email);
         loginDto.put("password", password);
         String loginJson = objectMapper.writeValueAsString(loginDto);
 
-        var result = mockMvc.perform(post("/api/sessions")
-                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
-                .content(loginJson))
+        MvcResult result = mockMvc.perform(post("/api/sessions")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(loginJson))
                 .andExpect(status().isOk())
                 .andReturn();
 
         String cookie = result.getResponse().getCookie("satoken").getValue();
 
-        var updateDto = new java.util.HashMap<String, Object>();
+        java.util.HashMap<String, Object> updateDto = new java.util.HashMap<>();
         updateDto.put("songId", testSong.getId());
         updateDto.put("name", "Force Updated Title");
         String updateJson = objectMapper.writeValueAsString(updateDto);
 
         mockMvc.perform(patch("/api/songs/{id}/force", testSong.getId())
-                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
-                .content(updateJson)
-                .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(updateJson)
+                        .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
                 .andExpect(status().is(403));
     }
 }

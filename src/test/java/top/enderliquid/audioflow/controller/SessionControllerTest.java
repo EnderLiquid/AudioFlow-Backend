@@ -5,14 +5,18 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MvcResult;
 import top.enderliquid.audioflow.common.TestDataHelper;
 import top.enderliquid.audioflow.config.BaseControllerTest;
+import top.enderliquid.audioflow.entity.User;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class SessionControllerTest extends BaseControllerTest {
 
@@ -29,7 +33,7 @@ class SessionControllerTest extends BaseControllerTest {
 
     @Test
     void shouldLoginSuccessfullyWhenCredentialsCorrect() throws Exception {
-        var user = testDataHelper.createTestUser();
+        User user = testDataHelper.createTestUser();
         String email = user.getEmail();
         String password = "test_password_123";
 
@@ -39,8 +43,8 @@ class SessionControllerTest extends BaseControllerTest {
         String requestJson = objectMapper.writeValueAsString(requestDto);
 
         mockMvc.perform(post("/api/sessions")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(requestJson))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestJson))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.email").value(email))
@@ -49,7 +53,7 @@ class SessionControllerTest extends BaseControllerTest {
 
     @Test
     void shouldReturnErrorWhenPasswordIncorrect() throws Exception {
-        var user = testDataHelper.createTestUser();
+        User user = testDataHelper.createTestUser();
         String email = user.getEmail();
         String wrongPassword = "wrong_password";
 
@@ -59,8 +63,8 @@ class SessionControllerTest extends BaseControllerTest {
         String requestJson = objectMapper.writeValueAsString(requestDto);
 
         mockMvc.perform(post("/api/sessions")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(requestJson))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestJson))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("密码错误"));
@@ -68,7 +72,7 @@ class SessionControllerTest extends BaseControllerTest {
 
     @Test
     void shouldLogoutSuccessfullyWhenLoggedIn() throws Exception {
-        var user = testDataHelper.createTestUser();
+        User user = testDataHelper.createTestUser();
         String email = user.getEmail();
         String password = "test_password_123";
 
@@ -77,9 +81,9 @@ class SessionControllerTest extends BaseControllerTest {
         loginDto.put("password", password);
         String loginJson = objectMapper.writeValueAsString(loginDto);
 
-        var result = mockMvc.perform(post("/api/sessions")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(loginJson))
+        MvcResult result = mockMvc.perform(post("/api/sessions")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(loginJson))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andReturn();
@@ -87,7 +91,7 @@ class SessionControllerTest extends BaseControllerTest {
         String cookie = result.getResponse().getCookie("satoken").getValue();
 
         mockMvc.perform(delete("/api/sessions/current")
-                .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
+                        .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("注销成功"));

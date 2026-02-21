@@ -25,7 +25,7 @@ public interface SongService {
     @Nullable
     String getSongUrl(@NotNull(message = "歌曲Id不能为空") Long songId);
 
-    SongVO updateSong(@Valid SongUpdateDTO dto, @NotNull(message = "用户Id不能为空") Long userId);
+    SongVO updateSong(@Valid SongUpdateDTO dto, @NotNull(message = "歌曲Id不能为空") Long songId, @NotNull(message = "用户Id不能为空") Long userId);
 
-    SongVO updateSongForce(@Valid SongUpdateDTO dto);
+    SongVO updateSongForce(@Valid SongUpdateDTO dto, @NotNull(message = "歌曲Id不能为空") Long songId);
 }

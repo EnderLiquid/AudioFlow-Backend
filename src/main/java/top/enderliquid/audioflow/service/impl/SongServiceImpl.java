@@ -2,6 +2,7 @@ package top.enderliquid.audioflow.service.impl;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
+import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
 import org.apache.tika.metadata.Metadata;
@@ -314,22 +315,22 @@ public class SongServiceImpl implements SongService {
     }
 
     @Override
-    public SongVO updateSong(SongUpdateDTO dto, Long userId) {
-        log.info("请求更新歌曲信息，歌曲ID: {}", dto.getSongId());
-        return doUpdateSong(dto, userId, false);
+    public SongVO updateSong(SongUpdateDTO dto, Long songId, Long userId) {
+        log.info("请求更新歌曲信息，歌曲ID: {}", songId);
+        return doUpdateSong(dto, songId, userId, false);
     }
 
     @Override
-    public SongVO updateSongForce(SongUpdateDTO dto) {
-        log.info("请求强制更新歌曲信息，歌曲ID: {}", dto.getSongId());
-        return doUpdateSong(dto, null, true);
+    public SongVO updateSongForce(SongUpdateDTO dto, Long songId) {
+        log.info("请求强制更新歌曲信息，歌曲ID: {}", songId);
+        return doUpdateSong(dto, songId,null, true);
     }
 
-    private SongVO doUpdateSong(SongUpdateDTO dto, Long userId, boolean isForce) {
+    private SongVO doUpdateSong(SongUpdateDTO dto, Long songId, Long userId, boolean isForce) {
         if (dto.getName() == null && dto.getDescription() == null) {
             throw new BusinessException("更新信息不能全为空");
         }
-        Song song = songManager.getById(dto.getSongId());
+        Song song = songManager.getById(songId);
         if (song == null) {
             throw new BusinessException("歌曲不存在");
         }

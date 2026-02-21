@@ -9,10 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SongUpdateDTO {
-    @NotNull
-    private Long songId;
-
     private String name;
-
     private String description;
 }

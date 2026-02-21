@@ -11,6 +11,8 @@ import top.enderliquid.audioflow.dto.request.user.UserSaveDTO;
 import top.enderliquid.audioflow.dto.request.user.UserUpdatePasswordDTO;
 import top.enderliquid.audioflow.dto.response.UserVO;
 import top.enderliquid.audioflow.service.UserService;
+import top.enderliquid.audioflow.common.annotation.RateLimit;
+import top.enderliquid.audioflow.common.enums.LimitType;
 
 @RestController
 @RequestMapping("/api/users")
@@ -24,6 +26,12 @@ public class UserController {
      * 用户注册
      */
     @PostMapping
+    @RateLimit(
+        refillRate = "5/1",
+        capacity = "10",
+        limitType = LimitType.BOTH,
+        message = "注册过于频繁，请稍后再试"
+    )
     public HttpResponseBody<UserVO> register(@Valid @RequestBody UserSaveDTO dto) {
         UserVO userVO = userService.saveUser(dto);
         StpUtil.login(userVO.getId());

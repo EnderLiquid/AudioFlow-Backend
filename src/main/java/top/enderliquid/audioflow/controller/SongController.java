@@ -16,6 +16,8 @@ import top.enderliquid.audioflow.dto.request.song.SongUpdateDTO;
 import top.enderliquid.audioflow.dto.response.CommonPageVO;
 import top.enderliquid.audioflow.dto.response.SongVO;
 import top.enderliquid.audioflow.service.SongService;
+import top.enderliquid.audioflow.common.annotation.RateLimit;
+import top.enderliquid.audioflow.common.enums.LimitType;
 
 import java.io.IOException;
 
@@ -34,6 +36,12 @@ public class SongController {
      */
     @SaCheckLogin
     @PostMapping
+    @RateLimit(
+        refillRate = "3/60",
+        capacity = "3",
+        limitType = LimitType.USER,
+        message = "上传过于频繁，请稍后再试"
+    )
     public HttpResponseBody<SongVO> uploadSong(@Valid @ModelAttribute SongSaveDTO dto) {
         long userId = StpUtil.getLoginIdAsLong();
         SongVO songVO = songService.saveSong(dto, userId);

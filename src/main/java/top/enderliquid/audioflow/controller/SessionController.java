@@ -10,6 +10,8 @@ import top.enderliquid.audioflow.common.response.HttpResponseBody;
 import top.enderliquid.audioflow.dto.request.user.UserVerifyPasswordDTO;
 import top.enderliquid.audioflow.dto.response.UserVO;
 import top.enderliquid.audioflow.service.UserService;
+import top.enderliquid.audioflow.common.annotation.RateLimit;
+import top.enderliquid.audioflow.common.enums.LimitType;
 
 @RestController
 @RequestMapping("/api/sessions")
@@ -23,6 +25,12 @@ public class SessionController {
      * 用户登录
      */
     @PostMapping
+    @RateLimit(
+        refillRate = "3/60",
+        capacity = "3",
+        limitType = LimitType.BOTH,
+        message = "登录尝试过于频繁，请稍后再试"
+    )
     public HttpResponseBody<UserVO> login(@Valid @RequestBody UserVerifyPasswordDTO dto) {
         UserVO userVO = userService.verifyUserPassword(dto);
         StpUtil.login(userVO.getId());

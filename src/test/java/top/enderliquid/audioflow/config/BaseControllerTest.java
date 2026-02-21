@@ -13,7 +13,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@TestPropertySource(locations = "classpath:application-test.properties")
 @Slf4j
 public abstract class BaseControllerTest {
 

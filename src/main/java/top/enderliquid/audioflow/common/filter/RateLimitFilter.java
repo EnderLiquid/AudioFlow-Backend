@@ -91,7 +91,7 @@ public class RateLimitFilter implements Filter {
             ipLimitPassed = rateLimitService.tryAcquire(ipKey, capacityInt, refillRateDouble, 1);
         }
 
-        if (limitType == LimitType.BOTH || limitType == LimitType.USER) {
+        if ((limitType == LimitType.BOTH || limitType == LimitType.USER) && userId != null) {
             String userKey = rateLimitService.generateKey(ip, userId, apiPath, LimitType.USER);
             userLimitPassed = rateLimitService.tryAcquire(userKey, capacityInt, refillRateDouble, 1);
         }

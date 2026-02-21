@@ -631,7 +631,6 @@ git commit -m "test: 添加IpUtil单元测试"
 ```java
 package top.enderliquid.audioflow.common.aspect;
 
-import cn.dev33.satoken.stp.StpUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -642,7 +641,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import top.enderliquid.audioflow.dto.request.UserSaveDTO;
+import top.enderliquid.audioflow.dto.request.user.UserSaveDTO;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -685,7 +684,7 @@ class RateLimitIntegrationTest {
                     .andExpect(result -> {
                         int status = result.getResponse().getStatus();
                         assertTrue(status == 200 || status == 409,
-                            "请求应该在限制内，实际状态码: " + status);
+                                "请求应该在限制内，实际状态码: " + status);
                     });
         }
     }
@@ -726,8 +725,8 @@ class RateLimitIntegrationTest {
 
         for (int i = 0; i < 20; i++) {
             mockMvc.perform(MockMvcRequestBuilders.post(REGISTER_URL)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(user)));
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(user)));
         }
 
         boolean limited = false;

@@ -1,4 +1,4 @@
-package top.enderliquid.audioflow.dto.request;
+package top.enderliquid.audioflow.dto.request.song;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,4 +1,4 @@
-package top.enderliquid.audioflow.dto.request;
+package top.enderliquid.audioflow.dto.request.song;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;

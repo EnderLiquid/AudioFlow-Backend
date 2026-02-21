@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import top.enderliquid.audioflow.common.response.HttpResponseBody;
-import top.enderliquid.audioflow.dto.request.UserVerifyPasswordDTO;
+import top.enderliquid.audioflow.dto.request.user.UserVerifyPasswordDTO;
 import top.enderliquid.audioflow.dto.response.UserVO;
 import top.enderliquid.audioflow.service.UserService;
 

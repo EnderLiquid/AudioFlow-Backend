@@ -1,4 +1,4 @@
-package top.enderliquid.audioflow.dto.request;
+package top.enderliquid.audioflow.dto.request.user;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

@@ -4,9 +4,9 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.lang.Nullable;
 import org.springframework.validation.annotation.Validated;
-import top.enderliquid.audioflow.dto.request.SongPageDTO;
-import top.enderliquid.audioflow.dto.request.SongSaveDTO;
-import top.enderliquid.audioflow.dto.request.SongUpdateDTO;
+import top.enderliquid.audioflow.dto.request.song.SongPageDTO;
+import top.enderliquid.audioflow.dto.request.song.SongSaveDTO;
+import top.enderliquid.audioflow.dto.request.song.SongUpdateDTO;
 import top.enderliquid.audioflow.dto.response.CommonPageVO;
 import top.enderliquid.audioflow.dto.response.SongVO;
 

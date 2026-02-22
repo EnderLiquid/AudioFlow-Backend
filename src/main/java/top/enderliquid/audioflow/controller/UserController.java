@@ -29,7 +29,7 @@ public class UserController {
     @RateLimit(
             refillRate = "3/60",
             capacity = 3,
-        limitType = LimitType.BOTH,
+            limitType = LimitType.IP,
         message = "注册过于频繁，请稍后再试"
     )
     public HttpResponseBody<UserVO> register(@Valid @RequestBody UserSaveDTO dto) {
@@ -43,6 +43,7 @@ public class UserController {
      */
     @SaCheckLogin
     @GetMapping("me")
+    @RateLimit
     public HttpResponseBody<UserVO> getUserInfo() {
         long userId = StpUtil.getLoginIdAsLong();
         UserVO userVO = userService.getUser(userId);
@@ -54,6 +55,7 @@ public class UserController {
      */
     @SaCheckLogin
     @PatchMapping("me/password")
+    @RateLimit
     public HttpResponseBody<UserVO> changePassword(@Valid @RequestBody UserUpdatePasswordDTO dto) {
         long userId = StpUtil.getLoginIdAsLong();
         UserVO userVO = userService.updateUserPassword(dto, userId);

@@ -28,7 +28,7 @@ public class SessionController {
     @RateLimit(
         refillRate = "3/60",
             capacity = 3,
-        limitType = LimitType.BOTH,
+            limitType = LimitType.IP,
         message = "登录尝试过于频繁，请稍后再试"
     )
     public HttpResponseBody<UserVO> login(@Valid @RequestBody UserVerifyPasswordDTO dto) {
@@ -42,6 +42,7 @@ public class SessionController {
      */
     @SaCheckLogin
     @DeleteMapping("current")
+    @RateLimit(limitType = LimitType.IP)
     public HttpResponseBody<Void> logout() {
         StpUtil.logoutByTokenValue(StpUtil.getTokenValue());
         return HttpResponseBody.ok(null, "注销成功");

@@ -52,6 +52,12 @@ public class SongController {
      * 分页查询/搜索歌曲
      */
     @GetMapping
+    @RateLimit(
+            refillRate = "1/1",
+            capacity = 5,
+            limitType = LimitType.IP,
+            message = "查询过于频繁，请稍后再试"
+    )
     public HttpResponseBody<CommonPageVO<SongVO>> pageSongs(@Valid @ModelAttribute SongPageDTO dto) {
         CommonPageVO<SongVO> result = songService.pageSongsByUploaderKeywordAndSongKeyword(dto);
         return HttpResponseBody.ok(result);
@@ -63,6 +69,12 @@ public class SongController {
      */
     @SaCheckLogin
     @DeleteMapping("{songId}")
+    @RateLimit(
+            refillRate = "1/1",
+            capacity = 5,
+            limitType = LimitType.BOTH,
+            message = "删除过于频繁，请稍后再试"
+    )
     public HttpResponseBody<Void> removeSong(@PathVariable Long songId) {
         long userId = StpUtil.getLoginIdAsLong();
         songService.removeSong(songId, userId);
@@ -76,6 +88,7 @@ public class SongController {
     @SaCheckLogin
     @SaCheckRole("ADMIN")
     @DeleteMapping("{songId}/force")
+    @RateLimit
     public HttpResponseBody<Void> removeSongForce(@PathVariable Long songId) {
         songService.removeSongForce(songId);
         return HttpResponseBody.ok(null, "管理员强制删除成功");
@@ -85,6 +98,7 @@ public class SongController {
      * 获取歌曲信息
      */
     @GetMapping("{songId}")
+    @RateLimit(limitType = LimitType.IP)
     public HttpResponseBody<SongVO> getSongInfo(@PathVariable Long songId) {
         SongVO songVO = songService.getSong(songId);
         return HttpResponseBody.ok(songVO, null);
@@ -94,6 +108,12 @@ public class SongController {
      * 获取歌曲播放URL
      */
     @GetMapping("{songId}/play")
+    @RateLimit(
+            refillRate = "1/1",
+            capacity = 5,
+            limitType = LimitType.IP,
+            message = "获取Url过于频繁，请稍后再试"
+    )
     public void getSongUrl(@PathVariable Long songId, HttpServletResponse response) {
         String url = songService.getSongUrl(songId);
         try {
@@ -113,6 +133,7 @@ public class SongController {
      */
     @SaCheckLogin
     @PatchMapping("{songId}")
+    @RateLimit
     public HttpResponseBody<SongVO> updateSong(@PathVariable Long songId, @Valid @RequestBody SongUpdateDTO dto) {
         long userId = StpUtil.getLoginIdAsLong();
         SongVO songVO = songService.updateSong(dto, songId, userId);
@@ -126,6 +147,7 @@ public class SongController {
     @SaCheckLogin
     @SaCheckRole("ADMIN")
     @PatchMapping("{songId}/force")
+    @RateLimit
     public HttpResponseBody<SongVO> updateSongForce(@PathVariable Long songId, @Valid @RequestBody SongUpdateDTO dto) {
         SongVO songVO = songService.updateSongForce(dto, songId);
         return HttpResponseBody.ok(songVO);

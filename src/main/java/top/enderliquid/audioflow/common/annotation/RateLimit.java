@@ -11,9 +11,9 @@ import java.lang.annotation.*;
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RateLimit {
-    String refillRate();
+    String refillRate() default "5/1";
 
-    int capacity();
+    int capacity() default 10;
 
     LimitType limitType() default LimitType.BOTH;
 

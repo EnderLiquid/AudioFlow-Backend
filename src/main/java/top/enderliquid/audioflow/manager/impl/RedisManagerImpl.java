@@ -9,7 +9,6 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Component;
-import org.springframework.validation.annotation.Validated;
 import top.enderliquid.audioflow.manager.RedisManager;
 
 import java.io.IOException;
@@ -17,7 +16,6 @@ import java.util.Collections;
 
 @Slf4j
 @Component
-@Validated
 public class RedisManagerImpl implements RedisManager {
 
     @Autowired

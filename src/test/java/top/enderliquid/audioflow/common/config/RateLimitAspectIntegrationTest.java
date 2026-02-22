@@ -19,6 +19,6 @@ class RateLimitAspectIntegrationTest {
     @Test
     void testUnlimitedEndpoint() throws Exception {
         mockMvc.perform(get("/api/songs"))
-            .andExpect(status().isOk());
+                .andExpect(status().isOk());
     }
 }

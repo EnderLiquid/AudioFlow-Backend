@@ -1,6 +1,10 @@
 package top.enderliquid.audioflow.common;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import top.enderliquid.audioflow.entity.Song;
@@ -12,6 +16,7 @@ import java.util.UUID;
 
 @Component
 public class TestDataHelper {
+    private static final Logger log = LoggerFactory.getLogger(TestDataHelper.class);
 
     @Autowired
     private UserManager userManager;
@@ -20,7 +25,28 @@ public class TestDataHelper {
     private SongManager songManager;
 
     @Autowired
+    private StringRedisTemplate redisTemplate;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
+
+    public void cleanAll() {
+        long startTime = System.currentTimeMillis();
+        try {
+            cleanDatabase();
+            RedisConnectionFactory connectionFactory = redisTemplate.getConnectionFactory();
+            if (connectionFactory != null) {
+                redisTemplate.getConnectionFactory().getConnection().serverCommands().flushDb();
+            } else {
+                throw new RuntimeException("获取redis连接失败");
+            }
+            long duration = System.currentTimeMillis() - startTime;
+            log.debug("清理所有测试数据完成，耗时: {}ms", duration);
+        } catch (Exception e) {
+            log.error("清理测试数据失败", e);
+            throw new RuntimeException("清理测试数据失败", e);
+        }
+    }
 
     public void cleanDatabase() {
         songManager.lambdaUpdate().remove();

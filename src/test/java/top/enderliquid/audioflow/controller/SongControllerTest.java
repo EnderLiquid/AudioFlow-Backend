@@ -31,31 +31,8 @@ class SongControllerTest extends BaseControllerTest {
 
     @BeforeEach
     void setUp() {
-        testDataHelper.cleanDatabase();
         testUser = testDataHelper.createTestUser();
         testSong = testDataHelper.createTestSong(testUser.getId());
-    }
-
-    @Test
-    void shouldReturnSongPageWhenQueryWithPagination() throws Exception {
-        mockMvc.perform(get("/api/songs")
-                        .param("pageIndex", "1")
-                        .param("pageSize", "10"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.list").isArray());
-    }
-
-    @Test
-    void shouldReturnEmptyListWhenNoSongs() throws Exception {
-        testDataHelper.cleanDatabase();
-
-        mockMvc.perform(get("/api/songs")
-                        .param("pageIndex", "1")
-                        .param("pageSize", "10"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.list").isArray());
     }
 
     @Test

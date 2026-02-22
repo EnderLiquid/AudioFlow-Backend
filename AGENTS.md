@@ -4,6 +4,10 @@
 
 AudioFlow 是一个基于 Java 21 和 Spring Boot 的应用程序，使用 Maven 构建系统。
 
+## 计划文档规范
+
+使用 Superpowers 技能生成的所有计划文档统一存放在 `AudioFlow\docs\plans\` 目录下。
+
 ## 构建命令
 
 ```bash
@@ -90,6 +94,7 @@ AudioFlow 是一个基于 Java 21 和 Spring Boot 的应用程序，使用 Maven
 - **所有日志消息必须使用中文**
 - **所有异常消息必须使用中文**
 - **所有 Git 提交消息必须使用中文**
+- **不使用约定式提交格式**：禁止使用 `feat:`、`fix:`、`docs:` 等前缀，直接使用简洁的中文描述即可
 
 ### 类型声明规范
 

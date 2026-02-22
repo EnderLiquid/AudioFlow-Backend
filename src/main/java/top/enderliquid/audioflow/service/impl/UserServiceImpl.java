@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
-import top.enderliquid.audioflow.common.constant.UserConstant;
+import top.enderliquid.audioflow.common.enums.Role;
 import top.enderliquid.audioflow.common.exception.BusinessException;
 import top.enderliquid.audioflow.dto.request.user.UserSaveDTO;
 import top.enderliquid.audioflow.dto.request.user.UserUpdatePasswordDTO;
@@ -32,16 +32,16 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserVO saveUser(UserSaveDTO dto) {
         log.info("请求注册普通用户，邮箱: {}", dto.getEmail());
-        return doSaveUser(dto, UserConstant.Role.USER);
+        return doSaveUser(dto, Role.USER);
     }
 
     @Override
     public UserVO saveAdminUser(UserSaveDTO dto) {
         log.info("请求注册管理员用户，邮箱: {}", dto.getEmail());
-        return doSaveUser(dto, UserConstant.Role.ADMIN);
+        return doSaveUser(dto, Role.ADMIN);
     }
 
-    private UserVO doSaveUser(UserSaveDTO dto, UserConstant.Role role) {
+    private UserVO doSaveUser(UserSaveDTO dto, Role role) {
         User user = new User();
         user.setEmail(dto.getEmail());
         user.setName(dto.getName());

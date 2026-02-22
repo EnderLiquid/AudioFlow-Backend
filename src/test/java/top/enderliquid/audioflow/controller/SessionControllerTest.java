@@ -1,12 +1,8 @@
 package top.enderliquid.audioflow.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
-import top.enderliquid.audioflow.common.TestDataHelper;
 import top.enderliquid.audioflow.config.BaseControllerTest;
 import top.enderliquid.audioflow.entity.User;
 
@@ -19,17 +15,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class SessionControllerTest extends BaseControllerTest {
-
-    @Autowired
-    private TestDataHelper testDataHelper;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @BeforeEach
-    void setUp() {
-        testDataHelper.cleanDatabase();
-    }
 
     @Test
     void shouldLoginSuccessfullyWhenCredentialsCorrect() throws Exception {

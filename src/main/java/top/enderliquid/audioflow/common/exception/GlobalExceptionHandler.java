@@ -53,6 +53,16 @@ public class GlobalExceptionHandler {
         return HttpResponseBody.fail(e.getMessage());
     }
 
+    /**
+     * 接口限流异常
+     */
+    @ExceptionHandler(RateLimitException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN) // 403
+    public HttpResponseBody<?> handleRateLimitException(RateLimitException e) {
+        log.warn("限流异常: {}", e.getMessage());
+        return HttpResponseBody.fail(e.getMessage());
+    }
+
     // ==================== 2. Sa-Token 鉴权异常 ====================
 
     /**

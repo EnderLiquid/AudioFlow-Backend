@@ -6,6 +6,8 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import top.enderliquid.audioflow.common.annotation.RateLimit;
+import top.enderliquid.audioflow.common.enums.LimitType;
 import top.enderliquid.audioflow.common.response.HttpResponseBody;
 import top.enderliquid.audioflow.dto.request.user.UserSaveDTO;
 import top.enderliquid.audioflow.dto.request.user.UserUpdatePasswordDTO;
@@ -24,6 +26,12 @@ public class UserController {
      * 用户注册
      */
     @PostMapping
+    @RateLimit(
+            refillRate = "3/60",
+            capacity = 3,
+            limitType = LimitType.IP,
+        message = "注册过于频繁，请稍后再试"
+    )
     public HttpResponseBody<UserVO> register(@Valid @RequestBody UserSaveDTO dto) {
         UserVO userVO = userService.saveUser(dto);
         StpUtil.login(userVO.getId());
@@ -35,6 +43,7 @@ public class UserController {
      */
     @SaCheckLogin
     @GetMapping("me")
+    @RateLimit
     public HttpResponseBody<UserVO> getUserInfo() {
         long userId = StpUtil.getLoginIdAsLong();
         UserVO userVO = userService.getUser(userId);
@@ -46,6 +55,7 @@ public class UserController {
      */
     @SaCheckLogin
     @PatchMapping("me/password")
+    @RateLimit
     public HttpResponseBody<UserVO> changePassword(@Valid @RequestBody UserUpdatePasswordDTO dto) {
         long userId = StpUtil.getLoginIdAsLong();
         UserVO userVO = userService.updateUserPassword(dto, userId);

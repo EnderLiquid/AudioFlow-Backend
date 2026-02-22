@@ -23,7 +23,7 @@
 
 1.不得跨层访问。
 2.底层不得访问顶层。
-3.Manager层继承Mybatis-Plus的IService< Entity >接口和ServiceImpl< EntityMapper, Entity >类。
+3.Manager层数据库相关类继承Mybatis-Plus的IService< Entity >接口和ServiceImpl< EntityMapper, Entity >类。
 4.Service层不得使用QueryWrapper，所有查询条件在Manager层构建。
 5.Service层不得创建Page，所有Page对象在Manager层构建。
 6.在Service层完成所有参数校验。

@@ -2,7 +2,7 @@ package top.enderliquid.audioflow.manager.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 import top.enderliquid.audioflow.manager.FileManager;
 import top.enderliquid.audioflow.manager.strategy.file.FileStorageStrategy;
 
@@ -13,7 +13,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Repository
+@Component
 public class FileManagerImpl implements FileManager {
 
     @Value("${file.storage.active}")

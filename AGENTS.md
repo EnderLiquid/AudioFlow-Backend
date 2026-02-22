@@ -46,7 +46,7 @@ AudioFlow 是一个基于 Java 21 和 Spring Boot 的应用程序，使用 Maven
 
 1. 禁止跨层访问（Controller 不能直接访问 Manager）
 2. 禁止自底向上访问
-3. Manager 层继承 MyBatis-Plus 接口
+3. Manager 层数据库相关类继承 MyBatis-Plus 接口
 4. Service 层不得使用 QueryWrapper（条件在 Manager 层构建）
 5. Service 层不得创建 Page 对象（在 Manager 层构建）
 6. 所有参数校验在 Service 层完成

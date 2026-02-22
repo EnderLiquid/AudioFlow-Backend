@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import top.enderliquid.audioflow.common.annotation.RateLimit;
+import top.enderliquid.audioflow.common.enums.LimitType;
 import top.enderliquid.audioflow.common.response.HttpResponseBody;
 import top.enderliquid.audioflow.dto.request.song.SongPageDTO;
 import top.enderliquid.audioflow.dto.request.song.SongSaveDTO;
@@ -16,8 +18,6 @@ import top.enderliquid.audioflow.dto.request.song.SongUpdateDTO;
 import top.enderliquid.audioflow.dto.response.CommonPageVO;
 import top.enderliquid.audioflow.dto.response.SongVO;
 import top.enderliquid.audioflow.service.SongService;
-import top.enderliquid.audioflow.common.annotation.RateLimit;
-import top.enderliquid.audioflow.common.enums.LimitType;
 
 import java.io.IOException;
 
@@ -38,8 +38,8 @@ public class SongController {
     @PostMapping
     @RateLimit(
         refillRate = "3/60",
-        capacity = "3",
-        limitType = LimitType.USER,
+            capacity = 3,
+            limitType = LimitType.BOTH,
         message = "上传过于频繁，请稍后再试"
     )
     public HttpResponseBody<SongVO> uploadSong(@Valid @ModelAttribute SongSaveDTO dto) {

@@ -9,6 +9,7 @@ import org.springframework.core.Ordered;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import top.enderliquid.audioflow.common.filter.HttpMethodOverrideFilter;
 
 @Configuration
 // 配置静态资源映射

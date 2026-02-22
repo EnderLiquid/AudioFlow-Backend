@@ -6,13 +6,13 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import top.enderliquid.audioflow.common.annotation.RateLimit;
+import top.enderliquid.audioflow.common.enums.LimitType;
 import top.enderliquid.audioflow.common.response.HttpResponseBody;
 import top.enderliquid.audioflow.dto.request.user.UserSaveDTO;
 import top.enderliquid.audioflow.dto.request.user.UserUpdatePasswordDTO;
 import top.enderliquid.audioflow.dto.response.UserVO;
 import top.enderliquid.audioflow.service.UserService;
-import top.enderliquid.audioflow.common.annotation.RateLimit;
-import top.enderliquid.audioflow.common.enums.LimitType;
 
 @RestController
 @RequestMapping("/api/users")
@@ -27,8 +27,8 @@ public class UserController {
      */
     @PostMapping
     @RateLimit(
-        refillRate = "5/1",
-        capacity = "10",
+            refillRate = "3/60",
+            capacity = 3,
         limitType = LimitType.BOTH,
         message = "注册过于频繁，请稍后再试"
     )

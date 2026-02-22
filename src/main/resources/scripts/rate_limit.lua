@@ -1,49 +1,62 @@
 -- 令牌桶限流 Lua 脚本
--- KEYS[1]: 限流Key
--- ARGV[1]: 桶容量
--- ARGV[2]: 令牌补充速度（每秒补充的令牌数）
--- ARGV[3]: 当前时间戳（秒）
--- ARGV[4]: 请求令牌数
+--
+-- KEYS[1]: 限流 Key
+-- ARGV[1]: 桶容量 (Capacity)
+-- ARGV[2]: 令牌生成速率 (Rate, 单位: 个/秒)
+-- ARGV[3]: 当前时间戳 (毫秒)
+-- ARGV[4]: 本次请求需要的令牌数
 
 local key = KEYS[1]
 local capacity = tonumber(ARGV[1])
-local refillRate = tonumber(ARGV[2])
+local rate = tonumber(ARGV[2])
 local now = tonumber(ARGV[3])
-local tokensRequested = tonumber(ARGV[4])
+local requested = tonumber(ARGV[4])
 
--- 获取当前令牌数和上次补充时间
-local info = redis.call('hmget', key, 'tokens', 'lastRefillTime')
+-- 1. 获取当前桶内令牌数和上次刷新时间
+local info = redis.call('hmget', key, 'tokens', 'last_ts')
+local last_tokens = tonumber(info[1])
+local last_ts = tonumber(info[2])
 
-local currentTokens = tonumber(info[1])
-local lastRefillTime = tonumber(info[2])
-
--- 首次访问，初始化
-if not currentTokens then
-    currentTokens = capacity
-    lastRefillTime = now
+-- 2. 初始化：首次访问或 Key 已过期，视为满桶
+if last_tokens == nil then
+    last_tokens = capacity
+    last_ts = now
 end
 
--- 计算应补充的令牌数
-local passedSeconds = now - lastRefillTime
-local tokensToAdd = passedSeconds * refillRate
+-- 3. 计算距离上次请求经过的时间 (毫秒)
+-- 使用 math.max 防止系统时钟回拨导致计算异常
+local delta_ms = math.max(0, now - last_ts)
 
--- 更新令牌数，不超过容量
-if tokensToAdd > 0 then
-    currentTokens = math.min(capacity, currentTokens + tokensToAdd)
-    lastRefillTime = now
-end
+-- 4. 计算这段时间应补充的令牌数
+-- 公式：(经过毫秒数 / 1000) * 每秒速率
+local filled_tokens = delta_ms * (rate / 1000)
 
--- 检查是否有足够令牌
-if currentTokens >= tokensRequested then
+-- 5. 计算当前总令牌数 (补充后不能超过容量)
+local current_tokens = math.min(capacity, last_tokens + filled_tokens)
+
+-- 6. 核心判断：令牌是否足够
+local allowed = false
+if current_tokens >= requested then
     -- 扣减令牌
-    currentTokens = currentTokens - tokensRequested
+    current_tokens = current_tokens - requested
+    allowed = true
+end
 
-    -- 更新Redis
-    redis.call('hmset', key, 'tokens', currentTokens, 'lastRefillTime', lastRefillTime)
-    redis.call('expire', key, capacity * 2) -- 设置过期时间为容量*2秒
+-- 7. 更新 Redis 状态
+-- 无论成功与否，都更新当前令牌数和时间戳，确保下一次计算基于最新状态
+redis.call('hmset', key, 'tokens', current_tokens, 'last_ts', now)
 
-    return currentTokens
+-- 8. 设置 Key 过期时间 (自动清理长期不用的 Key)
+-- 策略：设置为“填满桶所需时间”的 2 倍，且保底 60 秒，防止在低频限流场景下 Key 意外过期
+local ttl = math.ceil((capacity / rate) * 2)
+if ttl < 60 then ttl = 60 end
+redis.call('expire', key, ttl)
+
+-- 9. 返回结果
+-- 成功：返回剩余令牌数 (>=0)
+-- 失败：返回 -1
+if allowed then
+    return current_tokens
 else
-    -- 令牌不足，返回-1
     return -1
 end

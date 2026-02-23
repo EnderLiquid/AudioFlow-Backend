@@ -18,14 +18,10 @@ public interface SongService {
 
     void removeSong(@NotNull(message = "歌曲Id不能为空") Long songId, @NotNull(message = "用户Id不能为空") Long userId);
 
-    void removeSongForce(@NotNull(message = "歌曲Id不能为空") Long songId);
-
     SongVO getSong(@NotNull(message = "歌曲Id不能为空") Long songId);
 
     @Nullable
     String getSongUrl(@NotNull(message = "歌曲Id不能为空") Long songId);
 
     SongVO updateSong(@Valid SongUpdateDTO dto, @NotNull(message = "歌曲Id不能为空") Long songId, @NotNull(message = "用户Id不能为空") Long userId);
-
-    SongVO updateSongForce(@Valid SongUpdateDTO dto, @NotNull(message = "歌曲Id不能为空") Long songId);
 }

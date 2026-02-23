@@ -105,15 +105,14 @@ class SongControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("$.success").value(false));
     }
 
+
     @Test
-    void shouldReturnErrorWhenDeleteByNonOwner() throws Exception {
-        User anotherUser = testDataHelper.createTestUser();
-        String email = anotherUser.getEmail();
-        String password = "test_password_123";
+    void shouldDeleteOthersSongWhenAdmin() throws Exception {
+        User adminUser = testDataHelper.createTestAdmin();
 
         java.util.HashMap<String, String> loginDto = new java.util.HashMap<>();
-        loginDto.put("email", email);
-        loginDto.put("password", password);
+        loginDto.put("email", adminUser.getEmail());
+        loginDto.put("password", "test_password_123");
         String loginJson = objectMapper.writeValueAsString(loginDto);
 
         MvcResult result = mockMvc.perform(post("/api/sessions")
@@ -127,7 +126,39 @@ class SongControllerTest extends BaseControllerTest {
         mockMvc.perform(delete("/api/songs/{songId}", testSong.getId())
                         .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(false));
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("删除成功"));
+    }
+
+    @Test
+    void shouldUpdateOthersSongWhenAdmin() throws Exception {
+        User adminUser = testDataHelper.createTestAdmin();
+
+        java.util.HashMap<String, String> loginDto = new java.util.HashMap<>();
+        loginDto.put("email", adminUser.getEmail());
+        loginDto.put("password", "test_password_123");
+        String loginJson = objectMapper.writeValueAsString(loginDto);
+
+        MvcResult result = mockMvc.perform(post("/api/sessions")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(loginJson))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String cookie = result.getResponse().getCookie("satoken").getValue();
+
+        java.util.HashMap<String, Object> updateDto = new java.util.HashMap<>();
+        updateDto.put("name", "Admin Updated Title");
+        updateDto.put("description", "Admin Updated Description");
+        String updateJson = objectMapper.writeValueAsString(updateDto);
+
+        mockMvc.perform(patch("/api/songs/{songId}", testSong.getId())
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(updateJson)
+                        .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.name").value("Admin Updated Title"));
     }
 
     @Test
@@ -265,58 +296,5 @@ class SongControllerTest extends BaseControllerTest {
                         .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(false));
-    }
-
-    @Test
-    void shouldReturnErrorWhenForceDeleteByNonAdmin() throws Exception {
-        String email = testUser.getEmail();
-        String password = "test_password_123";
-
-        java.util.HashMap<String, String> loginDto = new java.util.HashMap<>();
-        loginDto.put("email", email);
-        loginDto.put("password", password);
-        String loginJson = objectMapper.writeValueAsString(loginDto);
-
-        MvcResult result = mockMvc.perform(post("/api/sessions")
-                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
-                        .content(loginJson))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        String cookie = result.getResponse().getCookie("satoken").getValue();
-
-        mockMvc.perform(delete("/api/songs/{songId}/force", testSong.getId())
-                        .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
-                .andExpect(status().is(403));
-    }
-
-    @Test
-    void shouldReturnErrorWhenForceUpdateByNonAdmin() throws Exception {
-        String email = testUser.getEmail();
-        String password = "test_password_123";
-
-        java.util.HashMap<String, String> loginDto = new java.util.HashMap<>();
-        loginDto.put("email", email);
-        loginDto.put("password", password);
-        String loginJson = objectMapper.writeValueAsString(loginDto);
-
-        MvcResult result = mockMvc.perform(post("/api/sessions")
-                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
-                        .content(loginJson))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        String cookie = result.getResponse().getCookie("satoken").getValue();
-
-        java.util.HashMap<String, Object> updateDto = new java.util.HashMap<>();
-        updateDto.put("songId", testSong.getId());
-        updateDto.put("name", "Force Updated Title");
-        String updateJson = objectMapper.writeValueAsString(updateDto);
-
-        mockMvc.perform(patch("/api/songs/{songId}/force", testSong.getId())
-                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
-                        .content(updateJson)
-                        .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
-                .andExpect(status().is(403));
     }
 }

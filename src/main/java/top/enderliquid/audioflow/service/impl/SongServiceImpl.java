@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.xml.sax.helpers.DefaultHandler;
+import top.enderliquid.audioflow.common.enums.Role;
 import top.enderliquid.audioflow.common.exception.BusinessException;
 import top.enderliquid.audioflow.dto.bo.SongBO;
 import top.enderliquid.audioflow.dto.param.SongPageParam;
@@ -252,21 +253,17 @@ public class SongServiceImpl implements SongService {
     @Override
     public void removeSong(Long songId, Long userId) {
         log.info("请求删除歌曲，用户ID: {} ，歌曲ID: {}", userId, songId);
-        doRemoveSong(songId, userId, false);
-    }
-
-    @Override
-    public void removeSongForce(Long songId) {
-        log.info("请求强制删除歌曲，歌曲ID: {}", songId);
-        doRemoveSong(songId, null, true);
-    }
-
-    private void doRemoveSong(Long songId, Long userId, boolean isForce) {
         Song song = songManager.getById(songId);
         if (song == null) {
             throw new BusinessException("歌曲不存在");
         }
-        if (!isForce && !song.getUploaderId().equals(userId)) {
+        // 查询当前用户信息判断权限
+        User user = userManager.getById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+        // 判断权限：管理员可以删除任何歌曲，普通用户只能删除自己的歌曲
+        if (!(user.getRole() == Role.ADMIN) && !song.getUploaderId().equals(userId)) {
             throw new BusinessException("无权删除他人上传的歌曲");
         }
         if (!songManager.removeById(song)) {
@@ -292,11 +289,7 @@ public class SongServiceImpl implements SongService {
         SongVO songVO = new SongVO();
         BeanUtils.copyProperties(song, songVO);
         User uploader = userManager.getById(song.getUploaderId());
-        if (uploader != null) {
-            songVO.setUploaderName(uploader.getName());
-        } else {
-            songVO.setUploaderName("未知用户");
-        }
+        if (uploader != null) songVO.setUploaderName(uploader.getName());
         log.info("获取歌曲信息成功");
         return songVO;
     }
@@ -316,16 +309,6 @@ public class SongServiceImpl implements SongService {
     @Override
     public SongVO updateSong(SongUpdateDTO dto, Long songId, Long userId) {
         log.info("请求更新歌曲信息，歌曲ID: {}", songId);
-        return doUpdateSong(dto, songId, userId, false);
-    }
-
-    @Override
-    public SongVO updateSongForce(SongUpdateDTO dto, Long songId) {
-        log.info("请求强制更新歌曲信息，歌曲ID: {}", songId);
-        return doUpdateSong(dto, songId,null, true);
-    }
-
-    private SongVO doUpdateSong(SongUpdateDTO dto, Long songId, Long userId, boolean isForce) {
         if (dto.getName() == null && dto.getDescription() == null) {
             throw new BusinessException("更新信息不能全为空");
         }
@@ -333,7 +316,13 @@ public class SongServiceImpl implements SongService {
         if (song == null) {
             throw new BusinessException("歌曲不存在");
         }
-        if (!isForce && !song.getUploaderId().equals(userId)) {
+        // 查询当前用户信息判断权限
+        User user = userManager.getById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+        // 判断权限：管理员可以更新任何歌曲，普通用户只能更新自己的歌曲
+        if (!(user.getRole() == Role.ADMIN) && !song.getUploaderId().equals(userId)) {
             throw new BusinessException("无权更新他人上传歌曲的信息");
         }
         if (dto.getName() != null) song.setName(dto.getName());
@@ -343,7 +332,6 @@ public class SongServiceImpl implements SongService {
         }
         SongVO songVO = new SongVO();
         BeanUtils.copyProperties(song, songVO);
-
         User uploader = userManager.getById(song.getUploaderId());
         if (uploader != null) {
             songVO.setUploaderName(uploader.getName());

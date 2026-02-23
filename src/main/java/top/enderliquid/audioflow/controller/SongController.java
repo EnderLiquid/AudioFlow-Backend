@@ -1,7 +1,6 @@
 package top.enderliquid.audioflow.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
-import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.dev33.satoken.stp.StpUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -37,10 +36,10 @@ public class SongController {
     @SaCheckLogin
     @PostMapping
     @RateLimit(
-        refillRate = "3/60",
+            refillRate = "3/60",
             capacity = 3,
             limitType = LimitType.BOTH,
-        message = "上传过于频繁，请稍后再试"
+            message = "上传过于频繁，请稍后再试"
     )
     public HttpResponseBody<SongVO> uploadSong(@Valid @ModelAttribute SongSaveDTO dto) {
         long userId = StpUtil.getLoginIdAsLong();
@@ -79,19 +78,6 @@ public class SongController {
         long userId = StpUtil.getLoginIdAsLong();
         songService.removeSong(songId, userId);
         return HttpResponseBody.ok(null, "删除成功");
-    }
-
-    /**
-     * 管理员强制删除歌曲
-     * 需要 ADMIN 角色
-     */
-    @SaCheckLogin
-    @SaCheckRole("ADMIN")
-    @DeleteMapping("{songId}/force")
-    @RateLimit
-    public HttpResponseBody<Void> removeSongForce(@PathVariable Long songId) {
-        songService.removeSongForce(songId);
-        return HttpResponseBody.ok(null, "管理员强制删除成功");
     }
 
     /**
@@ -140,16 +126,5 @@ public class SongController {
         return HttpResponseBody.ok(songVO);
     }
 
-    /**
-     * 管理员强制更新歌曲信息
-     * 需要 ADMIN 角色
-     */
-    @SaCheckLogin
-    @SaCheckRole("ADMIN")
-    @PatchMapping("{songId}/force")
-    @RateLimit
-    public HttpResponseBody<SongVO> updateSongForce(@PathVariable Long songId, @Valid @RequestBody SongUpdateDTO dto) {
-        SongVO songVO = songService.updateSongForce(dto, songId);
-        return HttpResponseBody.ok(songVO);
-    }
+
 }

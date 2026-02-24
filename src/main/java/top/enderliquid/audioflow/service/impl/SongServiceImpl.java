@@ -13,7 +13,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.xml.sax.helpers.DefaultHandler;
 import top.enderliquid.audioflow.common.enums.Role;
@@ -21,7 +20,10 @@ import top.enderliquid.audioflow.common.enums.SongStatus;
 import top.enderliquid.audioflow.common.exception.BusinessException;
 import top.enderliquid.audioflow.dto.bo.SongBO;
 import top.enderliquid.audioflow.dto.param.SongPageParam;
-import top.enderliquid.audioflow.dto.request.song.*;
+import top.enderliquid.audioflow.dto.request.song.SongCompleteUploadDTO;
+import top.enderliquid.audioflow.dto.request.song.SongPageDTO;
+import top.enderliquid.audioflow.dto.request.song.SongPrepareUploadDTO;
+import top.enderliquid.audioflow.dto.request.song.SongUpdateDTO;
 import top.enderliquid.audioflow.dto.response.CommonPageVO;
 import top.enderliquid.audioflow.dto.response.SongUploadPrepareVO;
 import top.enderliquid.audioflow.dto.response.SongVO;
@@ -75,59 +77,125 @@ public class SongServiceImpl implements SongService {
     private OSSManager ossManager;
 
     @Override
-    public SongVO saveSong(SongSaveDTO dto, Long userId) {
-        log.info("请求上传歌曲，用户ID: {}", userId);
-        // 检测文件是否为空
-        if (dto.getFile().isEmpty()) {
-            throw new BusinessException("文件不能为空");
-        }
-        // 检查用户是否存在
+    public SongUploadPrepareVO prepareUpload(SongPrepareUploadDTO dto, Long userId) {
+        log.info("请求准备上传歌曲，用户ID: {}", userId);
         User uploader = userManager.getById(userId);
         if (uploader == null) {
             throw new BusinessException("用户不存在");
         }
-        String name = dto.getName();
-        // 提前生成歌曲Id
-        long songId = IdWorker.getId();
-        // 获取原始文件名
-        if (name == null) {
-            String defaultName = String.valueOf(songId);
-            // Opera浏览器的MultipartFile对象
-            // 调用getOriginalFilename()可能返回带路径的值，
-            // 因此需要显式分离出文件全称。
-            // 注意，MultipartFile对象调用getOriginalFilename()可能返回null。
-            String originFileName = StringUtils.getFilename(dto.getFile().getOriginalFilename());
-            name = getNameFromOriginFileName(originFileName);
-            if (name == null) name = defaultName;
-        }
-        // 忽略原始文件扩展名，通过Magic Number推断文件类型
-        String mimeType;
-        InputStream inputStream = getInputStream(dto.getFile());
-        if (inputStream == null) throw new BusinessException("读取文件失败");
-        try {
-            mimeType = TIKA.detect(inputStream);
-        } catch (IOException e) {
-            throw new BusinessException("无法获取文件类型", e);
-        }
-        if (mimeType == null) {
-            throw new BusinessException("无法获取文件类型");
-        }
-        String extension = MIME_TYPE_TO_EXTENSION_MAP.get(mimeType);
+        String extension = MIME_TYPE_TO_EXTENSION_MAP.get(dto.getMimeType());
         if (extension == null) {
             throw new BusinessException("不支持该文件类型");
         }
-        String fileName = songId + "." + extension;
-        log.info("歌曲文件通过检验，歌曲名称: {}", name);
-        // 保存歌曲文件
-        inputStream = getInputStream(dto.getFile());
-        if (inputStream == null) throw new BusinessException("读取文件失败");
-        if (!ossManager.deleteFile(fileName)) {
-            log.warn("删除已存在的文件失败: {}", fileName);
+        String name = dto.getName();
+        Long songId = IdWorker.getId();
+        if (name == null) {
+            name = String.valueOf(songId);
         }
-        // 将保存操作注释掉，因为现在的流程是前端直接上传到OSS
-        // 如果需要支持旧的saveSong接口，需要使用不同的上传方式
-        log.warn("saveSong方法已废弃，请使用prepareUpload和completeUpload新流程");
-        throw new BusinessException("上传方式已变更，请使用新的上传接口");
+        Song song = new Song();
+        song.setId(songId);
+        song.setName(name);
+        song.setDescription(dto.getDescription());
+        String fileName = songId + "." + extension;
+        song.setFileName(fileName);
+        song.setSize(null);
+        song.setDuration(null);
+        song.setUploaderId(userId);
+        song.setStatus(SongStatus.UPLOADING);
+        if (!songManager.save(song)) {
+            throw new BusinessException("歌曲信息保存失败");
+        }
+        String uploadUrl = ossManager.generatePresignedPutUrl(fileName, dto.getMimeType());
+        if (uploadUrl == null) {
+            throw new BusinessException("生成上传URL失败");
+        }
+        SongUploadPrepareVO prepareVO = new SongUploadPrepareVO();
+        prepareVO.setId(song.getId());
+        prepareVO.setFileName(fileName);
+        prepareVO.setUploadUrl(uploadUrl);
+        log.info("准备上传歌曲成功，歌曲ID: {}, 文件名: {}", song.getId(), fileName);
+        return prepareVO;
+    }
+
+    @Override
+    public SongVO completeUpload(SongCompleteUploadDTO dto, Long userId) {
+        log.info("请求完成上传歌曲，用户ID: {}, 歌曲ID: {}", userId, dto.getSongId());
+        User uploader = userManager.getById(userId);
+        if (uploader == null) {
+            throw new BusinessException("用户不存在");
+        }
+        Song song = songManager.getById(dto.getSongId());
+        if (song == null) {
+            throw new BusinessException("歌曲不存在");
+        }
+        if (!(song.getStatus() == SongStatus.UPLOADING)) {
+            throw new BusinessException("歌曲状态异常");
+        }
+        if (!song.getUploaderId().equals(userId)) {
+            throw new BusinessException("非歌曲上传者，无权操作");
+        }
+        if (!ossManager.checkFileExists(song.getFileName())) {
+            songManager.removeById(song);
+            throw new BusinessException("上传文件不存在");
+        }
+        InputStream inputStream = ossManager.getFileInputStream(song.getFileName());
+        if (inputStream == null) {
+            throw new BusinessException("获取文件失败");
+        }
+        String actualMimeType;
+        try {
+            actualMimeType = TIKA.detect(inputStream);
+        } catch (IOException e) {
+            throw new BusinessException("无法获取文件类型", e);
+        }
+        try {
+            inputStream.close();
+        } catch (IOException e) {
+            log.error("关闭文件流失败", e);
+        }
+        if (actualMimeType == null) {
+            throw new BusinessException("无法获取文件类型");
+        }
+        String actualExtension = MIME_TYPE_TO_EXTENSION_MAP.get(actualMimeType);
+        if (actualExtension == null) {
+            songManager.removeById(song);
+            ossManager.deleteFile(song.getFileName());
+            throw new BusinessException("文件类型不支持");
+        }
+        String expectedExtension = song.getFileName().substring(song.getFileName().lastIndexOf('.') + 1);
+        if (!actualExtension.equals(expectedExtension)) {
+            songManager.removeById(song);
+            ossManager.deleteFile(song.getFileName());
+            throw new BusinessException("文件类型与后缀名不匹配");
+        }
+        Long fileSize = ossManager.getFileSize(song.getFileName());
+        if (fileSize == null) {
+            throw new BusinessException("获取文件大小失败");
+        }
+        inputStream = ossManager.getFileInputStream(song.getFileName());
+        if (inputStream == null) {
+            throw new BusinessException("获取文件失败");
+        }
+        Long duration = getAudioDurationInMills(inputStream);
+        try {
+            inputStream.close();
+        } catch (IOException e) {
+            log.warn("关闭文件流失败", e);
+        }
+        if (duration == null) {
+            log.warn("解析歌曲持续时长失败");
+        }
+        song.setSize(fileSize);
+        song.setDuration(duration);
+        song.setStatus(SongStatus.NORMAL);
+        if (!songManager.updateById(song)) {
+            throw new BusinessException("歌曲信息更新失败");
+        }
+        SongVO songVO = new SongVO();
+        BeanUtils.copyProperties(song, songVO);
+        songVO.setUploaderName(uploader.getName());
+        log.info("完成上传歌曲成功，歌曲ID: {}", song.getId());
+        return songVO;
     }
 
     @Nullable
@@ -301,128 +369,6 @@ public class SongServiceImpl implements SongService {
             songVO.setUploaderName(uploader.getName());
         }
         log.info("更新歌曲信息成功");
-        return songVO;
-    }
-
-    @Override
-    public SongUploadPrepareVO prepareUpload(SongPrepareUploadDTO dto, Long userId) {
-        log.info("请求准备上传歌曲，用户ID: {}", userId);
-        User uploader = userManager.getById(userId);
-        if (uploader == null) {
-            throw new BusinessException("用户不存在");
-        }
-        String extension = MIME_TYPE_TO_EXTENSION_MAP.get(dto.getMimeType());
-        if (extension == null) {
-            throw new BusinessException("不支持该文件类型");
-        }
-        String name = dto.getName();
-        Long songId = IdWorker.getId();
-        if (name == null) {
-            name = String.valueOf(songId);
-        }
-        Song song = new Song();
-        song.setId(songId);
-        song.setName(name);
-        song.setDescription(dto.getDescription());
-        String fileName = songId + "." + extension;
-        song.setFileName(fileName);
-        song.setSize(null);
-        song.setDuration(null);
-        song.setUploaderId(userId);
-        song.setStatus(SongStatus.UPLOADING);
-        if (!songManager.save(song)) {
-            throw new BusinessException("歌曲信息保存失败");
-        }
-        String uploadUrl = ossManager.generatePresignedPutUrl(fileName, dto.getMimeType());
-        if (uploadUrl == null) {
-            throw new BusinessException("生成上传URL失败");
-        }
-        SongUploadPrepareVO prepareVO = new SongUploadPrepareVO();
-        prepareVO.setId(song.getId());
-        prepareVO.setFileName(fileName);
-        prepareVO.setUploadUrl(uploadUrl);
-        log.info("准备上传歌曲成功，歌曲ID: {}, 文件名: {}", song.getId(), fileName);
-        return prepareVO;
-    }
-
-    @Override
-    public SongVO completeUpload(SongCompleteUploadDTO dto, Long userId) {
-        log.info("请求完成上传歌曲，用户ID: {}, 歌曲ID: {}", userId, dto.getSongId());
-        User uploader = userManager.getById(userId);
-        if (uploader == null) {
-            throw new BusinessException("用户不存在");
-        }
-        Song song = songManager.getById(dto.getSongId());
-        if (song == null) {
-            throw new BusinessException("歌曲不存在");
-        }
-        if (!(song.getStatus() == SongStatus.UPLOADING)) {
-            throw new BusinessException("歌曲状态异常");
-        }
-        if (!song.getUploaderId().equals(userId)) {
-            throw new BusinessException("非歌曲上传者，无权操作");
-        }
-        if (!ossManager.checkFileExists(song.getFileName())) {
-            songManager.removeById(song);
-            throw new BusinessException("上传文件不存在");
-        }
-        InputStream inputStream = ossManager.getFileInputStream(song.getFileName());
-        if (inputStream == null) {
-            throw new BusinessException("获取文件失败");
-        }
-        String actualMimeType;
-        try {
-            actualMimeType = TIKA.detect(inputStream);
-        } catch (IOException e) {
-            throw new BusinessException("无法获取文件类型", e);
-        }
-        try {
-            inputStream.close();
-        } catch (IOException e) {
-            log.error("关闭文件流失败", e);
-        }
-        if (actualMimeType == null) {
-            throw new BusinessException("无法获取文件类型");
-        }
-        String actualExtension = MIME_TYPE_TO_EXTENSION_MAP.get(actualMimeType);
-        if (actualExtension == null) {
-            songManager.removeById(song);
-            ossManager.deleteFile(song.getFileName());
-            throw new BusinessException("文件类型不支持");
-        }
-        String expectedExtension = song.getFileName().substring(song.getFileName().lastIndexOf('.') + 1);
-        if (!actualExtension.equals(expectedExtension)) {
-            songManager.removeById(song);
-            ossManager.deleteFile(song.getFileName());
-            throw new BusinessException("文件类型与后缀名不匹配");
-        }
-        Long fileSize = ossManager.getFileSize(song.getFileName());
-        if (fileSize == null) {
-            throw new BusinessException("获取文件大小失败");
-        }
-        inputStream = ossManager.getFileInputStream(song.getFileName());
-        if (inputStream == null) {
-            throw new BusinessException("获取文件失败");
-        }
-        Long duration = getAudioDurationInMills(inputStream);
-        try {
-            inputStream.close();
-        } catch (IOException e) {
-            log.warn("关闭文件流失败", e);
-        }
-        if (duration == null) {
-            log.warn("解析歌曲持续时长失败");
-        }
-        song.setSize(fileSize);
-        song.setDuration(duration);
-        song.setStatus(SongStatus.NORMAL);
-        if (!songManager.updateById(song)) {
-            throw new BusinessException("歌曲信息更新失败");
-        }
-        SongVO songVO = new SongVO();
-        BeanUtils.copyProperties(song, songVO);
-        songVO.setUploaderName(uploader.getName());
-        log.info("完成上传歌曲成功，歌曲ID: {}", song.getId());
         return songVO;
     }
 }

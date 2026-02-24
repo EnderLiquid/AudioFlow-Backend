@@ -358,6 +358,10 @@ log.info("更新歌曲信息成功");
     @Override
     public SongVO completeUpload(SongCompleteUploadDTO dto, Long userId) {
         log.info("请求完成上传歌曲，用户ID: {}, 歌曲ID: {}", userId, dto.getSongId());
+        User uploader = userManager.getById(userId);
+        if (uploader == null) {
+            throw new BusinessException("用户不存在");
+        }
         Song song = songManager.getById(dto.getSongId());
         if (song == null) {
             throw new BusinessException("歌曲不存在");

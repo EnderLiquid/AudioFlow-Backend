@@ -7,6 +7,8 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import top.enderliquid.audioflow.common.enums.Role;
+import top.enderliquid.audioflow.common.enums.SongStatus;
 import top.enderliquid.audioflow.entity.Song;
 import top.enderliquid.audioflow.entity.User;
 import top.enderliquid.audioflow.manager.SongManager;
@@ -69,7 +71,7 @@ public class TestDataHelper {
         admin.setName("admin_user_" + uniqueId);
         admin.setEmail("admin_user_" + uniqueId + "@example.com");
         admin.setPassword(passwordEncoder.encode("test_password_123"));
-        admin.setRole(top.enderliquid.audioflow.common.enums.Role.ADMIN);
+        admin.setRole(Role.ADMIN);
         userManager.save(admin);
         return admin;
     }
@@ -82,7 +84,7 @@ public Song createTestSong(Long userId) {
         song.setSize(1024L);
         song.setDuration(180L);
         song.setUploaderId(userId);
-        song.setStatus(top.enderliquid.audioflow.common.enums.SongStatus.NORMAL.name());
+    song.setStatus(SongStatus.NORMAL);
         songManager.save(song);
         return song;
     }

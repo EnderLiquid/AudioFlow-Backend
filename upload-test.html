@@ -122,7 +122,7 @@
         <h2>上传</h2>
         <div class="input-group">
             <label>歌曲名称:</label>
-            <input type="text" id="songName" placeholder="歌曲名称（可选）">
+            <input type="text" id="songName" placeholder="歌曲名称">
         </div>
         <div class="input-group">
             <label>描述:</label>
@@ -236,10 +236,14 @@
         fileInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             const selectedFileDiv = document.getElementById('selectedFile');
+            const songNameInput = document.getElementById('songName');
             if (file) {
                 selectedFileDiv.innerHTML = `已选: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+                const nameWithoutExt = file.name.replace(/\.[^/.]+$/, '');
+                songNameInput.value = nameWithoutExt;
             } else {
                 selectedFileDiv.innerHTML = '未选择文件';
+                songNameInput.value = '';
             }
         });
 
@@ -281,7 +285,7 @@
                 credentials: 'include',
                 body: JSON.stringify({
                     mimeType: fileType,
-                    name: songName || null,
+                    name: songName || '',
                     description: description || null
                 })
             });

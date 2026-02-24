@@ -17,23 +17,28 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.xml.sax.helpers.DefaultHandler;
 import top.enderliquid.audioflow.common.enums.Role;
+import top.enderliquid.audioflow.common.enums.SongStatus;
 import top.enderliquid.audioflow.common.exception.BusinessException;
 import top.enderliquid.audioflow.dto.bo.SongBO;
 import top.enderliquid.audioflow.dto.param.SongPageParam;
+import top.enderliquid.audioflow.dto.request.song.SongCompleteUploadDTO;
 import top.enderliquid.audioflow.dto.request.song.SongPageDTO;
+import top.enderliquid.audioflow.dto.request.song.SongPrepareUploadDTO;
 import top.enderliquid.audioflow.dto.request.song.SongSaveDTO;
 import top.enderliquid.audioflow.dto.request.song.SongUpdateDTO;
 import top.enderliquid.audioflow.dto.response.CommonPageVO;
+import top.enderliquid.audioflow.dto.response.SongUploadPrepareVO;
 import top.enderliquid.audioflow.dto.response.SongVO;
 import top.enderliquid.audioflow.entity.Song;
 import top.enderliquid.audioflow.entity.User;
-import top.enderliquid.audioflow.manager.FileManager;
+import top.enderliquid.audioflow.manager.OSSManager;
 import top.enderliquid.audioflow.manager.SongManager;
 import top.enderliquid.audioflow.manager.UserManager;
 import top.enderliquid.audioflow.service.SongService;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -43,14 +48,14 @@ import java.util.Map;
 @Service
 public class SongServiceImpl implements SongService {
 
-    @Autowired
+@Autowired
     private UserManager userManager;
 
     @Autowired
     private SongManager songManager;
 
     @Autowired
-    private FileManager fileManager;
+    private OSSManager ossManager;
 
     private static final Tika TIKA = new Tika();
     private static final Parser TIKA_PARSER = new AutoDetectParser();
@@ -119,51 +124,17 @@ public class SongServiceImpl implements SongService {
             throw new BusinessException("不支持该文件类型");
         }
         String fileName = songId + "." + extension;
-        log.info("歌曲文件通过检验，歌曲名称: {}", name);
+log.info("歌曲文件通过检验，歌曲名称: {}", name);
         // 保存歌曲文件
-        String sourceType;
         inputStream = getInputStream(dto.getFile());
         if (inputStream == null) throw new BusinessException("读取文件失败");
-        sourceType = fileManager.save(fileName, inputStream, mimeType);
-        if (sourceType == null) {
-            throw new BusinessException("歌曲文件保存失败");
+        if (!ossManager.deleteFile(fileName)) {
+            log.warn("删除已存在的文件失败: {}", fileName);
         }
-        log.info("歌曲文件保存成功，文件存储名: {}，文件储存源: {}", fileName, sourceType);
-        // 保存歌曲信息
-        Song song = new Song();
-        song.setId(songId);
-        song.setName(name);
-        song.setDescription(dto.getDescription());
-        song.setFileName(fileName);
-        song.setSourceType(sourceType);
-        song.setSize(dto.getFile().getSize());
-        song.setUploaderId(userId);
-        Long duration = null;
-        inputStream = getInputStream(dto.getFile());
-        if (inputStream != null) duration = getAudioDurationInMills(inputStream);
-        if (duration == null) {
-            log.warn("解析歌曲持续时长失败");
-            duration = 0L;
-        }
-        song.setDuration(duration);
-        try {
-            // 保存歌曲信息到数据库（数据库外键约束保证用户存在）
-            if (!songManager.save(song)) {
-                throw new BusinessException("歌曲信息保存失败");
-            }
-        } catch (BusinessException e) {
-            if (!fileManager.delete(fileName, sourceType)) {
-                log.error("删除已保存的歌曲文件失败，文件存储名: {}，文件储存源: {}", fileName, sourceType);
-            }
-            throw e;
-        }
-        log.info("歌曲信息保存成功");
-        // 返回视图
-        SongVO songVO = new SongVO();
-        BeanUtils.copyProperties(song, songVO);
-        songVO.setUploaderName(uploader.getName());
-        log.info("上传歌曲成功");
-        return songVO;
+        // 将保存操作注释掉，因为现在的流程是前端直接上传到OSS
+        // 如果需要支持旧的saveSong接口，需要使用不同的上传方式
+        log.warn("saveSong方法已废弃，请使用prepareUpload和completeUpload新流程");
+        throw new BusinessException("上传方式已变更，请使用新的上传接口");
     }
 
     @Nullable
@@ -270,9 +241,9 @@ public class SongServiceImpl implements SongService {
             log.error("删除歌曲信息失败");
             throw new BusinessException("删除歌曲信息失败");
         }
-        log.info("删除歌曲信息成功");
+log.info("删除歌曲信息成功");
         String fileName = song.getFileName();
-        if (!fileManager.delete(fileName, song.getSourceType())) {
+        if (!ossManager.deleteFile(fileName)) {
             log.error("删除歌曲文件失败");
         } else {
             log.info("删除歌曲文件成功");
@@ -294,14 +265,14 @@ public class SongServiceImpl implements SongService {
         return songVO;
     }
 
-    @Override
+@Override
     public String getSongUrl(Long songId) {
         log.info("请求获取歌曲播放链接，歌曲ID: {}", songId);
         Song song = songManager.getById(songId);
         if (song == null) {
             return null;
         }
-        String url = fileManager.getUrl(song.getFileName(), song.getSourceType());
+        String url = ossManager.getPresignedGetUrl(song.getFileName(), Duration.ofSeconds(3600));
         if (url != null) log.info("获取歌曲播放链接成功");
         return url;
     }
@@ -338,7 +309,127 @@ public class SongServiceImpl implements SongService {
         } else {
             songVO.setUploaderName("未知用户");
         }
-        log.info("更新歌曲信息成功");
+log.info("更新歌曲信息成功");
+        return songVO;
+    }
+
+    @Override
+    public SongUploadPrepareVO prepareUpload(SongPrepareUploadDTO dto, Long userId) {
+        log.info("请求准备上传歌曲，用户ID: {}", userId);
+        User uploader = userManager.getById(userId);
+        if (uploader == null) {
+            throw new BusinessException("用户不存在");
+        }
+        String extension = MIME_TYPE_TO_EXTENSION_MAP.get(dto.getMimetype());
+        if (extension == null) {
+            throw new BusinessException("不支持该文件类型");
+        }
+        String name = dto.getName();
+        if (name == null) {
+            name = String.valueOf(IdWorker.getId());
+        }
+        Song song = new Song();
+        song.setName(name);
+        song.setDescription(dto.getDescription());
+        song.setSize(0L);
+        song.setDuration(null);
+        song.setUploaderId(userId);
+        song.setStatus(SongStatus.UPLOADING.name());
+        if (!songManager.save(song)) {
+            throw new BusinessException("歌曲信息保存失败");
+        }
+        String fileName = song.getId() + "." + extension;
+        song.setFileName(fileName);
+        if (!songManager.updateById(song)) {
+            throw new BusinessException("文件名更新失败");
+        }
+        String uploadUrl = ossManager.generatePresignedPostUrl(fileName, Duration.ofMinutes(15));
+        if (uploadUrl == null) {
+            throw new BusinessException("生成上传URL失败");
+        }
+        SongUploadPrepareVO prepareVO = new SongUploadPrepareVO();
+        prepareVO.setId(song.getId());
+        prepareVO.setFileName(fileName);
+        prepareVO.setUploadUrl(uploadUrl);
+        log.info("准备上传歌曲成功，歌曲ID: {}, 文件名: {}", song.getId(), fileName);
+        return prepareVO;
+    }
+
+    @Override
+    public SongVO completeUpload(SongCompleteUploadDTO dto, Long userId) {
+        log.info("请求完成上传歌曲，用户ID: {}, 歌曲ID: {}", userId, dto.getSongId());
+        Song song = songManager.getById(dto.getSongId());
+        if (song == null) {
+            throw new BusinessException("歌曲不存在");
+        }
+        if (!SongStatus.UPLOADING.name().equals(song.getStatus())) {
+            throw new BusinessException("歌曲状态异常");
+        }
+        if (!song.getUploaderId().equals(userId)) {
+            throw new BusinessException("无权操作");
+        }
+        if (!ossManager.checkFileExists(song.getFileName())) {
+            songManager.removeById(song);
+            throw new BusinessException("上传文件不存在");
+        }
+        InputStream inputStream = ossManager.getFileInputStream(song.getFileName());
+        if (inputStream == null) {
+            throw new BusinessException("获取文件失败");
+        }
+        String actualMimeType;
+        try {
+            actualMimeType = TIKA.detect(inputStream);
+        } catch (IOException e) {
+            throw new BusinessException("无法获取文件类型", e);
+        }
+        try {
+            inputStream.close();
+        } catch (IOException e) {
+            log.error("关闭文件流失败", e);
+        }
+        if (actualMimeType == null) {
+            throw new BusinessException("无法获取文件类型");
+        }
+        String actualExtension = MIME_TYPE_TO_EXTENSION_MAP.get(actualMimeType);
+        if (actualExtension == null) {
+            songManager.removeById(song);
+            ossManager.deleteFile(song.getFileName());
+            throw new BusinessException("文件类型不支持");
+        }
+        String expectedExtension = song.getFileName().substring(song.getFileName().lastIndexOf('.') + 1);
+        if (!actualExtension.equals(expectedExtension)) {
+            songManager.removeById(song);
+            ossManager.deleteFile(song.getFileName());
+            throw new BusinessException("文件类型与后缀名不匹配");
+        }
+        Long fileSize = ossManager.getFileSize(song.getFileName());
+        if (fileSize == null) {
+            throw new BusinessException("获取文件大小失败");
+        }
+        inputStream = ossManager.getFileInputStream(song.getFileName());
+        if (inputStream == null) {
+            throw new BusinessException("获取文件失败");
+        }
+        Long duration = getAudioDurationInMills(inputStream);
+        try {
+            inputStream.close();
+        } catch (IOException e) {
+            log.error("关闭文件流失败", e);
+        }
+        if (duration == null) {
+            log.warn("解析歌曲持续时长失败");
+            duration = 0L;
+        }
+        song.setSize(fileSize);
+        song.setDuration(duration);
+        song.setStatus(SongStatus.NORMAL.name());
+        if (!songManager.updateById(song)) {
+            throw new BusinessException("歌曲信息更新失败");
+        }
+        SongVO songVO = new SongVO();
+        BeanUtils.copyProperties(song, songVO);
+        songVO.setUploaderName(uploader.getName());
+        log.info("完成上传歌曲成功，歌曲ID: {}", song.getId());
         return songVO;
     }
 }

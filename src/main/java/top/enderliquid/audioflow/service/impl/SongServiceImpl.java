@@ -412,7 +412,6 @@ public class SongServiceImpl implements SongService {
         }
         if (duration == null) {
             log.warn("解析歌曲持续时长失败");
-            duration = 0L;
         }
         song.setSize(fileSize);
         song.setDuration(duration);

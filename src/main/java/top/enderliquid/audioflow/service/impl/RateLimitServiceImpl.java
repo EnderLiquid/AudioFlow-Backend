@@ -19,39 +19,48 @@ public class RateLimitServiceImpl implements RateLimitService {
 
     @Override
     public void verifyRateLimit(RateLimit rateLimit, String ip, Long userId, String methodName) {
-        log.debug("验证限流，限流规则: {}, IP: {}, 用户ID: {}, 方法: {}", rateLimit.refillRate(), ip, userId, methodName);
         double refillRate = new Fraction(rateLimit.refillRate()).toDouble();
         int capacity = rateLimit.capacity();
         LimitType limitType = rateLimit.limitType();
+        int tokensRequested = rateLimit.tokensRequested();
+
+        String entryKey;
+        if (rateLimit.entryKey().isEmpty()) {
+            entryKey = methodName;
+        } else {
+            entryKey = rateLimit.entryKey();
+        }
+
+        log.debug("验证限流，IP: {}, 用户ID: {}, 入口: {}", ip, userId, entryKey);
 
         if (limitType == LimitType.BOTH || limitType == LimitType.IP) {
-            String ipKey = generateIpKey(ip, methodName);
-            if (!redisManager.tryAcquireRateLimitToken(ipKey, capacity, refillRate, 1)) {
-                log.warn("IP限流检查失败，IP: {}, 方法: {}, 容量: {}, 补充速率: {}", ip, methodName, capacity, refillRate);
+            String ipKey = generateIpKey(ip, entryKey);
+            if (!redisManager.tryAcquireRateLimitToken(ipKey, capacity, refillRate, tokensRequested)) {
+                log.warn("IP限流检查失败，IP: {}, 入口: {}, 容量: {}, 补充速率: {}, 需求量: {}", ip, entryKey, capacity, refillRate, tokensRequested);
                 throw new RateLimitException(rateLimit.message());
             }
         }
 
         if (userId != null && (limitType == LimitType.BOTH || limitType == LimitType.USER)) {
-            String userIdKey = generateUserIdKey(userId, methodName);
-            if (!redisManager.tryAcquireRateLimitToken(userIdKey, capacity, refillRate, 1)) {
-                log.warn("用户限流检查失败，用户ID: {}, 方法: {}, 容量: {}, 补充速率: {}", userId, methodName, capacity, refillRate);
+            String userIdKey = generateUserIdKey(userId, entryKey);
+            if (!redisManager.tryAcquireRateLimitToken(userIdKey, capacity, refillRate, tokensRequested)) {
+                log.warn("用户限流检查失败，用户ID: {}, 入口: {}, 容量: {}, 补充速率: {}, 需求量: {}", userId, entryKey, capacity, refillRate, tokensRequested);
                 throw new RateLimitException(rateLimit.message());
             }
         }
 
-        log.debug("限流验证通过，IP: {}, 用户ID: {}, 方法: {}", ip, userId, methodName);
+        log.debug("限流验证通过，IP: {}, 用户ID: {}, 入口: {}", ip, userId, entryKey);
     }
 
-    private String generateIpKey(String ip, String methodName) {
+    private String generateIpKey(String ip, String entryKey) {
         return "rate_limit:" +
                 "ip-" + ip +
-                ";method-" + methodName;
+                ";entry-" + entryKey;
     }
 
-    private String generateUserIdKey(Long userId, String methodName) {
+    private String generateUserIdKey(Long userId, String entryKey) {
         return "rate_limit:" +
                 "ip-" + userId +
-                ";method-" + methodName;
+                ";entry-" + entryKey;
     }
 }

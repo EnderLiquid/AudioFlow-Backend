@@ -18,4 +18,8 @@ public @interface RateLimit {
     LimitType limitType() default LimitType.BOTH;
 
     String message() default "请求过于频繁，请稍后再试";
+
+    String entryKey() default "";
+
+    int tokensRequested() default 1;
 }

@@ -25,11 +25,8 @@ public class Song {
 
     private String description;
 
-    @TableField("file_name")
+@TableField("file_name")
     private String fileName;
-
-    @TableField("source_type")
-    private String sourceType;
 
     private Long size;
 
@@ -37,6 +34,8 @@ public class Song {
 
     @TableField("uploader_id")
     private Long uploaderId;
+
+    private String status;
 
     @TableField(value = "create_time", fill = FieldFill.INSERT)
     private LocalDateTime createTime;

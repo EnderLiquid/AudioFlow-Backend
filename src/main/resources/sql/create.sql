@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS `user` (
 CREATE TABLE IF NOT EXISTS `song` (
     `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '歌曲ID',
     `name`        VARCHAR(255) NOT NULL COMMENT '歌曲名称',
-    `description` VARCHAR(255) NOT NULL COMMENT '歌曲描述',
+    `description` VARCHAR(255) COMMENT '歌曲描述',
     `file_name` VARCHAR(255) NOT NULL COMMENT '文件存储名',
     `size`     BIGINT COMMENT '文件大小（字节）',
     `duration` BIGINT COMMENT '音频时长（毫秒）',

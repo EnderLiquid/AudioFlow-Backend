@@ -166,8 +166,6 @@
     </div>
 
     <script>
-        let satoken = null;
-
         function testConnection() {
             const baseUrl = document.getElementById('baseUrl').value;
             const status = document.getElementById('connectionStatus');
@@ -219,7 +217,6 @@
                 return response.json();
             }).then(data => {
                 if (data.success) {
-                    satoken = document.cookie.match(/satoken=([^;]+)/)?.[1];
                     status.innerHTML = `登录成功 - ${data.data.name}`;
                     status.className = 'status success';
                 } else {
@@ -270,10 +267,6 @@
             const songName = document.getElementById('songName').value;
             const description = document.getElementById('description').value;
             const fileType = document.getElementById('fileType').value;
-
-            if (!satoken) {
-                throw new Error('请先登录');
-            }
 
             updateStep('step2', 'in-progress', '2. 准备上传中...');
 

@@ -74,15 +74,15 @@ public class TestDataHelper {
         return admin;
     }
 
-    public Song createTestSong(Long userId) {
+public Song createTestSong(Long userId) {
         Song song = new Song();
         song.setName("Test Song");
         song.setDescription("Test Description");
         song.setFileName("test-song.mp3");
-        song.setSourceType("local");
         song.setSize(1024L);
         song.setDuration(180L);
         song.setUploaderId(userId);
+        song.setStatus(top.enderliquid.audioflow.common.enums.SongStatus.NORMAL.name());
         songManager.save(song);
         return song;
     }

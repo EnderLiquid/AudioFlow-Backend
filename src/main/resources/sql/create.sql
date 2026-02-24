@@ -14,19 +14,19 @@ CREATE TABLE IF NOT EXISTS `user` (
 -- 歌曲表
 CREATE TABLE IF NOT EXISTS `song` (
     `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '歌曲ID',
-    `name` VARCHAR(255) NOT NULL COMMENT '歌曲名称',
-    `description` VARCHAR(255) COMMENT '歌曲说明',
+    `name` VARCHAR(64) NOT NULL COMMENT '歌曲名称',
+    `description` VARCHAR(128) NOT NULL COMMENT '歌曲描述',
     `file_name` VARCHAR(255) NOT NULL COMMENT '文件存储名',
-    `source_type` VARCHAR(20) NOT NULL COMMENT '文件存储源',
     `size` BIGINT NOT NULL COMMENT '文件大小（字节）',
-    `duration` BIGINT NOT NULL DEFAULT 0 COMMENT '音频时长（毫秒）',
+    `duration` BIGINT NOT NULL COMMENT '音频时长（毫秒）',
     `uploader_id` BIGINT NOT NULL COMMENT '上传者ID',
+    `status` VARCHAR(20) NOT NULL DEFAULT 'UPLOADING' COMMENT '歌曲状态：UPLOADING-上传中, NORMAL-正常',
     `create_time` DATETIME NOT NULL COMMENT '创建时间',
     `update_time` DATETIME NOT NULL COMMENT '更新时间',
     PRIMARY KEY (`id`),
     INDEX `idx_create_time` (`create_time`),
-    INDEX `idx_name` (`name`),
     INDEX `idx_uploader_id` (`uploader_id`),
+    INDEX `idx_status_create_time` (`status`, `create_time`),
     -- 创建外键约束
     CONSTRAINT `fk_song_user`
     FOREIGN KEY (`uploader_id`)

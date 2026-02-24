@@ -12,5 +12,6 @@ import java.util.List;
 
 public interface SongManager extends IService<Song> {
     IPage<SongBO> pageByUploaderKeywordAndSongKeyword(SongPageParam param);
+
     List<Song> listByStatusAndBeforeTime(String status, LocalDateTime time);
 }

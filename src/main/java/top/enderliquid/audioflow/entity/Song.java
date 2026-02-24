@@ -1,7 +1,6 @@
 package top.enderliquid.audioflow.entity;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -9,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import top.enderliquid.audioflow.common.enums.SongStatus;
 
 import java.time.LocalDateTime;
 
@@ -25,7 +25,7 @@ public class Song {
 
     private String description;
 
-@TableField("file_name")
+    @TableField("file_name")
     private String fileName;
 
     private Long size;
@@ -35,7 +35,7 @@ public class Song {
     @TableField("uploader_id")
     private Long uploaderId;
 
-    private String status;
+    private SongStatus status;
 
     @TableField(value = "create_time", fill = FieldFill.INSERT)
     private LocalDateTime createTime;

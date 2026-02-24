@@ -26,10 +26,10 @@ public class SessionController {
      */
     @PostMapping
     @RateLimit(
-        refillRate = "3/60",
+            refillRate = "3/60",
             capacity = 3,
             limitType = LimitType.IP,
-        message = "登录尝试过于频繁，请稍后再试"
+            message = "登录尝试过于频繁，请稍后再试"
     )
     public HttpResponseBody<UserVO> login(@Valid @RequestBody UserVerifyPasswordDTO dto) {
         UserVO userVO = userService.verifyUserPassword(dto);

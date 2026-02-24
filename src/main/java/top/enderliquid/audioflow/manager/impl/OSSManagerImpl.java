@@ -4,33 +4,29 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 import org.springframework.lang.Nullable;
+import org.springframework.stereotype.Component;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.exception.SdkException;
-import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
-import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
-import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
+import top.enderliquid.audioflow.manager.OSSManager;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.time.Duration;
 
 @Slf4j
 @Component
-public class OSSManagerImpl implements top.enderliquid.audioflow.manager.OSSManager {
+public class OSSManagerImpl implements OSSManager {
 
     @Value("${file.storage.s3.endpoint}")
     private String endpoint;
@@ -50,6 +46,9 @@ public class OSSManagerImpl implements top.enderliquid.audioflow.manager.OSSMana
     @Value("${file.storage.s3.presigned-url-expiration:3600}")
     private int presignedUrlExpirationSeconds;
 
+    @Value("${file.storage.s3.path-style-access}")
+    private boolean pathStyleAccess;
+
     private S3Client s3Client;
     private S3Presigner s3Presigner;
 
@@ -59,73 +58,66 @@ public class OSSManagerImpl implements top.enderliquid.audioflow.manager.OSSMana
             log.warn("S3 凭证未配置，OSSManagerImpl 将不会被初始化");
             return;
         }
+
         AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKey, secretKey);
         StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(credentials);
+
+        // 配置 S3 客户端
         S3Configuration s3Config = S3Configuration.builder()
-                .pathStyleAccessEnabled(false)
+                .pathStyleAccessEnabled(pathStyleAccess) // 使用配置项
+                .chunkedEncodingEnabled(false) // 某些兼容 S3 可能需要关闭 chunked
                 .build();
 
-        String resolvedEndpoint = resolveEndpointTemplate(endpoint, region, bucketName);
-
+        // 构建 S3Client
         software.amazon.awssdk.services.s3.S3ClientBuilder clientBuilder = S3Client.builder()
                 .credentialsProvider(credentialsProvider)
                 .serviceConfiguration(s3Config)
                 .region(Region.of(region));
-        if (resolvedEndpoint != null && !resolvedEndpoint.isEmpty()) {
-            clientBuilder.endpointOverride(URI.create(resolvedEndpoint));
-        }
-        s3Client = clientBuilder.build();
+
+        // 构建 Presigner
         software.amazon.awssdk.services.s3.presigner.S3Presigner.Builder presignerBuilder = S3Presigner.builder()
                 .credentialsProvider(credentialsProvider)
+                .serviceConfiguration(s3Config) // Presigner 也最好应用同样的 Config
                 .region(Region.of(region));
-        if (resolvedEndpoint != null && !resolvedEndpoint.isEmpty()) {
-            presignerBuilder.endpointOverride(URI.create(resolvedEndpoint));
-        }
-        s3Presigner = presignerBuilder.build();
-        log.info("OSSManagerImpl 初始化完成，存储桶名称: {}, endpoint: {}", bucketName,
-                resolvedEndpoint != null ? resolvedEndpoint : "AWS 默认");
-    }
 
-    private String resolveEndpointTemplate(String endpoint, String region, String bucket) {
-        if (endpoint == null || endpoint.isEmpty()) {
-            return null;
+        if (endpoint != null && !endpoint.isEmpty()) {
+            URI endpointUri = URI.create(endpoint);
+            clientBuilder.endpointOverride(endpointUri);
+            presignerBuilder.endpointOverride(endpointUri);
         }
-        String result = endpoint;
-        if (result.contains("{region}")) {
-            result = result.replace("{region}", region);
-        }
-        if (result.contains("{bucket}")) {
-            result = result.replace("{bucket}", bucket);
-        }
-        return result;
+
+        s3Client = clientBuilder.build();
+        s3Presigner = presignerBuilder.build();
+
+        log.info("OSSManagerImpl 初始化完成. Bucket: {}, Region: {}, PathStyle: {}",
+                bucketName, region, pathStyleAccess);
     }
 
     @PreDestroy
     public void destroy() {
-        if (s3Client != null) {
-            s3Client.close();
-        }
-        if (s3Presigner != null) {
-            s3Presigner.close();
-        }
+        if (s3Client != null) s3Client.close();
+        if (s3Presigner != null) s3Presigner.close();
     }
 
     @Override
     @Nullable
-    public String generatePresignedPostUrl(String fileName, Duration expiration) {
-        if (s3Presigner == null) {
-            log.error("S3Presigner 未初始化");
-            return null;
-        }
+    public String generatePresignedPutUrl(String fileName, String mimeType) {
+        if (s3Presigner == null) return null;
         try {
+            Duration expiration = Duration.ofSeconds(presignedUrlExpirationSeconds);
             PresignedPutObjectRequest presignedRequest = s3Presigner.presignPutObject(
-                    software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest.builder()
+                    PutObjectPresignRequest.builder()
                             .signatureDuration(expiration)
                             .putObjectRequest(builder -> builder
                                     .bucket(bucketName)
-                                    .key(fileName))
+                                    .key(fileName)
+                                    .contentType(mimeType)
+                                    .contentDisposition("inline")
+                            )
                             .build()
             );
+
+            // 前端上传时 Header 必须包含: Content-Type: [mimeType]
             return presignedRequest.url().toString();
         } catch (SdkException e) {
             log.error("生成预签名上传URL失败，文件名: {}", fileName, e);
@@ -135,16 +127,9 @@ public class OSSManagerImpl implements top.enderliquid.audioflow.manager.OSSMana
 
     @Override
     public boolean checkFileExists(String fileName) {
-        if (s3Client == null) {
-            log.error("S3Client 未初始化");
-            return false;
-        }
+        if (s3Client == null) return false;
         try {
-            HeadObjectRequest headRequest = HeadObjectRequest.builder()
-                    .bucket(bucketName)
-                    .key(fileName)
-                    .build();
-            s3Client.headObject(headRequest);
+            s3Client.headObject(builder -> builder.bucket(bucketName).key(fileName));
             return true;
         } catch (NoSuchKeyException e) {
             return false;
@@ -157,16 +142,9 @@ public class OSSManagerImpl implements top.enderliquid.audioflow.manager.OSSMana
     @Override
     @Nullable
     public InputStream getFileInputStream(String fileName) {
-        if (s3Client == null) {
-            log.error("S3Client 未初始化");
-            return null;
-        }
+        if (s3Client == null) return null;
         try {
-            GetObjectRequest getRequest = GetObjectRequest.builder()
-                    .bucket(bucketName)
-                    .key(fileName)
-                    .build();
-            return s3Client.getObject(getRequest);
+            return s3Client.getObject(builder -> builder.bucket(bucketName).key(fileName));
         } catch (SdkException e) {
             log.error("获取文件流失败，文件名: {}", fileName, e);
             return null;
@@ -175,17 +153,10 @@ public class OSSManagerImpl implements top.enderliquid.audioflow.manager.OSSMana
 
     @Override
     public boolean deleteFile(String fileName) {
-        if (s3Client == null) {
-            log.error("S3Client 未初始化");
-            return false;
-        }
+        if (s3Client == null) return false;
         try {
-            DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
-                    .bucket(bucketName)
-                    .key(fileName)
-                    .build();
-            s3Client.deleteObject(deleteRequest);
-            log.debug("文件删除成功，文件名: {}，存储桶名称: {}", fileName, bucketName);
+            s3Client.deleteObject(builder -> builder.bucket(bucketName).key(fileName));
+            log.debug("文件删除请求已发送，文件名: {}", fileName);
             return true;
         } catch (SdkException e) {
             log.error("文件删除失败，文件名: {}", fileName, e);
@@ -196,21 +167,15 @@ public class OSSManagerImpl implements top.enderliquid.audioflow.manager.OSSMana
     @Override
     @Nullable
     public String getPresignedGetUrl(String fileName, Duration expiration) {
-        if (s3Presigner == null) {
-            log.error("S3Presigner 未初始化");
-            return null;
-        }
+        if (s3Presigner == null) return null;
         try {
             GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
                     .signatureDuration(expiration)
-                    .getObjectRequest(builder -> builder
-                            .bucket(bucketName)
-                            .key(fileName))
+                    .getObjectRequest(builder -> builder.bucket(bucketName).key(fileName))
                     .build();
-            PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(presignRequest);
-            return presignedRequest.url().toString();
+            return s3Presigner.presignGetObject(presignRequest).url().toString();
         } catch (SdkException e) {
-            log.error("生成预签名访问URL失败，文件名: {}", fileName, e);
+            log.error("生成下载URL失败，文件名: {}", fileName, e);
             return null;
         }
     }
@@ -218,16 +183,9 @@ public class OSSManagerImpl implements top.enderliquid.audioflow.manager.OSSMana
     @Override
     @Nullable
     public Long getFileSize(String fileName) {
-        if (s3Client == null) {
-            log.error("S3Client 未初始化");
-            return null;
-        }
+        if (s3Client == null) return null;
         try {
-            HeadObjectRequest headRequest = HeadObjectRequest.builder()
-                    .bucket(bucketName)
-                    .key(fileName)
-                    .build();
-            HeadObjectResponse response = s3Client.headObject(headRequest);
+            HeadObjectResponse response = s3Client.headObject(builder -> builder.bucket(bucketName).key(fileName));
             return response.contentLength();
         } catch (SdkException e) {
             log.error("获取文件大小失败，文件名: {}", fileName, e);

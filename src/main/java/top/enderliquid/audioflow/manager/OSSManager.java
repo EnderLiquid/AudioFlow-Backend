@@ -9,12 +9,11 @@ public interface OSSManager {
     /**
      * 生成预签名POST上传URL（带Policy限制）
      *
-     * @param fileName 文件名
-     * @param expiration 过期时间
+     * @param fileName   文件名
      * @return 预签名URL
      */
     @Nullable
-    String generatePresignedPostUrl(String fileName, Duration expiration);
+    String generatePresignedPutUrl(String fileName, String mimeType);
 
     /**
      * 检查文件是否存在
@@ -42,9 +41,10 @@ public interface OSSManager {
     boolean deleteFile(String fileName);
 
     /**
-     * 获取预签名访问URL（播放用）
+     * 生成预签名上传 URL (PUT 方法)
+     * 前端需使用 PUT 请求，并带上对应的 Content-Type
      *
-     * @param fileName 文件名
+     * @param fileName   文件名
      * @param expiration 过期时间
      * @return 预签名URL
      */

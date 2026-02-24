@@ -11,11 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import top.enderliquid.audioflow.common.annotation.RateLimit;
 import top.enderliquid.audioflow.common.enums.LimitType;
 import top.enderliquid.audioflow.common.response.HttpResponseBody;
-import top.enderliquid.audioflow.dto.request.song.SongCompleteUploadDTO;
-import top.enderliquid.audioflow.dto.request.song.SongPageDTO;
-import top.enderliquid.audioflow.dto.request.song.SongPrepareUploadDTO;
-import top.enderliquid.audioflow.dto.request.song.SongSaveDTO;
-import top.enderliquid.audioflow.dto.request.song.SongUpdateDTO;
+import top.enderliquid.audioflow.dto.request.song.*;
 import top.enderliquid.audioflow.dto.response.CommonPageVO;
 import top.enderliquid.audioflow.dto.response.SongUploadPrepareVO;
 import top.enderliquid.audioflow.dto.response.SongVO;
@@ -32,7 +28,7 @@ public class SongController {
     @Autowired
     private SongService songService;
 
-/**
+    /**
      * 上传歌曲
      * 需要登录
      * 已废弃，请使用prepareUpload和completeUpload
@@ -59,8 +55,8 @@ public class SongController {
     @SaCheckLogin
     @PostMapping("/prepare")
     @RateLimit(
-            refillRate = "3/60",
-            capacity = 3,
+            refillRate = "1/1",
+            capacity = 5,
             limitType = LimitType.BOTH,
             message = "上传过于频繁，请稍后再试"
     )

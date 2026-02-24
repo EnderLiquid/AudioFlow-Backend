@@ -21,11 +21,7 @@ import top.enderliquid.audioflow.common.enums.SongStatus;
 import top.enderliquid.audioflow.common.exception.BusinessException;
 import top.enderliquid.audioflow.dto.bo.SongBO;
 import top.enderliquid.audioflow.dto.param.SongPageParam;
-import top.enderliquid.audioflow.dto.request.song.SongCompleteUploadDTO;
-import top.enderliquid.audioflow.dto.request.song.SongPageDTO;
-import top.enderliquid.audioflow.dto.request.song.SongPrepareUploadDTO;
-import top.enderliquid.audioflow.dto.request.song.SongSaveDTO;
-import top.enderliquid.audioflow.dto.request.song.SongUpdateDTO;
+import top.enderliquid.audioflow.dto.request.song.*;
 import top.enderliquid.audioflow.dto.response.CommonPageVO;
 import top.enderliquid.audioflow.dto.response.SongUploadPrepareVO;
 import top.enderliquid.audioflow.dto.response.SongVO;
@@ -48,18 +44,8 @@ import java.util.Map;
 @Service
 public class SongServiceImpl implements SongService {
 
-@Autowired
-    private UserManager userManager;
-
-    @Autowired
-    private SongManager songManager;
-
-    @Autowired
-    private OSSManager ossManager;
-
     private static final Tika TIKA = new Tika();
     private static final Parser TIKA_PARSER = new AutoDetectParser();
-
     private static final Map<String, String> MIME_TYPE_TO_EXTENSION_MAP = new HashMap<>();
 
     static {
@@ -80,6 +66,13 @@ public class SongServiceImpl implements SongService {
         MIME_TYPE_TO_EXTENSION_MAP.put("audio/flac", "flac");
         MIME_TYPE_TO_EXTENSION_MAP.put("audio/x-flac", "flac");
     }
+
+    @Autowired
+    private UserManager userManager;
+    @Autowired
+    private SongManager songManager;
+    @Autowired
+    private OSSManager ossManager;
 
     @Override
     public SongVO saveSong(SongSaveDTO dto, Long userId) {
@@ -124,7 +117,7 @@ public class SongServiceImpl implements SongService {
             throw new BusinessException("不支持该文件类型");
         }
         String fileName = songId + "." + extension;
-log.info("歌曲文件通过检验，歌曲名称: {}", name);
+        log.info("歌曲文件通过检验，歌曲名称: {}", name);
         // 保存歌曲文件
         inputStream = getInputStream(dto.getFile());
         if (inputStream == null) throw new BusinessException("读取文件失败");
@@ -241,7 +234,7 @@ log.info("歌曲文件通过检验，歌曲名称: {}", name);
             log.error("删除歌曲信息失败");
             throw new BusinessException("删除歌曲信息失败");
         }
-log.info("删除歌曲信息成功");
+        log.info("删除歌曲信息成功");
         String fileName = song.getFileName();
         if (!ossManager.deleteFile(fileName)) {
             log.error("删除歌曲文件失败");
@@ -265,7 +258,7 @@ log.info("删除歌曲信息成功");
         return songVO;
     }
 
-@Override
+    @Override
     public String getSongUrl(Long songId) {
         log.info("请求获取歌曲播放链接，歌曲ID: {}", songId);
         Song song = songManager.getById(songId);
@@ -306,10 +299,8 @@ log.info("删除歌曲信息成功");
         User uploader = userManager.getById(song.getUploaderId());
         if (uploader != null) {
             songVO.setUploaderName(uploader.getName());
-        } else {
-            songVO.setUploaderName("未知用户");
         }
-log.info("更新歌曲信息成功");
+        log.info("更新歌曲信息成功");
         return songVO;
     }
 
@@ -320,30 +311,29 @@ log.info("更新歌曲信息成功");
         if (uploader == null) {
             throw new BusinessException("用户不存在");
         }
-        String extension = MIME_TYPE_TO_EXTENSION_MAP.get(dto.getMimetype());
+        String extension = MIME_TYPE_TO_EXTENSION_MAP.get(dto.getMimeType());
         if (extension == null) {
             throw new BusinessException("不支持该文件类型");
         }
         String name = dto.getName();
+        Long songId = IdWorker.getId();
         if (name == null) {
-            name = String.valueOf(IdWorker.getId());
+            name = String.valueOf(songId);
         }
         Song song = new Song();
+        song.setId(songId);
         song.setName(name);
         song.setDescription(dto.getDescription());
-        song.setSize(0L);
+        String fileName = songId + "." + extension;
+        song.setFileName(fileName);
+        song.setSize(null);
         song.setDuration(null);
         song.setUploaderId(userId);
-        song.setStatus(SongStatus.UPLOADING.name());
+        song.setStatus(SongStatus.UPLOADING);
         if (!songManager.save(song)) {
             throw new BusinessException("歌曲信息保存失败");
         }
-        String fileName = song.getId() + "." + extension;
-        song.setFileName(fileName);
-        if (!songManager.updateById(song)) {
-            throw new BusinessException("文件名更新失败");
-        }
-        String uploadUrl = ossManager.generatePresignedPostUrl(fileName, Duration.ofMinutes(15));
+        String uploadUrl = ossManager.generatePresignedPutUrl(fileName, dto.getMimeType());
         if (uploadUrl == null) {
             throw new BusinessException("生成上传URL失败");
         }
@@ -366,11 +356,11 @@ log.info("更新歌曲信息成功");
         if (song == null) {
             throw new BusinessException("歌曲不存在");
         }
-        if (!SongStatus.UPLOADING.name().equals(song.getStatus())) {
+        if (!(song.getStatus() == SongStatus.UPLOADING)) {
             throw new BusinessException("歌曲状态异常");
         }
         if (!song.getUploaderId().equals(userId)) {
-            throw new BusinessException("无权操作");
+            throw new BusinessException("非歌曲上传者，无权操作");
         }
         if (!ossManager.checkFileExists(song.getFileName())) {
             songManager.removeById(song);
@@ -418,7 +408,7 @@ log.info("更新歌曲信息成功");
         try {
             inputStream.close();
         } catch (IOException e) {
-            log.error("关闭文件流失败", e);
+            log.warn("关闭文件流失败", e);
         }
         if (duration == null) {
             log.warn("解析歌曲持续时长失败");
@@ -426,7 +416,7 @@ log.info("更新歌曲信息成功");
         }
         song.setSize(fileSize);
         song.setDuration(duration);
-        song.setStatus(SongStatus.NORMAL.name());
+        song.setStatus(SongStatus.NORMAL);
         if (!songManager.updateById(song)) {
             throw new BusinessException("歌曲信息更新失败");
         }

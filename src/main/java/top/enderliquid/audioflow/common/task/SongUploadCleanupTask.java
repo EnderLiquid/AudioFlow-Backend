@@ -1,13 +1,13 @@
-package top.enderliquid.audioflow.task;
+package top.enderliquid.audioflow.common.task;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import top.enderliquid.audioflow.common.enums.SongStatus;
 import top.enderliquid.audioflow.entity.Song;
 import top.enderliquid.audioflow.manager.OSSManager;
 import top.enderliquid.audioflow.manager.SongManager;
-import top.enderliquid.audioflow.common.enums.SongStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -40,6 +40,6 @@ public class SongUploadCleanupTask {
             songManager.removeById(song);
             cleanedCount++;
         }
-        log.info("清理超时上传记录完成，共清理{}条记录", cleanedCount);
+        log.info("清理超时上传记录完成，清理记录条数: {}", cleanedCount);
     }
 }

@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class SongPrepareUploadDTO {
     @NotBlank(message = "文件类型不能为空")
-    private String mimetype;
+    private String mimeType;
 
     @Size(min = 1, max = 64, message = "歌曲名称长度必须在1-64个字符之间")
     private String name;

@@ -30,7 +30,7 @@ public class UserController {
             refillRate = "3/60",
             capacity = 3,
             limitType = LimitType.IP,
-        message = "注册过于频繁，请稍后再试"
+            message = "注册过于频繁，请稍后再试"
     )
     public HttpResponseBody<UserVO> register(@Valid @RequestBody UserSaveDTO dto) {
         UserVO userVO = userService.saveUser(dto);

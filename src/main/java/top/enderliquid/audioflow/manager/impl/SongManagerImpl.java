@@ -24,11 +24,13 @@ public class SongManagerImpl extends ServiceImpl<SongMapper, Song> implements So
     @Autowired
     private SnowflakeIdConverter snowflakeIdConverter;
 
-@Override
+    @Override
     public IPage<SongBO> pageByUploaderKeywordAndSongKeyword(SongPageParam param) {
         Long uploaderId = snowflakeIdConverter.fromString(param.getUploaderKeyword());
         Long songId = snowflakeIdConverter.fromString(param.getSongKeyword());
         Page<SongBO> page = new Page<>(param.getPageIndex(), param.getPageSize());
+        // 实际上无需赋值，page的值也会被修改
+        // 返回page本身，不会返回null
         page = (Page<SongBO>) songMapper.selectPageByUploaderInfoOrSongInfo(
                 page,
                 param.getUploaderKeyword(),

@@ -13,7 +13,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 import org.xml.sax.helpers.DefaultHandler;
 import top.enderliquid.audioflow.common.enums.Role;
 import top.enderliquid.audioflow.common.enums.SongStatus;
@@ -87,14 +86,10 @@ public class SongServiceImpl implements SongService {
         if (extension == null) {
             throw new BusinessException("不支持该文件类型");
         }
-        String name = dto.getName();
         Long songId = IdWorker.getId();
-        if (name == null) {
-            name = String.valueOf(songId);
-        }
         Song song = new Song();
         song.setId(songId);
-        song.setName(name);
+        song.setName(dto.getName());
         song.setDescription(dto.getDescription());
         String fileName = songId + "." + extension;
         song.setFileName(fileName);
@@ -196,38 +191,6 @@ public class SongServiceImpl implements SongService {
         songVO.setUploaderName(uploader.getName());
         log.info("完成上传歌曲成功，歌曲ID: {}", song.getId());
         return songVO;
-    }
-
-    @Nullable
-    private InputStream getInputStream(MultipartFile file) {
-        try {
-            return file.getInputStream();
-        } catch (IOException e) {
-            log.error("获取文件输入流失败：{}", file.getName());
-            return null;
-        }
-    }
-
-    // 从文件全称获取文件名
-    @Nullable
-    private String getNameFromOriginFileName(String originFileName) {
-        if (originFileName == null) {
-            return null;
-        }
-        originFileName = originFileName.trim();
-        if (originFileName.isEmpty()) {
-            return null;
-        }
-        String name;
-        // 获取第一个'.'的下标
-        int index = originFileName.lastIndexOf('.');
-        if (index == -1) {
-            // 文件全称中没有'.'
-            name = originFileName;
-        } else {
-            name = originFileName.substring(0, index).trim();
-        }
-        return name.substring(0, Math.min(name.length(), 63));
     }
 
     @Nullable

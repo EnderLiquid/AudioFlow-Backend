@@ -11,10 +11,13 @@ import org.springframework.web.bind.annotation.*;
 import top.enderliquid.audioflow.common.annotation.RateLimit;
 import top.enderliquid.audioflow.common.enums.LimitType;
 import top.enderliquid.audioflow.common.response.HttpResponseBody;
+import top.enderliquid.audioflow.dto.request.song.SongCompleteUploadDTO;
 import top.enderliquid.audioflow.dto.request.song.SongPageDTO;
+import top.enderliquid.audioflow.dto.request.song.SongPrepareUploadDTO;
 import top.enderliquid.audioflow.dto.request.song.SongSaveDTO;
 import top.enderliquid.audioflow.dto.request.song.SongUpdateDTO;
 import top.enderliquid.audioflow.dto.response.CommonPageVO;
+import top.enderliquid.audioflow.dto.response.SongUploadPrepareVO;
 import top.enderliquid.audioflow.dto.response.SongVO;
 import top.enderliquid.audioflow.service.SongService;
 
@@ -29,9 +32,10 @@ public class SongController {
     @Autowired
     private SongService songService;
 
-    /**
+/**
      * 上传歌曲
      * 需要登录
+     * 已废弃，请使用prepareUpload和completeUpload
      */
     @SaCheckLogin
     @PostMapping
@@ -41,10 +45,41 @@ public class SongController {
             limitType = LimitType.BOTH,
             message = "上传过于频繁，请稍后再试"
     )
+    @Deprecated
     public HttpResponseBody<SongVO> uploadSong(@Valid @ModelAttribute SongSaveDTO dto) {
         long userId = StpUtil.getLoginIdAsLong();
         SongVO songVO = songService.saveSong(dto, userId);
         return HttpResponseBody.ok(songVO, "上传成功");
+    }
+
+    /**
+     * 准备上传歌曲
+     * 需要登录
+     */
+    @SaCheckLogin
+    @PostMapping("/prepare")
+    @RateLimit(
+            refillRate = "3/60",
+            capacity = 3,
+            limitType = LimitType.BOTH,
+            message = "上传过于频繁，请稍后再试"
+    )
+    public HttpResponseBody<SongUploadPrepareVO> prepareUpload(@Valid @RequestBody SongPrepareUploadDTO dto) {
+        long userId = StpUtil.getLoginIdAsLong();
+        SongUploadPrepareVO prepareVO = songService.prepareUpload(dto, userId);
+        return HttpResponseBody.ok(prepareVO);
+    }
+
+    /**
+     * 完成上传歌曲
+     * 需要登录
+     */
+    @SaCheckLogin
+    @PostMapping("/complete")
+    public HttpResponseBody<SongVO> completeUpload(@Valid @RequestBody SongCompleteUploadDTO dto) {
+        long userId = StpUtil.getLoginIdAsLong();
+        SongVO songVO = songService.completeUpload(dto, userId);
+        return HttpResponseBody.ok(songVO);
     }
 
     /**

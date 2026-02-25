@@ -305,7 +305,8 @@
             const response = await fetch(uploadUrl, {
                 method: 'PUT',
                 headers: {
-                    'Content-Type': mimeType
+                    'Content-Type': mimeType,
+                    'Content-Disposition': 'inline'
                 },
                 body: file
             });

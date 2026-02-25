@@ -115,6 +115,7 @@
             <input type="password" id="password" placeholder="password">
         </div>
         <button onclick="login()">登录</button>
+        <button onclick="logout()" style="margin-left: 10px; background: #6c757d;">登出</button>
         <div id="loginStatus" class="status">未登录</div>
     </div>
 
@@ -230,6 +231,14 @@
             });
         }
 
+        function logout() {
+            localStorage.removeItem('tokenName');
+            localStorage.removeItem('tokenValue');
+            const status = document.getElementById('loginStatus');
+            status.innerHTML = '已登出';
+            status.className = 'status';
+        }
+
         const fileInput = document.getElementById('fileInput');
         fileInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -278,6 +287,22 @@
             return headers;
         }
 
+        async function fetchWithAuth(url, options = {}) {
+            options.headers = options.headers || {};
+            Object.assign(options.headers, getAuthHeaders());
+
+            const response = await fetch(url, options);
+
+            if (response.status === 401) {
+                localStorage.removeItem('tokenName');
+                localStorage.removeItem('tokenValue');
+                alert('登录已过期，请重新登录');
+                throw new Error('未登录');
+            }
+
+            return response;
+        }
+
         async function prepareUpload() {
             const baseUrl = document.getElementById('baseUrl').value;
             const songName = document.getElementById('songName').value;
@@ -286,9 +311,8 @@
 
             updateStep('step2', 'in-progress', '2. 准备上传中...');
 
-            const response = await fetch(`${baseUrl}/api/songs/prepare`, {
+            const response = await fetchWithAuth(`${baseUrl}/api/songs/prepare`, {
                 method: 'POST',
-                headers: getAuthHeaders(),
                 body: JSON.stringify({
                     mimeType: fileType,
                     name: songName || '',
@@ -332,9 +356,8 @@
 
             updateStep('step4', 'in-progress', '4. 完成验证中...');
 
-            const response = await fetch(`${baseUrl}/api/songs/complete`, {
+            const response = await fetchWithAuth(`${baseUrl}/api/songs/complete`, {
                 method: 'POST',
-                headers: getAuthHeaders(),
                 body: JSON.stringify({
                     songId: songId
                 })

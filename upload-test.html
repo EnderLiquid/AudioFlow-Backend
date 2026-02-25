@@ -288,10 +288,7 @@
 
             const response = await fetch(`${baseUrl}/api/songs/prepare`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'include',
+                headers: getAuthHeaders(),
                 body: JSON.stringify({
                     mimeType: fileType,
                     name: songName || '',

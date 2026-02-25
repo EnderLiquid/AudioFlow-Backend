@@ -32,7 +32,11 @@ class SessionControllerTest extends BaseControllerTest {
                         .content(requestJson))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.email").value(email))
+                .andExpect(jsonPath("$.data.user.email").value(email))
+                .andExpect(jsonPath("$.data.user.name").value(user.getName()))
+                .andExpect(jsonPath("$.data.tokenInfo").isMap())
+                .andExpect(jsonPath("$.data.tokenInfo.tokenName").isNotEmpty())
+                .andExpect(jsonPath("$.data.tokenInfo.tokenValue").isNotEmpty())
                 .andExpect(jsonPath("$.message").value("登录成功"));
     }
 

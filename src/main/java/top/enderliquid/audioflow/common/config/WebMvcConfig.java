@@ -6,6 +6,7 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
+import org.springframework.lang.NonNull;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -25,7 +26,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
     }
 
     @Override
-    public void addCorsMappings(CorsRegistry registry) {
+    public void addCorsMappings(@NonNull CorsRegistry registry) {
+        // CORS配置
         if (allowedOriginPatterns != null && allowedOriginPatterns.length > 0) {
             registry.addMapping("/**")
                     .allowedOriginPatterns(allowedOriginPatterns)

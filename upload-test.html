@@ -473,6 +473,26 @@
                 showError(error.message);
             }
         }
+
+        function checkAuthStatus() {
+            const tokenName = localStorage.getItem('tokenName');
+            const tokenValue = localStorage.getItem('tokenValue');
+            const loginStatus = document.getElementById('loginStatus');
+            
+            if (tokenName && tokenValue) {
+                loginStatus.innerHTML = '已登录（持久化会话）';
+                loginStatus.className = 'status success';
+                return true;
+            } else {
+                loginStatus.innerHTML = '未登录';
+                loginStatus.className = 'status';
+                return false;
+            }
+        }
+
+        window.onload = function() {
+            checkAuthStatus();
+        };
     </script>
 </body>
 </html>

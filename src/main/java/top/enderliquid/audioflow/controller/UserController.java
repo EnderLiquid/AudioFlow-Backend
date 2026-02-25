@@ -1,6 +1,7 @@
 package top.enderliquid.audioflow.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
+import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import top.enderliquid.audioflow.common.enums.LimitType;
 import top.enderliquid.audioflow.common.response.HttpResponseBody;
 import top.enderliquid.audioflow.dto.request.user.UserSaveDTO;
 import top.enderliquid.audioflow.dto.request.user.UserUpdatePasswordDTO;
+import top.enderliquid.audioflow.dto.response.LoginResult;
 import top.enderliquid.audioflow.dto.response.UserVO;
 import top.enderliquid.audioflow.service.UserService;
 
@@ -32,10 +34,11 @@ public class UserController {
             limitType = LimitType.IP,
             message = "注册过于频繁，请稍后再试"
     )
-    public HttpResponseBody<UserVO> register(@Valid @RequestBody UserSaveDTO dto) {
+    public HttpResponseBody<LoginResult> register(@Valid @RequestBody UserSaveDTO dto) {
         UserVO userVO = userService.saveUser(dto);
         StpUtil.login(userVO.getId());
-        return HttpResponseBody.ok(userVO, "注册成功");
+        SaTokenInfo tokenInfo = StpUtil.getTokenInfo();
+        return HttpResponseBody.ok(new LoginResult(userVO, tokenInfo), "注册成功");
     }
 
     /**

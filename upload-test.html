@@ -230,11 +230,6 @@
                 status.className = 'status failure';
             });
         }
-            }).catch(error => {
-                status.innerHTML = `登录失败: ${error.message}`;
-                status.className = 'status failure';
-            });
-        }
 
         function logout() {
             localStorage.removeItem('tokenName');

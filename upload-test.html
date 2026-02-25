@@ -211,17 +211,14 @@
                 body: JSON.stringify({
                     email: email,
                     password: password
-                }),
-                credentials: 'include'
+                })
             }).then(response => {
-                console.log('Login Response Status:', response.status);
-                console.log('Login Response Headers:', Array.from(response.headers.entries()));
-                console.log('Document Cookies:', document.cookie);
                 return response.json();
             }).then(data => {
-                console.log('Login Response Data:', data);
                 if (data.success) {
-                    status.innerHTML = `登录成功 - ${data.data.name}`;
+                    localStorage.setItem('tokenName', data.data.tokenInfo.tokenName);
+                    localStorage.setItem('tokenValue', data.data.tokenInfo.tokenValue);
+                    status.innerHTML = `登录成功 - ${data.data.user.name}`;
                     status.className = 'status success';
                 } else {
                     status.innerHTML = `登录失败: ${data.message}`;

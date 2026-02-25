@@ -329,7 +329,16 @@
             }
 
             updateStep('step2', 'success', '2. 准备上传成功');
-            return data.data;
+            
+            const result = data.data;
+            const prepareResult = {
+                id: String(result.id),
+                fileName: result.fileName,
+                uploadUrl: result.uploadUrl
+            };
+            console.log('Prepare Result with String ID:', prepareResult);
+            
+            return prepareResult;
         }
 
         async function uploadToOSS(uploadUrl, file, mimeType) {
@@ -359,7 +368,7 @@
             const response = await fetchWithAuth(`${baseUrl}/api/songs/complete`, {
                 method: 'POST',
                 body: JSON.stringify({
-                    songId: String(songId)
+                    songId: songId
                 })
             });
 

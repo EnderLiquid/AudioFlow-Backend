@@ -214,8 +214,12 @@
                 }),
                 credentials: 'include'
             }).then(response => {
+                console.log('Login Response Status:', response.status);
+                console.log('Login Response Headers:', Array.from(response.headers.entries()));
+                console.log('Document Cookies:', document.cookie);
                 return response.json();
             }).then(data => {
+                console.log('Login Response Data:', data);
                 if (data.success) {
                     status.innerHTML = `登录成功 - ${data.data.name}`;
                     status.className = 'status success';
@@ -283,7 +287,9 @@
                 })
             });
 
+            console.log('Prepare Response Status:', response.status);
             const data = await response.json();
+            console.log('Prepare Response Data:', data);
 
             if (!data.success) {
                 throw new Error(data.message || '准备上传失败');

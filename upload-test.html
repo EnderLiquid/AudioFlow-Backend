@@ -303,6 +303,20 @@
             return response;
         }
 
+        function parseJsonWithBigInt(jsonText) {
+            const bigintRegex = /"id"\s*:\s*(\d{19,})/g;
+            return JSON.parse(jsonText, (key, value) => {
+                const originalValue = jsonText.match(new RegExp(`"(${key})":${value}`));
+                if (key === "id" && typeof value === 'number' && isSafeInteger(value) === false) {
+                    const match = jsonText.match(new RegExp(`"id"\\s*:\\s*(\\d{19,})`));
+                    if (match) {
+                        return match[1];
+                    }
+                }
+                return value;
+            });
+        }
+
         async function prepareUpload() {
             const baseUrl = document.getElementById('baseUrl').value;
             const songName = document.getElementById('songName').value;
@@ -321,7 +335,10 @@
             });
 
             console.log('Prepare Response Status:', response.status);
-            const data = await response.json();
+            const responseText = await response.text();
+            console.log('Prepare Response Text:', responseText);
+            
+            const data = JSON.parse(responseText);
             console.log('Prepare Response Data:', data);
 
             if (!data.success) {
@@ -331,8 +348,18 @@
             updateStep('step2', 'success', '2. 准备上传成功');
             
             const result = data.data;
+            const responseTextLines = responseText.split('\n');
+            let idValue = null;
+            for (const line of responseTextLines) {
+                const match = line.match(/"id"\s*:\s*(\d{19,})/);
+                if (match) {
+                    idValue = match[1];
+                    break;
+                }
+            }
+            
             const prepareResult = {
-                id: String(result.id),
+                id: idValue || String(result.id),
                 fileName: result.fileName,
                 uploadUrl: result.uploadUrl
             };

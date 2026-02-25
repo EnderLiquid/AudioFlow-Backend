@@ -8,31 +8,23 @@
         FROM song s
         INNER JOIN user u ON s.uploader_id = u.id
         <where>
-            <!-- 1. 筛选上传者 (ID精确匹配 OR 名字模糊匹配) -->
+            <!-- 1. 筛选上传者 (名字模糊匹配 OR ID精确匹配) -->
             <if test="uploaderKeyword != null or uploaderId != null">
                 AND (
-                <trim prefixOverrides="OR">
-                    <if test="uploaderKeyword != null">
-                        OR u.name LIKE CONCAT('%', #{uploaderKeyword}, '%')
-                    </if>
+                u.name LIKE CONCAT('%', #{uploaderKeyword}, '%')
                     <if test="uploaderId != null">
                         OR u.id = #{uploaderId}
                     </if>
-                </trim>
                 )
             </if>
 
-            <!-- 2. 筛选歌曲 (ID精确匹配 OR 歌名模糊匹配) -->
+            <!-- 2. 筛选歌曲 (歌名模糊匹配 OR ID精确匹配) -->
             <if test="songKeyword != null or songId != null">
                 AND (
-                <trim prefixOverrides="OR">
-                    <if test="songKeyword != null">
-                        OR s.name LIKE CONCAT('%', #{songKeyword}, '%')
-                    </if>
+                s.name LIKE CONCAT('%', #{songKeyword}, '%')
                     <if test="songId != null">
                         OR s.id = #{songId}
                     </if>
-                </trim>
                 )
             </if>
         </where>

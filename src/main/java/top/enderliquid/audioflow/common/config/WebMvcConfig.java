@@ -6,29 +6,36 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
+import org.springframework.lang.NonNull;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import top.enderliquid.audioflow.common.filter.HttpMethodOverrideFilter;
 
 @Configuration
-// 配置静态资源映射
 public class WebMvcConfig implements WebMvcConfigurer {
-    @Value("${file.storage.local.storage-dir}")
-    private String localStorageDir;
 
-    @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/file/**") // 网页url后缀
-                .addResourceLocations("file:" + localStorageDir); // 磁盘路径
-    }
-
+    @Value("${app.cors.allowed-origin-patterns}")
+    private String[] allowedOriginPatterns;
     @Bean
     public FilterRegistrationBean<HttpMethodOverrideFilter> httpMethodOverrideFilterRegistration() {
         FilterRegistrationBean<HttpMethodOverrideFilter> registration = new FilterRegistrationBean<>(new HttpMethodOverrideFilter());
         // 确保过滤器在大多数其他过滤器之前运行，并在Spring MVC分发之前执行
         registration.setOrder(Ordered.HIGHEST_PRECEDENCE + 10);
         return registration;
+    }
+
+    @Override
+    public void addCorsMappings(@NonNull CorsRegistry registry) {
+        // CORS配置
+        if (allowedOriginPatterns != null && allowedOriginPatterns.length > 0) {
+            registry.addMapping("/**")
+                    .allowedOriginPatterns(allowedOriginPatterns)
+                    .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                    .allowedHeaders("*")
+                    .allowCredentials(true)
+                    .maxAge(3600);
+        }
     }
 
     // 注册 Sa-Token 拦截器，打开注解式鉴权功能

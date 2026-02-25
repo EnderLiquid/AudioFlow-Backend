@@ -7,6 +7,11 @@ import top.enderliquid.audioflow.dto.bo.SongBO;
 import top.enderliquid.audioflow.dto.param.SongPageParam;
 import top.enderliquid.audioflow.entity.Song;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 public interface SongManager extends IService<Song> {
     IPage<SongBO> pageByUploaderKeywordAndSongKeyword(SongPageParam param);
+
+    List<Song> listByStatusAndBeforeTime(String status, LocalDateTime time);
 }

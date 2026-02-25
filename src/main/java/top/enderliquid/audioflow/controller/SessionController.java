@@ -1,6 +1,7 @@
 package top.enderliquid.audioflow.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
+import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import top.enderliquid.audioflow.common.annotation.RateLimit;
 import top.enderliquid.audioflow.common.enums.LimitType;
 import top.enderliquid.audioflow.common.response.HttpResponseBody;
 import top.enderliquid.audioflow.dto.request.user.UserVerifyPasswordDTO;
+import top.enderliquid.audioflow.dto.response.LoginResult;
 import top.enderliquid.audioflow.dto.response.UserVO;
 import top.enderliquid.audioflow.service.UserService;
 
@@ -26,15 +28,16 @@ public class SessionController {
      */
     @PostMapping
     @RateLimit(
-        refillRate = "3/60",
+            refillRate = "3/60",
             capacity = 3,
             limitType = LimitType.IP,
-        message = "登录尝试过于频繁，请稍后再试"
+            message = "登录尝试过于频繁，请稍后再试"
     )
-    public HttpResponseBody<UserVO> login(@Valid @RequestBody UserVerifyPasswordDTO dto) {
+    public HttpResponseBody<LoginResult> login(@Valid @RequestBody UserVerifyPasswordDTO dto) {
         UserVO userVO = userService.verifyUserPassword(dto);
         StpUtil.login(userVO.getId());
-        return HttpResponseBody.ok(userVO, "登录成功");
+        SaTokenInfo tokenInfo = StpUtil.getTokenInfo();
+        return HttpResponseBody.ok(new LoginResult(userVO, tokenInfo), "登录成功");
     }
 
     /**

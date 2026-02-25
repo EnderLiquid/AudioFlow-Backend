@@ -17,5 +17,6 @@ public class SongVO {
     private Long duration;
     private Long uploaderId;
     private String uploaderName;
+    private String status;
     private LocalDateTime createTime;
 }

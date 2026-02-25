@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AudioFlow 上传测试</title>
+    <style>
+        body {
+            font-family: monospace;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+        }
+        h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.failure {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .step {
+            padding: 8px;
+            margin: 5px 0;
+        }
+        .step.pending {
+            color: #999;
+        }
+        .step.in-progress {
+            color: #ff9800;
+            animation: blink 1s infinite;
+        }
+        .step.success {
+            color: #28a745;
+        }
+        .step.failure {
+            color: #dc3545;
+        }
+        @keyframes blink {
+            50% { opacity: 0.5; }
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 4px;
+        }
+        #error {
+            color: #dc3545;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="section">
+        <h2>后端地址</h2>
+        <div class="input-group">
+            <label>Base URL:</label>
+            <input type="text" id="baseUrl" value="http://localhost:8081" placeholder="http://localhost:8081">
+            <button onclick="testConnection()">连接测试</button>
+        </div>
+        <div id="connectionStatus" class="status">未连接</div>
+    </div>
+
+    <div class="section">
+        <h2>登录</h2>
+        <div class="input-group">
+            <label>邮箱:</label>
+            <input type="email" id="email" placeholder="user@example.com">
+        </div>
+        <div class="input-group">
+            <label>密码:</label>
+            <input type="password" id="password" placeholder="password">
+        </div>
+        <button onclick="login()">登录</button>
+        <button onclick="logout()" style="margin-left: 10px; background: #6c757d;">登出</button>
+        <div id="loginStatus" class="status">未登录</div>
+    </div>
+
+    <div class="section">
+        <h2>上传</h2>
+        <div class="input-group">
+            <label>歌曲名称:</label>
+            <input type="text" id="songName" placeholder="歌曲名称">
+        </div>
+        <div class="input-group">
+            <label>描述:</label>
+            <input type="text" id="description" placeholder="歌曲描述（可选）">
+        </div>
+        <div class="input-group">
+            <label>文件类型:</label>
+            <select id="fileType">
+                <option value="audio/mpeg">MP3 (audio/mpeg)</option>
+                <option value="audio/mp3">MP3 (audio/mp3)</option>
+                <option value="audio/wav">WAV (audio/wav)</option>
+                <option value="audio/ogg">OGG (audio/ogg)</option>
+                <option value="audio/flac">FLAC (audio/flac)</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>选择文件:</label>
+            <input type="file" id="fileInput" accept=".mp3,.wav,.ogg,.flac">
+            <div id="selectedFile" style="margin-top: 5px; color: #666;">未选择文件</div>
+        </div>
+        <button onclick="startUpload()">开始上传</button>
+    </div>
+
+    <div class="section">
+        <h2>上传进度</h2>
+        <div id="step1" class="step pending">1. 登录</div>
+        <div id="step2" class="step pending">2. 准备上传</div>
+        <div id="step3" class="step pending">3. 上传到OSS</div>
+        <div id="step4" class="step pending">4. 完成验证</div>
+        <div id="error" style="display: none;"></div>
+    </div>
+
+    <div class="section">
+        <h2>结果详情</h2>
+        <div id="result" class="result">
+            <div>歌曲ID: -</div>
+            <div>文件名: -</div>
+            <div>时长: -</div>
+            <div>大小: -</div>
+        </div>
+    </div>
+
+    <script>
+        function testConnection() {
+            const baseUrl = document.getElementById('baseUrl').value;
+            const status = document.getElementById('connectionStatus');
+            status.innerHTML = '连接中...';
+            status.className = 'status';
+
+            fetch(`${baseUrl}/api/sessions`, {
+                method: 'OPTIONS'
+            }).then(response => {
+                if (response.ok || response.status === 405) {
+                    status.innerHTML = '连接成功';
+                    status.className = 'status success';
+                } else {
+                    status.innerHTML = '连接失败';
+                    status.className = 'status failure';
+                }
+            }).catch(error => {
+                status.innerHTML = `连接失败: ${error.message}`;
+                status.className = 'status failure';
+            });
+        }
+
+        function login() {
+            const baseUrl = document.getElementById('baseUrl').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const status = document.getElementById('loginStatus');
+
+            if (!email || !password) {
+                status.innerHTML = '请填写邮箱和密码';
+                status.className = 'status failure';
+                return;
+            }
+
+            status.innerHTML = '登录中...';
+            status.className = 'status';
+
+            fetch(`${baseUrl}/api/sessions`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    email: email,
+                    password: password
+                })
+            }).then(response => {
+                return response.json();
+            }).then(data => {
+                if (data.success) {
+                    localStorage.setItem('tokenName', data.data.tokenInfo.tokenName);
+                    localStorage.setItem('tokenValue', data.data.tokenInfo.tokenValue);
+                    status.innerHTML = `登录成功 - ${data.data.user.name}`;
+                    status.className = 'status success';
+                } else {
+                    status.innerHTML = `登录失败: ${data.message}`;
+                    status.className = 'status failure';
+                }
+            }).catch(error => {
+                status.innerHTML = `登录失败: ${error.message}`;
+                status.className = 'status failure';
+            });
+        }
+
+        function logout() {
+            localStorage.removeItem('tokenName');
+            localStorage.removeItem('tokenValue');
+            const status = document.getElementById('loginStatus');
+            status.innerHTML = '已登出';
+            status.className = 'status';
+        }
+
+        const fileInput = document.getElementById('fileInput');
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const selectedFileDiv = document.getElementById('selectedFile');
+            const songNameInput = document.getElementById('songName');
+            if (file) {
+                selectedFileDiv.innerHTML = `已选: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+                const nameWithoutExt = file.name.replace(/\.[^/.]+$/, '');
+                songNameInput.value = nameWithoutExt;
+            } else {
+                selectedFileDiv.innerHTML = '未选择文件';
+                songNameInput.value = '';
+            }
+        });
+
+        function updateStep(stepId, statusClass, text) {
+            const step = document.getElementById(stepId);
+            step.className = `step ${statusClass}`;
+            if (text) {
+                step.innerHTML = text;
+            }
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.style.display = 'block';
+            errorDiv.innerHTML = `错误: ${message}`;
+        }
+
+        function hideError() {
+            document.getElementById('error').style.display = 'none';
+        }
+
+        function getAuthHeaders() {
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+
+            const tokenName = localStorage.getItem('tokenName');
+            const tokenValue = localStorage.getItem('tokenValue');
+
+            if (tokenName && tokenValue) {
+                headers[tokenName] = tokenValue;
+            }
+
+            return headers;
+        }
+
+        async function fetchWithAuth(url, options = {}) {
+            options.headers = options.headers || {};
+            Object.assign(options.headers, getAuthHeaders());
+
+            const response = await fetch(url, options);
+
+            if (response.status === 401) {
+                localStorage.removeItem('tokenName');
+                localStorage.removeItem('tokenValue');
+                alert('登录已过期，请重新登录');
+                throw new Error('未登录');
+            }
+
+            return response;
+        }
+
+        function parseJsonWithBigInt(jsonText) {
+            const bigintRegex = /"id"\s*:\s*(\d{19,})/g;
+            return JSON.parse(jsonText, (key, value) => {
+                const originalValue = jsonText.match(new RegExp(`"(${key})":${value}`));
+                if (key === "id" && typeof value === 'number' && isSafeInteger(value) === false) {
+                    const match = jsonText.match(new RegExp(`"id"\\s*:\\s*(\\d{19,})`));
+                    if (match) {
+                        return match[1];
+                    }
+                }
+                return value;
+            });
+        }
+
+        async function prepareUpload() {
+            const baseUrl = document.getElementById('baseUrl').value;
+            const songName = document.getElementById('songName').value;
+            const description = document.getElementById('description').value;
+            const fileType = document.getElementById('fileType').value;
+
+            updateStep('step2', 'in-progress', '2. 准备上传中...');
+
+            const response = await fetchWithAuth(`${baseUrl}/api/songs/prepare`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    mimeType: fileType,
+                    name: songName || '',
+                    description: description || null
+                })
+            });
+
+            const responseText = await response.text();
+            const data = JSON.parse(responseText);
+
+            if (!data.success) {
+                throw new Error(data.message || '准备上传失败');
+            }
+
+            updateStep('step2', 'success', '2. 准备上传成功');
+            
+            const result = data.data;
+            const responseTextLines = responseText.split('\n');
+            let idValue = null;
+            for (const line of responseTextLines) {
+                const match = line.match(/"id"\s*:\s*(\d{19,})/);
+                if (match) {
+                    idValue = match[1];
+                    break;
+                }
+            }
+            
+            const prepareResult = {
+                id: idValue || String(result.id),
+                fileName: result.fileName,
+                uploadUrl: result.uploadUrl
+            };
+            
+            return prepareResult;
+        }
+
+        async function uploadToOSS(uploadUrl, file, mimeType) {
+            updateStep('step3', 'in-progress', `3. 上传到OSS中... (0%)`);
+
+            const response = await fetch(uploadUrl, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': mimeType,
+                    'Content-Disposition': 'inline'
+                },
+                body: file
+            });
+
+            if (!response.ok) {
+                throw new Error(`OSS上传失败: ${response.status}`);
+            }
+
+            updateStep('step3', 'success', '3. 上传到OSS成功');
+        }
+
+        async function completeUpload(songId) {
+            const baseUrl = document.getElementById('baseUrl').value;
+
+            updateStep('step4', 'in-progress', '4. 完成验证中...');
+
+            const response = await fetchWithAuth(`${baseUrl}/api/songs/complete`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    songId: songId
+                })
+            });
+
+            const data = await response.json();
+
+            if (!data.success) {
+                throw new Error(data.message || '完成上传失败');
+            }
+
+            updateStep('step4', 'success', '4. 完成验证成功');
+            return data.data;
+        }
+
+        function formatDuration(ms) {
+            if (!ms) return '-';
+            const seconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+
+        function formatSize(bytes) {
+            if (!bytes) return '-';
+            const mb = bytes / 1024 / 1024;
+            return `${mb.toFixed(2)} MB`;
+        }
+
+        function displayResult(song) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `
+                <div>歌曲ID: ${song.id}</div>
+                <div>文件名: ${song.fileName || song.id + '.mp3'}</div>
+                <div>时长: ${formatDuration(song.duration)}</div>
+                <div>大小: ${formatSize(song.size)}</div>
+                <div>上传者: ${song.uploaderName}</div>
+                <div>状态: ${song.status}</div>
+            `;
+        }
+
+        async function startUpload() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            const fileType = document.getElementById('fileType').value;
+
+            hideError();
+            updateStep('step1', 'pending', '1. 登录');
+            updateStep('step2', 'pending', '2. 准备上传');
+            updateStep('step3', 'pending', '3. 上传到OSS');
+            updateStep('step4', 'pending', '4. 完成验证');
+
+            document.getElementById('result').innerHTML = `
+                <div>歌曲ID: -</div>
+                <div>文件名: -</div>
+                <div>时长: -</div>
+                <div>大小: -</div>
+            `;
+
+            if (!file) {
+                showError('请选择文件');
+                return;
+            }
+
+            try {
+                updateStep('step1', 'success', '1. 登录成功');
+
+                const prepareResult = await prepareUpload();
+
+                await uploadToOSS(prepareResult.uploadUrl, file, fileType);
+
+                const completeResult = await completeUpload(prepareResult.id);
+
+                displayResult(completeResult);
+
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        function checkAuthStatus() {
+            const tokenName = localStorage.getItem('tokenName');
+            const tokenValue = localStorage.getItem('tokenValue');
+            const loginStatus = document.getElementById('loginStatus');
+            
+            if (tokenName && tokenValue) {
+                loginStatus.innerHTML = '已登录（持久化会话）';
+                loginStatus.className = 'status success';
+                return true;
+            } else {
+                loginStatus.innerHTML = '未登录';
+                loginStatus.className = 'status';
+                return false;
+            }
+        }
+
+        window.onload = function() {
+            checkAuthStatus();
+        };
+    </script>
+</body>
+</html>

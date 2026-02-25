@@ -1,5 +1,6 @@
 package top.enderliquid.audioflow.manager.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -11,6 +12,9 @@ import top.enderliquid.audioflow.dto.param.SongPageParam;
 import top.enderliquid.audioflow.entity.Song;
 import top.enderliquid.audioflow.manager.SongManager;
 import top.enderliquid.audioflow.mapper.SongMapper;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Repository
 public class SongManagerImpl extends ServiceImpl<SongMapper, Song> implements SongManager {
@@ -36,5 +40,13 @@ public class SongManagerImpl extends ServiceImpl<SongMapper, Song> implements So
                 param.getIsAsc()
         );
         return page;
+    }
+
+    @Override
+    public List<Song> listByStatusAndBeforeTime(String status, LocalDateTime time) {
+        LambdaQueryWrapper<Song> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Song::getStatus, status)
+                .lt(Song::getCreateTime, time);
+        return this.list(queryWrapper);
     }
 }

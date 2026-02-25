@@ -1,20 +1,19 @@
 package top.enderliquid.audioflow.dto.request.song;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.web.multipart.MultipartFile;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SongSaveDTO {
-    @NotNull
-    private MultipartFile file;
+public class SongPrepareUploadDTO {
+    @NotBlank(message = "文件类型不能为空")
+    private String mimeType;
 
-    // null: 使用文件名
+    @NotBlank(message = "歌曲名称不能为空")
     @Size(min = 1, max = 64, message = "歌曲名称长度必须在1-64个字符之间")
     private String name;
 

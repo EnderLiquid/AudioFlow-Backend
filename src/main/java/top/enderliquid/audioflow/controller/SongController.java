@@ -11,10 +11,12 @@ import org.springframework.web.bind.annotation.*;
 import top.enderliquid.audioflow.common.annotation.RateLimit;
 import top.enderliquid.audioflow.common.enums.LimitType;
 import top.enderliquid.audioflow.common.response.HttpResponseBody;
+import top.enderliquid.audioflow.dto.request.song.SongCompleteUploadDTO;
 import top.enderliquid.audioflow.dto.request.song.SongPageDTO;
-import top.enderliquid.audioflow.dto.request.song.SongSaveDTO;
+import top.enderliquid.audioflow.dto.request.song.SongPrepareUploadDTO;
 import top.enderliquid.audioflow.dto.request.song.SongUpdateDTO;
 import top.enderliquid.audioflow.dto.response.CommonPageVO;
+import top.enderliquid.audioflow.dto.response.SongUploadPrepareVO;
 import top.enderliquid.audioflow.dto.response.SongVO;
 import top.enderliquid.audioflow.service.SongService;
 
@@ -30,21 +32,33 @@ public class SongController {
     private SongService songService;
 
     /**
-     * 上传歌曲
+     * 准备上传歌曲
      * 需要登录
      */
     @SaCheckLogin
-    @PostMapping
+    @PostMapping("/prepare")
     @RateLimit(
-            refillRate = "3/60",
-            capacity = 3,
+            refillRate = "1/1",
+            capacity = 5,
             limitType = LimitType.BOTH,
             message = "上传过于频繁，请稍后再试"
     )
-    public HttpResponseBody<SongVO> uploadSong(@Valid @ModelAttribute SongSaveDTO dto) {
+    public HttpResponseBody<SongUploadPrepareVO> prepareUpload(@Valid @RequestBody SongPrepareUploadDTO dto) {
         long userId = StpUtil.getLoginIdAsLong();
-        SongVO songVO = songService.saveSong(dto, userId);
-        return HttpResponseBody.ok(songVO, "上传成功");
+        SongUploadPrepareVO prepareVO = songService.prepareUpload(dto, userId);
+        return HttpResponseBody.ok(prepareVO);
+    }
+
+    /**
+     * 完成上传歌曲
+     * 需要登录
+     */
+    @SaCheckLogin
+    @PostMapping("/complete")
+    public HttpResponseBody<SongVO> completeUpload(@Valid @RequestBody SongCompleteUploadDTO dto) {
+        long userId = StpUtil.getLoginIdAsLong();
+        SongVO songVO = songService.completeUpload(dto, userId);
+        return HttpResponseBody.ok(songVO);
     }
 
     /**
@@ -125,6 +139,4 @@ public class SongController {
         SongVO songVO = songService.updateSong(dto, songId, userId);
         return HttpResponseBody.ok(songVO);
     }
-
-
 }

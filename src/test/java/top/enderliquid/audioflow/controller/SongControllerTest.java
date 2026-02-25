@@ -4,15 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MvcResult;
 import top.enderliquid.audioflow.common.TestDataHelper;
 import top.enderliquid.audioflow.config.BaseControllerTest;
 import top.enderliquid.audioflow.entity.Song;
 import top.enderliquid.audioflow.entity.User;
-
-import java.nio.file.Files;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -25,6 +21,9 @@ class SongControllerTest extends BaseControllerTest {
 
     @Autowired
     protected ObjectMapper objectMapper;
+
+    @Autowired
+    protected top.enderliquid.audioflow.common.MockOSSConfig.MockOSSManager mockOSSManager;
 
     protected User testUser;
     protected Song testSong;
@@ -162,7 +161,7 @@ class SongControllerTest extends BaseControllerTest {
     }
 
     @Test
-    void shouldUploadSuccessfullyWhenLoggedIn() throws Exception {
+    void shouldUploadSuccessfullyWithNewFlow() throws Exception {
         String email = testUser.getEmail();
         String password = "test_password_123";
 
@@ -179,44 +178,53 @@ class SongControllerTest extends BaseControllerTest {
 
         String cookie = result.getResponse().getCookie("satoken").getValue();
 
-        ClassPathResource audioResource =
-                new ClassPathResource("audio/test-song.mp3");
-        java.io.File audioFile = audioResource.getFile();
+        java.util.HashMap<String, String> prepareDto = new java.util.HashMap<>();
+        prepareDto.put("name", "New Song");
+        prepareDto.put("description", "New Description");
+        prepareDto.put("mimeType", "audio/mpeg");
+        String prepareJson = objectMapper.writeValueAsString(prepareDto);
 
-        MockMultipartFile file = new MockMultipartFile(
-                "file",
-                "test-song.mp3",
-                "audio/mpeg",
-                Files.readAllBytes(audioFile.toPath())
-        );
-
-        mockMvc.perform(multipart("/api/songs")
-                        .file(file)
-                        .param("name", "New Song")
-                        .param("description", "New Description")
+        result = mockMvc.perform(post("/api/songs/prepare")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(prepareJson)
                         .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("上传成功"));
+                .andExpect(jsonPath("$.data.id").exists())
+                .andExpect(jsonPath("$.data.fileName").exists())
+                .andExpect(jsonPath("$.data.uploadUrl").exists())
+                .andReturn();
+
+        String response = result.getResponse().getContentAsString();
+        com.fasterxml.jackson.databind.JsonNode jsonNode = objectMapper.readTree(response);
+        Long songId = jsonNode.get("data").get("id").asLong();
+        String fileName = jsonNode.get("data").get("fileName").asText();
+
+        mockOSSManager.simulateUpload(fileName);
+
+        java.util.HashMap<String, Object> completeDto = new java.util.HashMap<>();
+        completeDto.put("songId", songId);
+        String completeJson = objectMapper.writeValueAsString(completeDto);
+
+        mockMvc.perform(post("/api/songs/complete")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(completeJson)
+                        .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true));
     }
 
     @Test
-    void shouldReturnErrorWhenUploadWithoutLogin() throws Exception {
-        ClassPathResource audioResource =
-                new ClassPathResource("audio/test-song.mp3");
-        java.io.File audioFile = audioResource.getFile();
+    void shouldReturnErrorWhenPrepareUploadWithoutLogin() throws Exception {
+        java.util.HashMap<String, String> prepareDto = new java.util.HashMap<>();
+        prepareDto.put("name", "New Song");
+        prepareDto.put("description", "New Description");
+        prepareDto.put("mimeType", "audio/mpeg");
+        String prepareJson = objectMapper.writeValueAsString(prepareDto);
 
-        MockMultipartFile file = new MockMultipartFile(
-                "file",
-                "test-song.mp3",
-                "audio/mpeg",
-                Files.readAllBytes(audioFile.toPath())
-        );
-
-        mockMvc.perform(multipart("/api/songs")
-                        .file(file)
-                        .param("name", "New Song")
-                        .param("description", "New Description"))
+        mockMvc.perform(post("/api/songs/prepare")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(prepareJson))
                 .andExpect(status().is(401))
                 .andExpect(jsonPath("$.success").value(false));
     }

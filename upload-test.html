@@ -230,6 +230,11 @@
                 status.className = 'status failure';
             });
         }
+            }).catch(error => {
+                status.innerHTML = `登录失败: ${error.message}`;
+                status.className = 'status failure';
+            });
+        }
 
         function logout() {
             localStorage.removeItem('tokenName');
@@ -334,12 +339,8 @@
                 })
             });
 
-            console.log('Prepare Response Status:', response.status);
             const responseText = await response.text();
-            console.log('Prepare Response Text:', responseText);
-            
             const data = JSON.parse(responseText);
-            console.log('Prepare Response Data:', data);
 
             if (!data.success) {
                 throw new Error(data.message || '准备上传失败');
@@ -363,7 +364,6 @@
                 fileName: result.fileName,
                 uploadUrl: result.uploadUrl
             };
-            console.log('Prepare Result with String ID:', prepareResult);
             
             return prepareResult;
         }

@@ -263,6 +263,21 @@
             document.getElementById('error').style.display = 'none';
         }
 
+        function getAuthHeaders() {
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+
+            const tokenName = localStorage.getItem('tokenName');
+            const tokenValue = localStorage.getItem('tokenValue');
+
+            if (tokenName && tokenValue) {
+                headers[tokenName] = tokenValue;
+            }
+
+            return headers;
+        }
+
         async function prepareUpload() {
             const baseUrl = document.getElementById('baseUrl').value;
             const songName = document.getElementById('songName').value;

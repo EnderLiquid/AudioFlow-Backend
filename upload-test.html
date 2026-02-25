@@ -334,10 +334,7 @@
 
             const response = await fetch(`${baseUrl}/api/songs/complete`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'include',
+                headers: getAuthHeaders(),
                 body: JSON.stringify({
                     songId: songId
                 })

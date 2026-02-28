@@ -19,11 +19,16 @@ import top.enderliquid.audioflow.common.enums.SongStatus;
 import top.enderliquid.audioflow.common.exception.BusinessException;
 import top.enderliquid.audioflow.dto.bo.SongBO;
 import top.enderliquid.audioflow.dto.param.SongPageParam;
+import top.enderliquid.audioflow.dto.request.song.SongBatchCompleteDTO;
+import top.enderliquid.audioflow.dto.request.song.SongBatchDeleteDTO;
+import top.enderliquid.audioflow.dto.request.song.SongBatchPrepareDTO;
 import top.enderliquid.audioflow.dto.request.song.SongCompleteUploadDTO;
 import top.enderliquid.audioflow.dto.request.song.SongPageDTO;
 import top.enderliquid.audioflow.dto.request.song.SongPrepareUploadDTO;
 import top.enderliquid.audioflow.dto.request.song.SongUpdateDTO;
+import top.enderliquid.audioflow.dto.response.BatchFailureItem;
 import top.enderliquid.audioflow.dto.response.CommonPageVO;
+import top.enderliquid.audioflow.dto.response.SongBatchResultVO;
 import top.enderliquid.audioflow.dto.response.SongUploadPrepareVO;
 import top.enderliquid.audioflow.dto.response.SongVO;
 import top.enderliquid.audioflow.entity.Song;
@@ -331,7 +336,70 @@ public class SongServiceImpl implements SongService {
         if (uploader != null) {
             songVO.setUploaderName(uploader.getName());
         }
-        log.info("更新歌曲信息成功");
+log.info("更新歌曲信息成功");
         return songVO;
+    }
+
+    @Override
+    public SongBatchResultVO<SongUploadPrepareVO> batchPrepareUpload(SongBatchPrepareDTO dto, Long userId) {
+        log.info("请求批量准备上传歌曲，用户ID: {}, 数量: {}", userId, dto.getSongs().size());
+        SongBatchResultVO<SongUploadPrepareVO> result = new SongBatchResultVO<>();
+        List<SongPrepareUploadDTO> songs = dto.getSongs();
+        for (int i = 0; i < songs.size(); i++) {
+            SongPrepareUploadDTO songDto = songs.get(i);
+            try {
+                SongUploadPrepareVO prepareVO = prepareUpload(songDto, userId);
+                result.getSuccessList().add(prepareVO);
+            } catch (BusinessException e) {
+                BatchFailureItem failureItem = new BatchFailureItem(i, null, e.getMessage());
+                result.getFailureList().add(failureItem);
+            }
+        }
+        result.setSuccessCount(result.getSuccessList().size());
+        result.setFailureCount(result.getFailureList().size());
+        log.info("批量准备上传歌曲完成，成功: {}, 失败: {}", result.getSuccessCount(), result.getFailureCount());
+        return result;
+    }
+
+    @Override
+    public SongBatchResultVO<SongVO> batchCompleteUpload(SongBatchCompleteDTO dto, Long userId) {
+        log.info("请求批量确认上传歌曲，用户ID: {}, 数量: {}", userId, dto.getSongIds().size());
+        SongBatchResultVO<SongVO> result = new SongBatchResultVO<>();
+        List<Long> songIds = dto.getSongIds();
+        for (int i = 0; i < songIds.size(); i++) {
+            Long songId = songIds.get(i);
+            try {
+                SongVO songVO = completeUpload(new SongCompleteUploadDTO(songId), userId);
+                result.getSuccessList().add(songVO);
+            } catch (BusinessException e) {
+                BatchFailureItem failureItem = new BatchFailureItem(i, songId, e.getMessage());
+                result.getFailureList().add(failureItem);
+            }
+        }
+        result.setSuccessCount(result.getSuccessList().size());
+        result.setFailureCount(result.getFailureList().size());
+        log.info("批量确认上传歌曲完成，成功: {}, 失败: {}", result.getSuccessCount(), result.getFailureCount());
+        return result;
+    }
+
+    @Override
+    public SongBatchResultVO<Long> batchRemoveSongs(SongBatchDeleteDTO dto, Long userId) {
+        log.info("请求批量删除歌曲，用户ID: {}, 数量: {}", userId, dto.getSongIds().size());
+        SongBatchResultVO<Long> result = new SongBatchResultVO<>();
+        List<Long> songIds = dto.getSongIds();
+        for (int i = 0; i < songIds.size(); i++) {
+            Long songId = songIds.get(i);
+            try {
+                removeSong(songId, userId);
+                result.getSuccessList().add(songId);
+            } catch (BusinessException e) {
+                BatchFailureItem failureItem = new BatchFailureItem(i, songId, e.getMessage());
+                result.getFailureList().add(failureItem);
+            }
+        }
+        result.setSuccessCount(result.getSuccessList().size());
+        result.setFailureCount(result.getFailureList().size());
+        log.info("批量删除歌曲完成，成功: {}, 失败: {}", result.getSuccessCount(), result.getFailureCount());
+        return result;
     }
 }

@@ -8,16 +8,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BatchResultItem<T> {
-    private Integer index;
-    private Boolean success;
+    private int index;
+    private boolean success;
     private String message;
     private T data;
-
-    public static <T> BatchResultItem<T> ok(Integer index, T data) {
-        return new BatchResultItem<>(index, true, "OK", data);
-    }
-
-    public static <T> BatchResultItem<T> fail(Integer index, String message) {
-        return new BatchResultItem<>(index, false, message, null);
-    }
 }

@@ -344,16 +344,15 @@ User uploader = userManager.getById(song.getUploaderId());
             try {
                 SongUploadPrepareVO prepareVO = prepareUpload(songDto, userId);
                 BatchResultItem<SongUploadPrepareVO> successItem = new BatchResultItem<>(i, true, null, prepareVO);
-                result.getResultList().add(successItem);
-                result.setSuccessCount(result.getSuccessCount() + 1);
+                result.addResult(successItem);
             } catch (BusinessException e) {
-                BatchResultItem<SongUploadPrepareVO> failureItem = new BatchResultItem<>(i, null, e.getMessage(), null);
-                result.getResultList().add(failureItem);
-                result.setFailureCount(result.getFailureCount() + 1);
+                BatchResultItem<SongUploadPrepareVO> failureItem = new BatchResultItem<>(i, false, e.getMessage(), null);
+                result.addResult(failureItem);
             }
         }
         log.info("批量准备上传歌曲完成，成功: {}, 失败: {}", result.getSuccessCount(), result.getFailureCount());
         return result;
+
     }
 
     @Override
@@ -366,12 +365,10 @@ User uploader = userManager.getById(song.getUploaderId());
             try {
                 SongVO songVO = completeUpload(new SongCompleteUploadDTO(songId), userId);
                 BatchResultItem<SongVO> successItem = new BatchResultItem<>(i, true, null, songVO);
-                result.getResultList().add(successItem);
-                result.setSuccessCount(result.getSuccessCount() + 1);
+                result.addResult(successItem);
             } catch (BusinessException e) {
-                BatchResultItem<SongVO> failureItem = new BatchResultItem<>(i, null, e.getMessage(), null);
-                result.getResultList().add(failureItem);
-                result.setFailureCount(result.getFailureCount() + 1);
+                BatchResultItem<SongVO> failureItem = new BatchResultItem<>(i, false, e.getMessage(), null);
+                result.addResult(failureItem);
             }
         }
         log.info("批量确认上传歌曲完成，成功: {}, 失败: {}", result.getSuccessCount(), result.getFailureCount());
@@ -388,12 +385,10 @@ User uploader = userManager.getById(song.getUploaderId());
             try {
                 removeSong(songId, userId);
                 BatchResultItem<Object> successItem = new BatchResultItem<>(i, true, null, null);
-                result.getResultList().add(successItem);
-                result.setSuccessCount(result.getSuccessCount() + 1);
+                result.addResult(successItem);
             } catch (BusinessException e) {
-                BatchResultItem<Object> failureItem = new BatchResultItem<>(i, null, e.getMessage(), null);
-                result.getResultList().add(failureItem);
-                result.setFailureCount(result.getFailureCount() + 1);
+                BatchResultItem<Object> failureItem = new BatchResultItem<>(i, false, e.getMessage(), null);
+                result.addResult(failureItem);
             }
         }
         log.info("批量删除歌曲完成，成功: {}, 失败: {}", result.getSuccessCount(), result.getFailureCount());

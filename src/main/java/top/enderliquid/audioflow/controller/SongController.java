@@ -12,8 +12,8 @@ import top.enderliquid.audioflow.common.annotation.RateLimit;
 import top.enderliquid.audioflow.common.enums.LimitType;
 import top.enderliquid.audioflow.common.response.HttpResponseBody;
 import top.enderliquid.audioflow.dto.request.song.*;
+import top.enderliquid.audioflow.dto.response.BatchResult;
 import top.enderliquid.audioflow.dto.response.PageVO;
-import top.enderliquid.audioflow.dto.response.song.SongBatchResultVO;
 import top.enderliquid.audioflow.dto.response.song.SongUploadPrepareVO;
 import top.enderliquid.audioflow.dto.response.song.SongVO;
 import top.enderliquid.audioflow.service.SongService;
@@ -148,11 +148,11 @@ public class SongController {
             refillRate = "1/10",
             capacity = 3,
             limitType = LimitType.BOTH,
-            message = "批量上传过于频繁，请稍后再试"
+            message = "批量准备上传过于频繁，请稍后再试"
     )
-    public HttpResponseBody<SongBatchResultVO<SongUploadPrepareVO>> batchPrepareUpload(@Valid @RequestBody SongBatchPrepareDTO dto) {
+    public HttpResponseBody<BatchResult<SongUploadPrepareVO>> batchPrepareUpload(@Valid @RequestBody SongBatchPrepareDTO dto) {
         long userId = StpUtil.getLoginIdAsLong();
-        SongBatchResultVO<SongUploadPrepareVO> result = songService.batchPrepareUpload(dto, userId);
+        BatchResult<SongUploadPrepareVO> result = songService.batchPrepareUpload(dto, userId);
         return HttpResponseBody.ok(result);
     }
 
@@ -162,9 +162,15 @@ public class SongController {
      */
     @SaCheckLogin
     @PostMapping("/batch-complete")
-    public HttpResponseBody<SongBatchResultVO<SongVO>> batchCompleteUpload(@Valid @RequestBody SongBatchCompleteDTO dto) {
+    @RateLimit(
+            refillRate = "1/10",
+            capacity = 3,
+            limitType = LimitType.BOTH,
+            message = "批量完成上传过于频繁，请稍后再试"
+    )
+    public HttpResponseBody<BatchResult<SongVO>> batchCompleteUpload(@Valid @RequestBody SongBatchCompleteDTO dto) {
         long userId = StpUtil.getLoginIdAsLong();
-        SongBatchResultVO<SongVO> result = songService.batchCompleteUpload(dto, userId);
+        BatchResult<SongVO> result = songService.batchCompleteUpload(dto, userId);
         return HttpResponseBody.ok(result);
     }
 
@@ -180,9 +186,9 @@ public class SongController {
             limitType = LimitType.BOTH,
             message = "批量删除过于频繁，请稍后再试"
     )
-    public HttpResponseBody<SongBatchResultVO<Long>> batchRemoveSongs(@Valid @RequestBody SongBatchDeleteDTO dto) {
+    public HttpResponseBody<BatchResult<Object>> batchRemoveSongs(@Valid @RequestBody SongBatchDeleteDTO dto) {
         long userId = StpUtil.getLoginIdAsLong();
-        SongBatchResultVO<Long> result = songService.batchRemoveSongs(dto, userId);
+        BatchResult<Object> result = songService.batchRemoveSongs(dto, userId);
         return HttpResponseBody.ok(result);
     }
 }

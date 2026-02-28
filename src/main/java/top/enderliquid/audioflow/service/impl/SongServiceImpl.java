@@ -20,9 +20,9 @@ import top.enderliquid.audioflow.common.exception.BusinessException;
 import top.enderliquid.audioflow.dto.bo.SongBO;
 import top.enderliquid.audioflow.dto.param.SongPageParam;
 import top.enderliquid.audioflow.dto.request.song.*;
-import top.enderliquid.audioflow.dto.response.BatchFailureItem;
+import top.enderliquid.audioflow.dto.response.BatchResult;
+import top.enderliquid.audioflow.dto.response.BatchResultItem;
 import top.enderliquid.audioflow.dto.response.PageVO;
-import top.enderliquid.audioflow.dto.response.song.SongBatchResultVO;
 import top.enderliquid.audioflow.dto.response.song.SongUploadPrepareVO;
 import top.enderliquid.audioflow.dto.response.song.SongVO;
 import top.enderliquid.audioflow.entity.Song;
@@ -335,64 +335,67 @@ User uploader = userManager.getById(song.getUploaderId());
     }
 
     @Override
-    public SongBatchResultVO<SongUploadPrepareVO> batchPrepareUpload(SongBatchPrepareDTO dto, Long userId) {
+    public BatchResult<SongUploadPrepareVO> batchPrepareUpload(SongBatchPrepareDTO dto, Long userId) {
         log.info("请求批量准备上传歌曲，用户ID: {}, 数量: {}", userId, dto.getSongs().size());
-        SongBatchResultVO<SongUploadPrepareVO> result = new SongBatchResultVO<>();
+        BatchResult<SongUploadPrepareVO> result = new BatchResult<>();
         List<SongPrepareUploadDTO> songs = dto.getSongs();
         for (int i = 0; i < songs.size(); i++) {
             SongPrepareUploadDTO songDto = songs.get(i);
             try {
                 SongUploadPrepareVO prepareVO = prepareUpload(songDto, userId);
-                result.getSuccessList().add(prepareVO);
+                BatchResultItem<SongUploadPrepareVO> successItem = new BatchResultItem<>(i, true, null, prepareVO);
+                result.getResultList().add(successItem);
+                result.setSuccessCount(result.getSuccessCount() + 1);
             } catch (BusinessException e) {
-                BatchFailureItem failureItem = new BatchFailureItem(i, null, e.getMessage());
-                result.getFailureList().add(failureItem);
+                BatchResultItem<SongUploadPrepareVO> failureItem = new BatchResultItem<>(i, null, e.getMessage(), null);
+                result.getResultList().add(failureItem);
+                result.setFailureCount(result.getFailureCount() + 1);
             }
         }
-        result.setSuccessCount(result.getSuccessList().size());
-        result.setFailureCount(result.getFailureList().size());
         log.info("批量准备上传歌曲完成，成功: {}, 失败: {}", result.getSuccessCount(), result.getFailureCount());
         return result;
     }
 
     @Override
-    public SongBatchResultVO<SongVO> batchCompleteUpload(SongBatchCompleteDTO dto, Long userId) {
+    public BatchResult<SongVO> batchCompleteUpload(SongBatchCompleteDTO dto, Long userId) {
         log.info("请求批量确认上传歌曲，用户ID: {}, 数量: {}", userId, dto.getSongIds().size());
-        SongBatchResultVO<SongVO> result = new SongBatchResultVO<>();
+        BatchResult<SongVO> result = new BatchResult<>();
         List<Long> songIds = dto.getSongIds();
         for (int i = 0; i < songIds.size(); i++) {
             Long songId = songIds.get(i);
             try {
                 SongVO songVO = completeUpload(new SongCompleteUploadDTO(songId), userId);
-                result.getSuccessList().add(songVO);
+                BatchResultItem<SongVO> successItem = new BatchResultItem<>(i, true, null, songVO);
+                result.getResultList().add(successItem);
+                result.setSuccessCount(result.getSuccessCount() + 1);
             } catch (BusinessException e) {
-                BatchFailureItem failureItem = new BatchFailureItem(i, songId, e.getMessage());
-                result.getFailureList().add(failureItem);
+                BatchResultItem<SongVO> failureItem = new BatchResultItem<>(i, null, e.getMessage(), null);
+                result.getResultList().add(failureItem);
+                result.setFailureCount(result.getFailureCount() + 1);
             }
         }
-        result.setSuccessCount(result.getSuccessList().size());
-        result.setFailureCount(result.getFailureList().size());
         log.info("批量确认上传歌曲完成，成功: {}, 失败: {}", result.getSuccessCount(), result.getFailureCount());
         return result;
     }
 
     @Override
-    public SongBatchResultVO<Long> batchRemoveSongs(SongBatchDeleteDTO dto, Long userId) {
+    public BatchResult<Object> batchRemoveSongs(SongBatchDeleteDTO dto, Long userId) {
         log.info("请求批量删除歌曲，用户ID: {}, 数量: {}", userId, dto.getSongIds().size());
-        SongBatchResultVO<Long> result = new SongBatchResultVO<>();
+        BatchResult<Object> result = new BatchResult<>();
         List<Long> songIds = dto.getSongIds();
         for (int i = 0; i < songIds.size(); i++) {
             Long songId = songIds.get(i);
             try {
                 removeSong(songId, userId);
-                result.getSuccessList().add(songId);
+                BatchResultItem<Object> successItem = new BatchResultItem<>(i, true, null, null);
+                result.getResultList().add(successItem);
+                result.setSuccessCount(result.getSuccessCount() + 1);
             } catch (BusinessException e) {
-                BatchFailureItem failureItem = new BatchFailureItem(i, songId, e.getMessage());
-                result.getFailureList().add(failureItem);
+                BatchResultItem<Object> failureItem = new BatchResultItem<>(i, null, e.getMessage(), null);
+                result.getResultList().add(failureItem);
+                result.setFailureCount(result.getFailureCount() + 1);
             }
         }
-        result.setSuccessCount(result.getSuccessList().size());
-        result.setFailureCount(result.getFailureList().size());
         log.info("批量删除歌曲完成，成功: {}, 失败: {}", result.getSuccessCount(), result.getFailureCount());
         return result;
     }

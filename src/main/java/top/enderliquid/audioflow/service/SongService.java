@@ -5,8 +5,8 @@ import jakarta.validation.constraints.NotNull;
 import org.springframework.lang.Nullable;
 import org.springframework.validation.annotation.Validated;
 import top.enderliquid.audioflow.dto.request.song.*;
+import top.enderliquid.audioflow.dto.response.BatchResult;
 import top.enderliquid.audioflow.dto.response.PageVO;
-import top.enderliquid.audioflow.dto.response.song.SongBatchResultVO;
 import top.enderliquid.audioflow.dto.response.song.SongUploadPrepareVO;
 import top.enderliquid.audioflow.dto.response.song.SongVO;
 
@@ -27,9 +27,9 @@ public interface SongService {
 
     SongVO completeUpload(@Valid SongCompleteUploadDTO dto, @NotNull(message = "用户Id不能为空") Long userId);
 
-    SongBatchResultVO<SongUploadPrepareVO> batchPrepareUpload(@Valid SongBatchPrepareDTO dto, @NotNull(message = "用户Id不能为空") Long userId);
+    BatchResult<SongUploadPrepareVO> batchPrepareUpload(@Valid SongBatchPrepareDTO dto, @NotNull(message = "用户Id不能为空") Long userId);
 
-    SongBatchResultVO<SongVO> batchCompleteUpload(@Valid SongBatchCompleteDTO dto, @NotNull(message = "用户Id不能为空") Long userId);
+    BatchResult<SongVO> batchCompleteUpload(@Valid SongBatchCompleteDTO dto, @NotNull(message = "用户Id不能为空") Long userId);
 
-    SongBatchResultVO<Long> batchRemoveSongs(@Valid SongBatchDeleteDTO dto, @NotNull(message = "用户Id不能为空") Long userId);
+    BatchResult<Object> batchRemoveSongs(@Valid SongBatchDeleteDTO dto, @NotNull(message = "用户Id不能为空") Long userId);
 }

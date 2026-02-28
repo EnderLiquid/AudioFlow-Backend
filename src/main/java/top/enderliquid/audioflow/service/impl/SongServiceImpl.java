@@ -332,11 +332,11 @@ public class SongServiceImpl implements SongService {
         }
         SongVO songVO = new SongVO();
         BeanUtils.copyProperties(song, songVO);
-        User uploader = userManager.getById(song.getUploaderId());
+User uploader = userManager.getById(song.getUploaderId());
         if (uploader != null) {
             songVO.setUploaderName(uploader.getName());
         }
-log.info("更新歌曲信息成功");
+        log.info("更新歌曲信息成功");
         return songVO;
     }
 

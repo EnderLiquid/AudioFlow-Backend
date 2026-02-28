@@ -129,9 +129,9 @@ public class SongController {
         } catch (IOException e) {
             log.error("歌曲URL查询接口响应失败", e);
         }
-    }
+}
 
-/**
+    /**
      * 更新自己的歌曲信息
      * 需要登录
      */

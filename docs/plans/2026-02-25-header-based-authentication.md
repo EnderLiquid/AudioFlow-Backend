@@ -24,6 +24,7 @@ import cn.dev33.satoken.stp.SaTokenInfo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import top.enderliquid.audioflow.dto.response.user.UserVO;
 
 @Data
 @AllArgsConstructor
@@ -100,7 +101,7 @@ Expected: FAIL - 测试失败因为LoginResult未返回
 **Step 3: 修改SessionController.login方法**
 
 ```java
-import top.enderliquid.audioflow.dto.response.LoginResult;
+
 
 @PostMapping
 @RateLimit(
@@ -109,11 +110,11 @@ import top.enderliquid.audioflow.dto.response.LoginResult;
         limitType = LimitType.IP,
         message = "登录尝试过于频繁，请稍后再试"
 )
-public HttpResponseBody<LoginResult> login(@Valid @RequestBody UserVerifyPasswordDTO dto) {
+public HttpResponseBody<top.enderliquid.audioflow.dto.response.session.LoginResultVO> login(@Valid @RequestBody UserVerifyPasswordDTO dto) {
     UserVO userVO = userService.verifyUserPassword(dto);
     StpUtil.login(userVO.getId());
     SaTokenInfo tokenInfo = StpUtil.getTokenInfo();
-    return HttpResponseBody.ok(new LoginResult(userVO, tokenInfo), "登录成功");
+    return HttpResponseBody.ok(new top.enderliquid.audioflow.dto.response.session.LoginResultVO(userVO, tokenInfo), "登录成功");
 }
 ```
 
@@ -174,7 +175,7 @@ Expected: FAIL - 测试失败因为LoginResult未返回
 
 ```java
 import cn.dev33.satoken.stp.SaTokenInfo;
-import top.enderliquid.audioflow.dto.response.LoginResult;
+import top.enderliquid.audioflow.dto.response.session.LoginResultVO;
 
 @PostMapping
 @RateLimit(
@@ -183,11 +184,11 @@ import top.enderliquid.audioflow.dto.response.LoginResult;
         limitType = LimitType.IP,
         message = "注册过于频繁，请稍后再试"
 )
-public HttpResponseBody<LoginResult> register(@Valid @RequestBody UserSaveDTO dto) {
+public HttpResponseBody<LoginResultVO> register(@Valid @RequestBody UserSaveDTO dto) {
     UserVO userVO = userService.saveUser(dto);
     StpUtil.login(userVO.getId());
     SaTokenInfo tokenInfo = StpUtil.getTokenInfo();
-    return HttpResponseBody.ok(new LoginResult(userVO, tokenInfo), "注册成功");
+    return HttpResponseBody.ok(new LoginResultVO(userVO, tokenInfo), "注册成功");
 }
 ```
 

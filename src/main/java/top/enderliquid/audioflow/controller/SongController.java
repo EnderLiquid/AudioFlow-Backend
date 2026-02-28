@@ -11,17 +11,11 @@ import org.springframework.web.bind.annotation.*;
 import top.enderliquid.audioflow.common.annotation.RateLimit;
 import top.enderliquid.audioflow.common.enums.LimitType;
 import top.enderliquid.audioflow.common.response.HttpResponseBody;
-import top.enderliquid.audioflow.dto.request.song.SongBatchCompleteDTO;
-import top.enderliquid.audioflow.dto.request.song.SongBatchDeleteDTO;
-import top.enderliquid.audioflow.dto.request.song.SongBatchPrepareDTO;
-import top.enderliquid.audioflow.dto.request.song.SongCompleteUploadDTO;
-import top.enderliquid.audioflow.dto.request.song.SongPageDTO;
-import top.enderliquid.audioflow.dto.request.song.SongPrepareUploadDTO;
-import top.enderliquid.audioflow.dto.request.song.SongUpdateDTO;
-import top.enderliquid.audioflow.dto.response.CommonPageVO;
-import top.enderliquid.audioflow.dto.response.SongBatchResultVO;
-import top.enderliquid.audioflow.dto.response.SongUploadPrepareVO;
-import top.enderliquid.audioflow.dto.response.SongVO;
+import top.enderliquid.audioflow.dto.request.song.*;
+import top.enderliquid.audioflow.dto.response.PageVO;
+import top.enderliquid.audioflow.dto.response.song.SongBatchResultVO;
+import top.enderliquid.audioflow.dto.response.song.SongUploadPrepareVO;
+import top.enderliquid.audioflow.dto.response.song.SongVO;
 import top.enderliquid.audioflow.service.SongService;
 
 import java.io.IOException;
@@ -75,8 +69,8 @@ public class SongController {
             limitType = LimitType.IP,
             message = "查询过于频繁，请稍后再试"
     )
-    public HttpResponseBody<CommonPageVO<SongVO>> pageSongs(@Valid @ModelAttribute SongPageDTO dto) {
-        CommonPageVO<SongVO> result = songService.pageSongsByUploaderKeywordAndSongKeyword(dto);
+    public HttpResponseBody<PageVO<SongVO>> pageSongs(@Valid @ModelAttribute SongPageDTO dto) {
+        PageVO<SongVO> result = songService.pageSongsByUploaderKeywordAndSongKeyword(dto);
         return HttpResponseBody.ok(result);
     }
 

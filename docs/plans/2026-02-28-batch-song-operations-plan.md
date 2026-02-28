@@ -163,12 +163,14 @@ git commit -m "添加批量操作请求DTO类"
 
 ```java
 // 添加导入
+
 import top.enderliquid.audioflow.dto.request.song.SongBatchCompleteDTO;
 import top.enderliquid.audioflow.dto.request.song.SongBatchDeleteDTO;
 import top.enderliquid.audioflow.dto.request.song.SongBatchPrepareDTO;
-import top.enderliquid.audioflow.dto.response.SongBatchResultVO;
+import top.enderliquid.audioflow.dto.response.song.SongBatchResultVO;
 
 // 在接口末尾添加方法声明
+
 SongBatchResultVO<SongUploadPrepareVO> batchPrepareUpload(@Valid SongBatchPrepareDTO dto, @NotNull(message = "用户Id不能为空") Long userId);
 
 SongBatchResultVO<SongVO> batchCompleteUpload(@Valid SongBatchCompleteDTO dto, @NotNull(message = "用户Id不能为空") Long userId);
@@ -196,17 +198,19 @@ git commit -m "添加批量操作方法声明到Service接口"
 
 ```java
 // 添加导入
+
 import top.enderliquid.audioflow.dto.request.song.SongBatchCompleteDTO;
 import top.enderliquid.audioflow.dto.request.song.SongBatchDeleteDTO;
 import top.enderliquid.audioflow.dto.request.song.SongBatchPrepareDTO;
 import top.enderliquid.audioflow.dto.response.BatchFailureItem;
-import top.enderliquid.audioflow.dto.response.SongBatchResultVO;
+import top.enderliquid.audioflow.dto.response.song.SongBatchResultVO;
 
 // 在类末尾添加方法实现
+
 @Override
-public SongBatchResultVO<SongUploadPrepareVO> batchPrepareUpload(SongBatchPrepareDTO dto, Long userId) {
+public top.enderliquid.audioflow.dto.response.song.SongBatchResultVO<SongUploadPrepareVO> batchPrepareUpload(SongBatchPrepareDTO dto, Long userId) {
     log.info("请求批量准备上传歌曲，用户ID: {}, 数量: {}", userId, dto.getSongs().size());
-    SongBatchResultVO<SongUploadPrepareVO> result = new SongBatchResultVO<>();
+    top.enderliquid.audioflow.dto.response.song.SongBatchResultVO<SongUploadPrepareVO> result = new SongBatchResultVO<>();
     List<SongPrepareUploadDTO> songs = dto.getSongs();
     for (int i = 0; i < songs.size(); i++) {
         SongPrepareUploadDTO songDto = songs.get(i);
@@ -323,9 +327,6 @@ git commit -m "实现批量删除方法"
 import top.enderliquid.audioflow.dto.request.song.SongBatchCompleteDTO;
 import top.enderliquid.audioflow.dto.request.song.SongBatchDeleteDTO;
 import top.enderliquid.audioflow.dto.request.song.SongBatchPrepareDTO;
-import top.enderliquid.audioflow.dto.response.BatchFailureItem;
-import top.enderliquid.audioflow.dto.response.SongBatchResultVO;
-import top.enderliquid.audioflow.dto.response.SongUploadPrepareVO;
 ```
 
 **Step 2: 添加批量准备上传接口**
@@ -416,14 +417,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import top.enderliquid.audioflow.common.exception.BusinessException;
 import top.enderliquid.audioflow.dto.request.song.SongBatchCompleteDTO;
 import top.enderliquid.audioflow.dto.request.song.SongBatchDeleteDTO;
 import top.enderliquid.audioflow.dto.request.song.SongBatchPrepareDTO;
 import top.enderliquid.audioflow.dto.request.song.SongPrepareUploadDTO;
-import top.enderliquid.audioflow.dto.response.SongBatchResultVO;
-import top.enderliquid.audioflow.dto.response.SongUploadPrepareVO;
-import top.enderliquid.audioflow.dto.response.SongVO;
+import top.enderliquid.audioflow.dto.response.song.SongBatchResultVO;
+top.enderliquid.audioflow.dto.response.song.SongUploadPrepareVO;
 import top.enderliquid.audioflow.entity.Song;
 import top.enderliquid.audioflow.entity.User;
 import top.enderliquid.audioflow.manager.OSSManager;
@@ -495,7 +494,7 @@ class SongBatchServiceTest {
 
         SongBatchPrepareDTO dto = new SongBatchPrepareDTO(songs);
 
-        SongBatchResultVO<SongUploadPrepareVO> result = songService.batchPrepareUpload(dto, testUserId);
+        top.enderliquid.audioflow.dto.response.song.SongBatchResultVO<SongUploadPrepareVO> result = songService.batchPrepareUpload(dto, testUserId);
 
         assertEquals(1, result.getSuccessCount());
         assertEquals(1, result.getFailureCount());

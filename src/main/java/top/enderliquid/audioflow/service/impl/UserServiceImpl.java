@@ -11,7 +11,7 @@ import top.enderliquid.audioflow.common.exception.BusinessException;
 import top.enderliquid.audioflow.dto.request.user.UserSaveDTO;
 import top.enderliquid.audioflow.dto.request.user.UserUpdatePasswordDTO;
 import top.enderliquid.audioflow.dto.request.user.UserVerifyPasswordDTO;
-import top.enderliquid.audioflow.dto.response.UserVO;
+import top.enderliquid.audioflow.dto.response.user.UserVO;
 import top.enderliquid.audioflow.entity.User;
 import top.enderliquid.audioflow.manager.UserManager;
 import top.enderliquid.audioflow.service.UserService;

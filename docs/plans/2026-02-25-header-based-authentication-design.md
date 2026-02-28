@@ -23,7 +23,7 @@
 
 **新增LoginResult类**
 
-位置：`top.enderliquid.audioflow.dto.response.LoginResult`
+位置：`top.enderliquid.audioflow.dto.response.session.LoginResultVO`
 
 ```java
 import cn.dev33.satoken.stp.SaTokenInfo;

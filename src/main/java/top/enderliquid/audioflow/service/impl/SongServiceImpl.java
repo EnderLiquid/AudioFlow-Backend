@@ -19,18 +19,12 @@ import top.enderliquid.audioflow.common.enums.SongStatus;
 import top.enderliquid.audioflow.common.exception.BusinessException;
 import top.enderliquid.audioflow.dto.bo.SongBO;
 import top.enderliquid.audioflow.dto.param.SongPageParam;
-import top.enderliquid.audioflow.dto.request.song.SongBatchCompleteDTO;
-import top.enderliquid.audioflow.dto.request.song.SongBatchDeleteDTO;
-import top.enderliquid.audioflow.dto.request.song.SongBatchPrepareDTO;
-import top.enderliquid.audioflow.dto.request.song.SongCompleteUploadDTO;
-import top.enderliquid.audioflow.dto.request.song.SongPageDTO;
-import top.enderliquid.audioflow.dto.request.song.SongPrepareUploadDTO;
-import top.enderliquid.audioflow.dto.request.song.SongUpdateDTO;
+import top.enderliquid.audioflow.dto.request.song.*;
 import top.enderliquid.audioflow.dto.response.BatchFailureItem;
-import top.enderliquid.audioflow.dto.response.CommonPageVO;
-import top.enderliquid.audioflow.dto.response.SongBatchResultVO;
-import top.enderliquid.audioflow.dto.response.SongUploadPrepareVO;
-import top.enderliquid.audioflow.dto.response.SongVO;
+import top.enderliquid.audioflow.dto.response.PageVO;
+import top.enderliquid.audioflow.dto.response.song.SongBatchResultVO;
+import top.enderliquid.audioflow.dto.response.song.SongUploadPrepareVO;
+import top.enderliquid.audioflow.dto.response.song.SongVO;
 import top.enderliquid.audioflow.entity.Song;
 import top.enderliquid.audioflow.entity.User;
 import top.enderliquid.audioflow.manager.OSSManager;
@@ -223,7 +217,7 @@ public class SongServiceImpl implements SongService {
     }
 
     @Override
-    public CommonPageVO<SongVO> pageSongsByUploaderKeywordAndSongKeyword(SongPageDTO dto) {
+    public PageVO<SongVO> pageSongsByUploaderKeywordAndSongKeyword(SongPageDTO dto) {
         log.info("请求分页查询歌曲");
         SongPageParam param = new SongPageParam();
         BeanUtils.copyProperties(dto, param);
@@ -241,7 +235,7 @@ public class SongServiceImpl implements SongService {
                 songVOList.add(songVO);
             }
         }
-        CommonPageVO<SongVO> pageVO = new CommonPageVO<>();
+        PageVO<SongVO> pageVO = new PageVO<>();
         pageVO.setList(songVOList);
         pageVO.setPageIndex(songBOPage.getCurrent());
         pageVO.setPageSize(songBOPage.getSize());

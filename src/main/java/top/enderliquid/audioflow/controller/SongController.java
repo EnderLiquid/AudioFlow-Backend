@@ -11,11 +11,15 @@ import org.springframework.web.bind.annotation.*;
 import top.enderliquid.audioflow.common.annotation.RateLimit;
 import top.enderliquid.audioflow.common.enums.LimitType;
 import top.enderliquid.audioflow.common.response.HttpResponseBody;
+import top.enderliquid.audioflow.dto.request.song.SongBatchCompleteDTO;
+import top.enderliquid.audioflow.dto.request.song.SongBatchDeleteDTO;
+import top.enderliquid.audioflow.dto.request.song.SongBatchPrepareDTO;
 import top.enderliquid.audioflow.dto.request.song.SongCompleteUploadDTO;
 import top.enderliquid.audioflow.dto.request.song.SongPageDTO;
 import top.enderliquid.audioflow.dto.request.song.SongPrepareUploadDTO;
 import top.enderliquid.audioflow.dto.request.song.SongUpdateDTO;
 import top.enderliquid.audioflow.dto.response.CommonPageVO;
+import top.enderliquid.audioflow.dto.response.SongBatchResultVO;
 import top.enderliquid.audioflow.dto.response.SongUploadPrepareVO;
 import top.enderliquid.audioflow.dto.response.SongVO;
 import top.enderliquid.audioflow.service.SongService;
@@ -127,7 +131,7 @@ public class SongController {
         }
     }
 
-    /**
+/**
      * 更新自己的歌曲信息
      * 需要登录
      */
@@ -138,5 +142,53 @@ public class SongController {
         long userId = StpUtil.getLoginIdAsLong();
         SongVO songVO = songService.updateSong(dto, songId, userId);
         return HttpResponseBody.ok(songVO);
+    }
+
+    /**
+     * 批量准备上传歌曲
+     * 需要登录
+     */
+    @SaCheckLogin
+    @PostMapping("/batch-prepare")
+    @RateLimit(
+            refillRate = "1/10",
+            capacity = 3,
+            limitType = LimitType.BOTH,
+            message = "批量上传过于频繁，请稍后再试"
+    )
+    public HttpResponseBody<SongBatchResultVO<SongUploadPrepareVO>> batchPrepareUpload(@Valid @RequestBody SongBatchPrepareDTO dto) {
+        long userId = StpUtil.getLoginIdAsLong();
+        SongBatchResultVO<SongUploadPrepareVO> result = songService.batchPrepareUpload(dto, userId);
+        return HttpResponseBody.ok(result);
+    }
+
+    /**
+     * 批量完成上传歌曲
+     * 需要登录
+     */
+    @SaCheckLogin
+    @PostMapping("/batch-complete")
+    public HttpResponseBody<SongBatchResultVO<SongVO>> batchCompleteUpload(@Valid @RequestBody SongBatchCompleteDTO dto) {
+        long userId = StpUtil.getLoginIdAsLong();
+        SongBatchResultVO<SongVO> result = songService.batchCompleteUpload(dto, userId);
+        return HttpResponseBody.ok(result);
+    }
+
+    /**
+     * 批量删除歌曲
+     * 需要登录
+     */
+    @SaCheckLogin
+    @PostMapping("/batch")
+    @RateLimit(
+            refillRate = "1/10",
+            capacity = 3,
+            limitType = LimitType.BOTH,
+            message = "批量删除过于频繁，请稍后再试"
+    )
+    public HttpResponseBody<SongBatchResultVO<Long>> batchRemoveSongs(@Valid @RequestBody SongBatchDeleteDTO dto) {
+        long userId = StpUtil.getLoginIdAsLong();
+        SongBatchResultVO<Long> result = songService.batchRemoveSongs(dto, userId);
+        return HttpResponseBody.ok(result);
     }
 }

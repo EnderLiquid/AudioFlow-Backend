@@ -17,6 +17,7 @@ import org.xml.sax.helpers.DefaultHandler;
 import top.enderliquid.audioflow.common.enums.Role;
 import top.enderliquid.audioflow.common.enums.SongStatus;
 import top.enderliquid.audioflow.common.exception.BusinessException;
+import top.enderliquid.audioflow.common.exception.ExceptionTranslator;
 import top.enderliquid.audioflow.dto.bo.SongBO;
 import top.enderliquid.audioflow.dto.param.SongPageParam;
 import top.enderliquid.audioflow.dto.request.song.*;
@@ -73,6 +74,8 @@ public class SongServiceImpl implements SongService {
     private SongManager songManager;
     @Autowired
     private OSSManager ossManager;
+    @Autowired
+    private ExceptionTranslator exceptionTranslator;
 
     @Override
     public SongUploadPrepareVO prepareUpload(SongPrepareUploadDTO dto, Long userId) {
@@ -326,7 +329,7 @@ public class SongServiceImpl implements SongService {
         }
         SongVO songVO = new SongVO();
         BeanUtils.copyProperties(song, songVO);
-User uploader = userManager.getById(song.getUploaderId());
+        User uploader = userManager.getById(song.getUploaderId());
         if (uploader != null) {
             songVO.setUploaderName(uploader.getName());
         }
@@ -345,9 +348,10 @@ User uploader = userManager.getById(song.getUploaderId());
                 SongUploadPrepareVO prepareVO = prepareUpload(songDto, userId);
                 BatchResultItem<SongUploadPrepareVO> successItem = new BatchResultItem<>(i, true, null, prepareVO);
                 result.addResult(successItem);
-            } catch (BusinessException e) {
-                BatchResultItem<SongUploadPrepareVO> failureItem = new BatchResultItem<>(i, false, e.getMessage(), null);
+            } catch (Exception e) {
+                BatchResultItem<SongUploadPrepareVO> failureItem = new BatchResultItem<>(i, false, exceptionTranslator.translate(e).getMessage(), null);
                 result.addResult(failureItem);
+                if (!(e instanceof BusinessException)) break;
             }
         }
         log.info("批量准备上传歌曲完成，成功: {}, 失败: {}", result.getSuccessCount(), result.getFailureCount());
@@ -366,9 +370,10 @@ User uploader = userManager.getById(song.getUploaderId());
                 SongVO songVO = completeUpload(new SongCompleteUploadDTO(songId), userId);
                 BatchResultItem<SongVO> successItem = new BatchResultItem<>(i, true, null, songVO);
                 result.addResult(successItem);
-            } catch (BusinessException e) {
-                BatchResultItem<SongVO> failureItem = new BatchResultItem<>(i, false, e.getMessage(), null);
+            } catch (Exception e) {
+                BatchResultItem<SongVO> failureItem = new BatchResultItem<>(i, false, exceptionTranslator.translate(e).getMessage(), null);
                 result.addResult(failureItem);
+                if (!(e instanceof BusinessException)) break;
             }
         }
         log.info("批量确认上传歌曲完成，成功: {}, 失败: {}", result.getSuccessCount(), result.getFailureCount());
@@ -386,9 +391,10 @@ User uploader = userManager.getById(song.getUploaderId());
                 removeSong(songId, userId);
                 BatchResultItem<Object> successItem = new BatchResultItem<>(i, true, null, null);
                 result.addResult(successItem);
-            } catch (BusinessException e) {
-                BatchResultItem<Object> failureItem = new BatchResultItem<>(i, false, e.getMessage(), null);
+            } catch (Exception e) {
+                BatchResultItem<Object> failureItem = new BatchResultItem<>(i, false, exceptionTranslator.translate(e).getMessage(), null);
                 result.addResult(failureItem);
+                if (!(e instanceof BusinessException)) break;
             }
         }
         log.info("批量删除歌曲完成，成功: {}, 失败: {}", result.getSuccessCount(), result.getFailureCount());

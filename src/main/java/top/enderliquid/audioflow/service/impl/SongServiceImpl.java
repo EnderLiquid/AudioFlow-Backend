@@ -17,15 +17,15 @@ import org.xml.sax.helpers.DefaultHandler;
 import top.enderliquid.audioflow.common.enums.Role;
 import top.enderliquid.audioflow.common.enums.SongStatus;
 import top.enderliquid.audioflow.common.exception.BusinessException;
+import top.enderliquid.audioflow.common.exception.ExceptionTranslator;
 import top.enderliquid.audioflow.dto.bo.SongBO;
 import top.enderliquid.audioflow.dto.param.SongPageParam;
-import top.enderliquid.audioflow.dto.request.song.SongCompleteUploadDTO;
-import top.enderliquid.audioflow.dto.request.song.SongPageDTO;
-import top.enderliquid.audioflow.dto.request.song.SongPrepareUploadDTO;
-import top.enderliquid.audioflow.dto.request.song.SongUpdateDTO;
-import top.enderliquid.audioflow.dto.response.CommonPageVO;
-import top.enderliquid.audioflow.dto.response.SongUploadPrepareVO;
-import top.enderliquid.audioflow.dto.response.SongVO;
+import top.enderliquid.audioflow.dto.request.song.*;
+import top.enderliquid.audioflow.dto.response.BatchResult;
+import top.enderliquid.audioflow.dto.response.BatchResultItem;
+import top.enderliquid.audioflow.dto.response.PageVO;
+import top.enderliquid.audioflow.dto.response.song.SongUploadPrepareVO;
+import top.enderliquid.audioflow.dto.response.song.SongVO;
 import top.enderliquid.audioflow.entity.Song;
 import top.enderliquid.audioflow.entity.User;
 import top.enderliquid.audioflow.manager.OSSManager;
@@ -74,6 +74,8 @@ public class SongServiceImpl implements SongService {
     private SongManager songManager;
     @Autowired
     private OSSManager ossManager;
+    @Autowired
+    private ExceptionTranslator exceptionTranslator;
 
     @Override
     public SongUploadPrepareVO prepareUpload(SongPrepareUploadDTO dto, Long userId) {
@@ -218,7 +220,7 @@ public class SongServiceImpl implements SongService {
     }
 
     @Override
-    public CommonPageVO<SongVO> pageSongsByUploaderKeywordAndSongKeyword(SongPageDTO dto) {
+    public PageVO<SongVO> pageSongsByUploaderKeywordAndSongKeyword(SongPageDTO dto) {
         log.info("请求分页查询歌曲");
         SongPageParam param = new SongPageParam();
         BeanUtils.copyProperties(dto, param);
@@ -236,7 +238,7 @@ public class SongServiceImpl implements SongService {
                 songVOList.add(songVO);
             }
         }
-        CommonPageVO<SongVO> pageVO = new CommonPageVO<>();
+        PageVO<SongVO> pageVO = new PageVO<>();
         pageVO.setList(songVOList);
         pageVO.setPageIndex(songBOPage.getCurrent());
         pageVO.setPageSize(songBOPage.getSize());
@@ -333,5 +335,69 @@ public class SongServiceImpl implements SongService {
         }
         log.info("更新歌曲信息成功");
         return songVO;
+    }
+
+    @Override
+    public BatchResult<SongUploadPrepareVO> batchPrepareUpload(SongBatchPrepareDTO dto, Long userId) {
+        log.info("请求批量准备上传歌曲，用户ID: {}, 数量: {}", userId, dto.getSongs().size());
+        BatchResult<SongUploadPrepareVO> result = new BatchResult<>();
+        List<SongPrepareUploadDTO> songs = dto.getSongs();
+        for (int i = 0; i < songs.size(); i++) {
+            SongPrepareUploadDTO songDto = songs.get(i);
+            try {
+                SongUploadPrepareVO prepareVO = prepareUpload(songDto, userId);
+                BatchResultItem<SongUploadPrepareVO> successItem = new BatchResultItem<>(i, true, null, prepareVO);
+                result.add(successItem);
+            } catch (Exception e) {
+                BatchResultItem<SongUploadPrepareVO> failureItem = new BatchResultItem<>(i, false, exceptionTranslator.translate(e).getMessage(), null);
+                result.add(failureItem);
+                if (!(e instanceof BusinessException)) break;
+            }
+        }
+        log.info("批量准备上传歌曲完成，成功: {}, 失败: {}", result.getSuccessCount(), result.getFailureCount());
+        return result;
+
+    }
+
+    @Override
+    public BatchResult<SongVO> batchCompleteUpload(SongBatchCompleteDTO dto, Long userId) {
+        log.info("请求批量确认上传歌曲，用户ID: {}, 数量: {}", userId, dto.getSongIds().size());
+        BatchResult<SongVO> result = new BatchResult<>();
+        List<Long> songIds = dto.getSongIds();
+        for (int i = 0; i < songIds.size(); i++) {
+            Long songId = songIds.get(i);
+            try {
+                SongVO songVO = completeUpload(new SongCompleteUploadDTO(songId), userId);
+                BatchResultItem<SongVO> successItem = new BatchResultItem<>(i, true, null, songVO);
+                result.add(successItem);
+            } catch (Exception e) {
+                BatchResultItem<SongVO> failureItem = new BatchResultItem<>(i, false, exceptionTranslator.translate(e).getMessage(), null);
+                result.add(failureItem);
+                if (!(e instanceof BusinessException)) break;
+            }
+        }
+        log.info("批量确认上传歌曲完成，成功: {}, 失败: {}", result.getSuccessCount(), result.getFailureCount());
+        return result;
+    }
+
+    @Override
+    public BatchResult<Object> batchRemoveSongs(SongBatchDeleteDTO dto, Long userId) {
+        log.info("请求批量删除歌曲，用户ID: {}, 数量: {}", userId, dto.getSongIds().size());
+        BatchResult<Object> result = new BatchResult<>();
+        List<Long> songIds = dto.getSongIds();
+        for (int i = 0; i < songIds.size(); i++) {
+            Long songId = songIds.get(i);
+            try {
+                removeSong(songId, userId);
+                BatchResultItem<Object> successItem = new BatchResultItem<>(i, true, null, null);
+                result.add(successItem);
+            } catch (Exception e) {
+                BatchResultItem<Object> failureItem = new BatchResultItem<>(i, false, exceptionTranslator.translate(e).getMessage(), null);
+                result.add(failureItem);
+                if (!(e instanceof BusinessException)) break;
+            }
+        }
+        log.info("批量删除歌曲完成，成功: {}, 失败: {}", result.getSuccessCount(), result.getFailureCount());
+        return result;
     }
 }

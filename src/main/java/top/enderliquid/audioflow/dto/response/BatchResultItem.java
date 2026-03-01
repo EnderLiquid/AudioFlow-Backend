@@ -7,8 +7,9 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SongUploadPrepareVO {
-    private Long id;
-    private String fileName;
-    private String uploadUrl;
+public class BatchResultItem<T> {
+    private int index;
+    private boolean success;
+    private String message;
+    private T data;
 }

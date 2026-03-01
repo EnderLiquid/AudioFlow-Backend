@@ -12,8 +12,8 @@ import top.enderliquid.audioflow.common.enums.LimitType;
 import top.enderliquid.audioflow.common.response.HttpResponseBody;
 import top.enderliquid.audioflow.dto.request.user.UserSaveDTO;
 import top.enderliquid.audioflow.dto.request.user.UserUpdatePasswordDTO;
-import top.enderliquid.audioflow.dto.response.LoginResult;
-import top.enderliquid.audioflow.dto.response.UserVO;
+import top.enderliquid.audioflow.dto.response.session.LoginResult;
+import top.enderliquid.audioflow.dto.response.user.UserVO;
 import top.enderliquid.audioflow.service.UserService;
 
 @RestController

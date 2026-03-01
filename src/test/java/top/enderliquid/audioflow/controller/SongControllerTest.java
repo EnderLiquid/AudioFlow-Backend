@@ -305,4 +305,222 @@ class SongControllerTest extends BaseControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(false));
     }
+
+    @Test
+    void shouldBatchPrepareUploadSuccessfully() throws Exception {
+        String email = testUser.getEmail();
+        String password = "test_password_123";
+
+        java.util.HashMap<String, String> loginDto = new java.util.HashMap<>();
+        loginDto.put("email", email);
+        loginDto.put("password", password);
+        String loginJson = objectMapper.writeValueAsString(loginDto);
+
+        MvcResult result = mockMvc.perform(post("/api/sessions")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(loginJson))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String cookie = result.getResponse().getCookie("satoken").getValue();
+
+        java.util.HashMap<String, Object> batchPrepareDto = new java.util.HashMap<>();
+        java.util.List<java.util.HashMap<String, String>> songs = new java.util.ArrayList<>();
+        java.util.HashMap<String, String> song1 = new java.util.HashMap<>();
+        song1.put("name", "Batch Song 1");
+        song1.put("description", "Batch Description 1");
+        song1.put("mimeType", "audio/mpeg");
+        songs.add(song1);
+        java.util.HashMap<String, String> song2 = new java.util.HashMap<>();
+        song2.put("name", "Batch Song 2");
+        song2.put("description", "Batch Description 2");
+        song2.put("mimeType", "audio/mpeg");
+        songs.add(song2);
+        batchPrepareDto.put("songs", songs);
+        String prepareJson = objectMapper.writeValueAsString(batchPrepareDto);
+
+        mockMvc.perform(post("/api/songs/batch-prepare")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(prepareJson)
+                        .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.successCount").value(2))
+                .andExpect(jsonPath("$.data.successList").isArray());
+    }
+
+    @Test
+    void shouldBatchPrepareUploadWithoutLogin() throws Exception {
+        java.util.HashMap<String, Object> batchPrepareDto = new java.util.HashMap<>();
+        java.util.List<java.util.HashMap<String, String>> songs = new java.util.ArrayList<>();
+        java.util.HashMap<String, String> song1 = new java.util.HashMap<>();
+        song1.put("name", "Batch Song 1");
+        song1.put("mimeType", "audio/mpeg");
+        songs.add(song1);
+        batchPrepareDto.put("songs", songs);
+        String prepareJson = objectMapper.writeValueAsString(batchPrepareDto);
+
+        mockMvc.perform(post("/api/songs/batch-prepare")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(prepareJson))
+                .andExpect(status().is(401))
+                .andExpect(jsonPath("$.success").value(false));
+    }
+
+    @Test
+    void shouldBatchCompleteUploadSuccessfully() throws Exception {
+        String email = testUser.getEmail();
+        String password = "test_password_123";
+
+        java.util.HashMap<String, String> loginDto = new java.util.HashMap<>();
+        loginDto.put("email", email);
+        loginDto.put("password", password);
+        String loginJson = objectMapper.writeValueAsString(loginDto);
+
+        MvcResult result = mockMvc.perform(post("/api/sessions")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(loginJson))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String cookie = result.getResponse().getCookie("satoken").getValue();
+
+        java.util.HashMap<String, Object> prepareDto = new java.util.HashMap<>();
+        prepareDto.put("name", "Complete Song");
+        prepareDto.put("description", "Test Description");
+        prepareDto.put("mimeType", "audio/mpeg");
+        String prepareJson = objectMapper.writeValueAsString(prepareDto);
+
+        result = mockMvc.perform(post("/api/songs/prepare")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(prepareJson)
+                        .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String response = result.getResponse().getContentAsString();
+        com.fasterxml.jackson.databind.JsonNode jsonNode = objectMapper.readTree(response);
+        Long songId = jsonNode.get("data").get("id").asLong();
+        String fileName = jsonNode.get("data").get("fileName").asText();
+
+        mockOSSManager.simulateUpload(fileName);
+
+        java.util.HashMap<String, Object> batchCompleteDto = new java.util.HashMap<>();
+        java.util.List<Long> songIds = new java.util.ArrayList<>();
+        songIds.add(songId);
+        batchCompleteDto.put("songIds", songIds);
+        String completeJson = objectMapper.writeValueAsString(batchCompleteDto);
+
+        mockMvc.perform(post("/api/songs/batch-complete")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(completeJson)
+                        .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.successCount").value(1));
+    }
+
+    @Test
+    void shouldBatchCompleteUploadWithoutLogin() throws Exception {
+        java.util.HashMap<String, Object> batchCompleteDto = new java.util.HashMap<>();
+        java.util.List<Long> songIds = new java.util.ArrayList<>();
+        songIds.add(1L);
+        batchCompleteDto.put("songIds", songIds);
+        String completeJson = objectMapper.writeValueAsString(batchCompleteDto);
+
+        mockMvc.perform(post("/api/songs/batch-complete")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(completeJson))
+                .andExpect(status().is(401))
+                .andExpect(jsonPath("$.success").value(false));
+    }
+
+    @Test
+    void shouldBatchDeleteSuccessfully() throws Exception {
+        User user = testDataHelper.createTestUser();
+        Song song1 = testDataHelper.createTestSong(user.getId());
+        Song song2 = testDataHelper.createTestSong(user.getId());
+
+        String email = user.getEmail();
+        String password = "test_password_123";
+
+        java.util.HashMap<String, String> loginDto = new java.util.HashMap<>();
+        loginDto.put("email", email);
+        loginDto.put("password", password);
+        String loginJson = objectMapper.writeValueAsString(loginDto);
+
+        MvcResult result = mockMvc.perform(post("/api/sessions")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(loginJson))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String cookie = result.getResponse().getCookie("satoken").getValue();
+
+        java.util.HashMap<String, Object> batchDeleteDto = new java.util.HashMap<>();
+        java.util.List<Long> songIds = new java.util.ArrayList<>();
+        songIds.add(song1.getId());
+        songIds.add(song2.getId());
+        batchDeleteDto.put("songIds", songIds);
+        String deleteJson = objectMapper.writeValueAsString(batchDeleteDto);
+
+        mockMvc.perform(post("/api/songs/batch")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(deleteJson)
+                        .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.successCount").value(2));
+    }
+
+    @Test
+    void shouldBatchDeleteWithoutLogin() throws Exception {
+        java.util.HashMap<String, Object> batchDeleteDto = new java.util.HashMap<>();
+        java.util.List<Long> songIds = new java.util.ArrayList<>();
+        songIds.add(1L);
+        batchDeleteDto.put("songIds", songIds);
+        String deleteJson = objectMapper.writeValueAsString(batchDeleteDto);
+
+        mockMvc.perform(post("/api/songs/batch")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(deleteJson))
+                .andExpect(status().is(401))
+                .andExpect(jsonPath("$.success").value(false));
+    }
+
+    @Test
+    void shouldReturnErrorWhenBatchDeleteOthersSongs() throws Exception {
+        Song song1 = testDataHelper.createTestSong(testUser.getId());
+
+        User anotherUser = testDataHelper.createTestUser();
+        String email = anotherUser.getEmail();
+        String password = "test_password_123";
+
+        java.util.HashMap<String, String> loginDto = new java.util.HashMap<>();
+        loginDto.put("email", email);
+        loginDto.put("password", password);
+        String loginJson = objectMapper.writeValueAsString(loginDto);
+
+        MvcResult result = mockMvc.perform(post("/api/sessions")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(loginJson))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String cookie = result.getResponse().getCookie("satoken").getValue();
+
+        java.util.HashMap<String, Object> batchDeleteDto = new java.util.HashMap<>();
+        java.util.List<Long> songIds = new java.util.ArrayList<>();
+        songIds.add(song1.getId());
+        batchDeleteDto.put("songIds", songIds);
+        String deleteJson = objectMapper.writeValueAsString(batchDeleteDto);
+
+        mockMvc.perform(post("/api/songs/batch")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(deleteJson)
+                        .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.failureCount").value(1));
+    }
 }

@@ -11,13 +11,11 @@ import org.springframework.web.bind.annotation.*;
 import top.enderliquid.audioflow.common.annotation.RateLimit;
 import top.enderliquid.audioflow.common.enums.LimitType;
 import top.enderliquid.audioflow.common.response.HttpResponseBody;
-import top.enderliquid.audioflow.dto.request.song.SongCompleteUploadDTO;
-import top.enderliquid.audioflow.dto.request.song.SongPageDTO;
-import top.enderliquid.audioflow.dto.request.song.SongPrepareUploadDTO;
-import top.enderliquid.audioflow.dto.request.song.SongUpdateDTO;
-import top.enderliquid.audioflow.dto.response.CommonPageVO;
-import top.enderliquid.audioflow.dto.response.SongUploadPrepareVO;
-import top.enderliquid.audioflow.dto.response.SongVO;
+import top.enderliquid.audioflow.dto.request.song.*;
+import top.enderliquid.audioflow.dto.response.BatchResult;
+import top.enderliquid.audioflow.dto.response.PageVO;
+import top.enderliquid.audioflow.dto.response.song.SongUploadPrepareVO;
+import top.enderliquid.audioflow.dto.response.song.SongVO;
 import top.enderliquid.audioflow.service.SongService;
 
 import java.io.IOException;
@@ -71,8 +69,8 @@ public class SongController {
             limitType = LimitType.IP,
             message = "查询过于频繁，请稍后再试"
     )
-    public HttpResponseBody<CommonPageVO<SongVO>> pageSongs(@Valid @ModelAttribute SongPageDTO dto) {
-        CommonPageVO<SongVO> result = songService.pageSongsByUploaderKeywordAndSongKeyword(dto);
+    public HttpResponseBody<PageVO<SongVO>> pageSongs(@Valid @ModelAttribute SongPageDTO dto) {
+        PageVO<SongVO> result = songService.pageSongsByUploaderKeywordAndSongKeyword(dto);
         return HttpResponseBody.ok(result);
     }
 
@@ -125,7 +123,7 @@ public class SongController {
         } catch (IOException e) {
             log.error("歌曲URL查询接口响应失败", e);
         }
-    }
+}
 
     /**
      * 更新自己的歌曲信息
@@ -138,5 +136,59 @@ public class SongController {
         long userId = StpUtil.getLoginIdAsLong();
         SongVO songVO = songService.updateSong(dto, songId, userId);
         return HttpResponseBody.ok(songVO);
+    }
+
+    /**
+     * 批量准备上传歌曲
+     * 需要登录
+     */
+    @SaCheckLogin
+    @PostMapping("/batch-prepare")
+    @RateLimit(
+            refillRate = "1/10",
+            capacity = 3,
+            limitType = LimitType.BOTH,
+            message = "批量准备上传过于频繁，请稍后再试"
+    )
+    public HttpResponseBody<BatchResult<SongUploadPrepareVO>> batchPrepareUpload(@Valid @RequestBody SongBatchPrepareDTO dto) {
+        long userId = StpUtil.getLoginIdAsLong();
+        BatchResult<SongUploadPrepareVO> result = songService.batchPrepareUpload(dto, userId);
+        return HttpResponseBody.ok(result);
+    }
+
+    /**
+     * 批量完成上传歌曲
+     * 需要登录
+     */
+    @SaCheckLogin
+    @PostMapping("/batch-complete")
+    @RateLimit(
+            refillRate = "1/10",
+            capacity = 3,
+            limitType = LimitType.BOTH,
+            message = "批量完成上传过于频繁，请稍后再试"
+    )
+    public HttpResponseBody<BatchResult<SongVO>> batchCompleteUpload(@Valid @RequestBody SongBatchCompleteDTO dto) {
+        long userId = StpUtil.getLoginIdAsLong();
+        BatchResult<SongVO> result = songService.batchCompleteUpload(dto, userId);
+        return HttpResponseBody.ok(result);
+    }
+
+    /**
+     * 批量删除歌曲
+     * 需要登录
+     */
+    @SaCheckLogin
+    @PostMapping("/batch")
+    @RateLimit(
+            refillRate = "1/10",
+            capacity = 3,
+            limitType = LimitType.BOTH,
+            message = "批量删除过于频繁，请稍后再试"
+    )
+    public HttpResponseBody<BatchResult<Object>> batchRemoveSongs(@Valid @RequestBody SongBatchDeleteDTO dto) {
+        long userId = StpUtil.getLoginIdAsLong();
+        BatchResult<Object> result = songService.batchRemoveSongs(dto, userId);
+        return HttpResponseBody.ok(result);
     }
 }

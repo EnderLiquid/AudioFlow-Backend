@@ -5,6 +5,7 @@ target/
 !**/src/test/**/target/
 /upload
 /remove-nul.bat
+*.log
 
 ### STS ###
 .apt_generated

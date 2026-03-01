@@ -18,7 +18,7 @@ public class BatchResult<T> {
     private int total;
 
     // 辅助方法：添加结果并自动计数
-    public void addResult(BatchResultItem<T> item) {
+    public void add(BatchResultItem<T> item) {
         this.total++;
         if (item.isSuccess()) {
             this.successCount++;

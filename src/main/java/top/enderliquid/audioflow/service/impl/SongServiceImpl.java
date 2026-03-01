@@ -347,10 +347,10 @@ public class SongServiceImpl implements SongService {
             try {
                 SongUploadPrepareVO prepareVO = prepareUpload(songDto, userId);
                 BatchResultItem<SongUploadPrepareVO> successItem = new BatchResultItem<>(i, true, null, prepareVO);
-                result.addResult(successItem);
+                result.add(successItem);
             } catch (Exception e) {
                 BatchResultItem<SongUploadPrepareVO> failureItem = new BatchResultItem<>(i, false, exceptionTranslator.translate(e).getMessage(), null);
-                result.addResult(failureItem);
+                result.add(failureItem);
                 if (!(e instanceof BusinessException)) break;
             }
         }
@@ -369,10 +369,10 @@ public class SongServiceImpl implements SongService {
             try {
                 SongVO songVO = completeUpload(new SongCompleteUploadDTO(songId), userId);
                 BatchResultItem<SongVO> successItem = new BatchResultItem<>(i, true, null, songVO);
-                result.addResult(successItem);
+                result.add(successItem);
             } catch (Exception e) {
                 BatchResultItem<SongVO> failureItem = new BatchResultItem<>(i, false, exceptionTranslator.translate(e).getMessage(), null);
-                result.addResult(failureItem);
+                result.add(failureItem);
                 if (!(e instanceof BusinessException)) break;
             }
         }
@@ -390,10 +390,10 @@ public class SongServiceImpl implements SongService {
             try {
                 removeSong(songId, userId);
                 BatchResultItem<Object> successItem = new BatchResultItem<>(i, true, null, null);
-                result.addResult(successItem);
+                result.add(successItem);
             } catch (Exception e) {
                 BatchResultItem<Object> failureItem = new BatchResultItem<>(i, false, exceptionTranslator.translate(e).getMessage(), null);
-                result.addResult(failureItem);
+                result.add(failureItem);
                 if (!(e instanceof BusinessException)) break;
             }
         }

@@ -45,3 +45,6 @@ build/
 
 ### External Config Directory ###
 /config/
+
+### GSD Planning ###
+.planning/

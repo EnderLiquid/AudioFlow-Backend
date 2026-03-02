@@ -7,6 +7,7 @@ target/
 /remove-nul.bat
 *.log
 settings.local.json
+/run-claude-code.bat
 
 ### STS ###
 .apt_generated
@@ -44,4 +45,3 @@ build/
 
 ### External Config Directory ###
 /config/
-!/config/.gitkeep

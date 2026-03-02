@@ -2,6 +2,7 @@ package top.enderliquid.audioflow.service.impl;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
 import org.apache.tika.metadata.Metadata;
@@ -11,8 +12,10 @@ import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
+import org.springframework.util.unit.DataSize;
 import org.xml.sax.helpers.DefaultHandler;
 import top.enderliquid.audioflow.common.enums.Role;
 import top.enderliquid.audioflow.common.enums.SongStatus;
@@ -77,6 +80,16 @@ public class SongServiceImpl implements SongService {
     @Autowired
     private ExceptionTranslator exceptionTranslator;
 
+    @Value("${file.storage.max-file-size:20MB}")
+    private String maxFileSizeStr;
+
+    private long maxFileSizeBytes;
+
+    @PostConstruct
+    public void init() {
+        this.maxFileSizeBytes = DataSize.parse(maxFileSizeStr).toBytes();
+    }
+
     @Override
     public SongUploadPrepareVO prepareUpload(SongPrepareUploadDTO dto, Long userId) {
         log.info("请求准备上传歌曲，用户ID: {}", userId);
@@ -87,6 +100,10 @@ public class SongServiceImpl implements SongService {
         String extension = MIME_TYPE_TO_EXTENSION_MAP.get(dto.getMimeType());
         if (extension == null) {
             throw new BusinessException("不支持该文件类型");
+        }
+        // 校验文件大小
+        if (dto.getSize() > maxFileSizeBytes) {
+            throw new BusinessException("文件大小超过限制，最大允许: {}" + maxFileSizeStr);
         }
         Long songId = IdWorker.getId();
         Song song = new Song();
@@ -168,6 +185,12 @@ public class SongServiceImpl implements SongService {
         Long fileSize = ossManager.getFileSize(song.getFileName());
         if (fileSize == null) {
             throw new BusinessException("获取文件大小失败");
+        }
+        // 校验文件大小
+        if (fileSize > maxFileSizeBytes) {
+            songManager.removeById(song);
+            ossManager.deleteFile(song.getFileName());
+            throw new BusinessException("文件大小超过限制，最大允许: {}" + maxFileSizeStr);
         }
         inputStream = ossManager.getFileInputStream(song.getFileName());
         if (inputStream == null) {

@@ -178,10 +178,11 @@ class SongControllerTest extends BaseControllerTest {
 
         String cookie = result.getResponse().getCookie("satoken").getValue();
 
-        java.util.HashMap<String, String> prepareDto = new java.util.HashMap<>();
+        java.util.HashMap<String, Object> prepareDto = new java.util.HashMap<>();
         prepareDto.put("name", "New Song");
         prepareDto.put("description", "New Description");
         prepareDto.put("mimeType", "audio/mpeg");
+        prepareDto.put("size", 1024L);
         String prepareJson = objectMapper.writeValueAsString(prepareDto);
 
         result = mockMvc.perform(post("/api/songs/prepare")
@@ -216,10 +217,11 @@ class SongControllerTest extends BaseControllerTest {
 
     @Test
     void shouldReturnErrorWhenPrepareUploadWithoutLogin() throws Exception {
-        java.util.HashMap<String, String> prepareDto = new java.util.HashMap<>();
+        java.util.HashMap<String, Object> prepareDto = new java.util.HashMap<>();
         prepareDto.put("name", "New Song");
         prepareDto.put("description", "New Description");
         prepareDto.put("mimeType", "audio/mpeg");
+        prepareDto.put("size", 1024L);
         String prepareJson = objectMapper.writeValueAsString(prepareDto);
 
         mockMvc.perform(post("/api/songs/prepare")
@@ -325,16 +327,18 @@ class SongControllerTest extends BaseControllerTest {
         String cookie = result.getResponse().getCookie("satoken").getValue();
 
         java.util.HashMap<String, Object> batchPrepareDto = new java.util.HashMap<>();
-        java.util.List<java.util.HashMap<String, String>> songs = new java.util.ArrayList<>();
-        java.util.HashMap<String, String> song1 = new java.util.HashMap<>();
+        java.util.List<java.util.HashMap<String, Object>> songs = new java.util.ArrayList<>();
+        java.util.HashMap<String, Object> song1 = new java.util.HashMap<>();
         song1.put("name", "Batch Song 1");
         song1.put("description", "Batch Description 1");
         song1.put("mimeType", "audio/mpeg");
+        song1.put("size", 1024L);
         songs.add(song1);
-        java.util.HashMap<String, String> song2 = new java.util.HashMap<>();
+        java.util.HashMap<String, Object> song2 = new java.util.HashMap<>();
         song2.put("name", "Batch Song 2");
         song2.put("description", "Batch Description 2");
         song2.put("mimeType", "audio/mpeg");
+        song2.put("size", 2048L);
         songs.add(song2);
         batchPrepareDto.put("songs", songs);
         String prepareJson = objectMapper.writeValueAsString(batchPrepareDto);
@@ -352,10 +356,11 @@ class SongControllerTest extends BaseControllerTest {
     @Test
     void shouldBatchPrepareUploadWithoutLogin() throws Exception {
         java.util.HashMap<String, Object> batchPrepareDto = new java.util.HashMap<>();
-        java.util.List<java.util.HashMap<String, String>> songs = new java.util.ArrayList<>();
-        java.util.HashMap<String, String> song1 = new java.util.HashMap<>();
+        java.util.List<java.util.HashMap<String, Object>> songs = new java.util.ArrayList<>();
+        java.util.HashMap<String, Object> song1 = new java.util.HashMap<>();
         song1.put("name", "Batch Song 1");
         song1.put("mimeType", "audio/mpeg");
+        song1.put("size", 1024L);
         songs.add(song1);
         batchPrepareDto.put("songs", songs);
         String prepareJson = objectMapper.writeValueAsString(batchPrepareDto);
@@ -389,6 +394,7 @@ class SongControllerTest extends BaseControllerTest {
         prepareDto.put("name", "Complete Song");
         prepareDto.put("description", "Test Description");
         prepareDto.put("mimeType", "audio/mpeg");
+        prepareDto.put("size", 1024L);
         String prepareJson = objectMapper.writeValueAsString(prepareDto);
 
         result = mockMvc.perform(post("/api/songs/prepare")

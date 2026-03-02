@@ -6,6 +6,7 @@ target/
 /upload
 /remove-nul.bat
 *.log
+settings.local.json
 
 ### STS ###
 .apt_generated

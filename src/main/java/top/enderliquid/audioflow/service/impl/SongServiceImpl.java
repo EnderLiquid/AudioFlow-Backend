@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.unit.DataSize;
 import org.xml.sax.helpers.DefaultHandler;
 import top.enderliquid.audioflow.common.enums.Role;
@@ -80,8 +81,13 @@ public class SongServiceImpl implements SongService {
     @Autowired
     private ExceptionTranslator exceptionTranslator;
 
+    @Autowired
+    private TransactionTemplate transactionTemplate;
+
     @Value("${file.storage.max-file-size:20MB}")
     private String maxFileSizeStr;
+    @Value("${file.upload.points-per-upload:10}")
+    private int pointsPerUpload = 10;
 
     private long maxFileSizeBytes;
 
@@ -93,9 +99,13 @@ public class SongServiceImpl implements SongService {
     @Override
     public SongUploadPrepareVO prepareUpload(SongPrepareUploadDTO dto, Long userId) {
         log.info("请求准备上传歌曲，用户ID: {}", userId);
+        // 快速检查积分是否足够
         User uploader = userManager.getById(userId);
         if (uploader == null) {
             throw new BusinessException("用户不存在");
+        }
+        if (uploader.getPoints() < pointsPerUpload) {
+            throw new BusinessException("积分不足");
         }
         String extension = MIME_TYPE_TO_EXTENSION_MAP.get(dto.getMimeType());
         if (extension == null) {
@@ -106,28 +116,47 @@ public class SongServiceImpl implements SongService {
             throw new BusinessException("文件大小超过限制，最大允许: {}" + maxFileSizeStr);
         }
         Long songId = IdWorker.getId();
-        Song song = new Song();
-        song.setId(songId);
-        song.setName(dto.getName());
-        song.setDescription(dto.getDescription());
         String fileName = songId + "." + extension;
-        song.setFileName(fileName);
-        song.setSize(null);
-        song.setDuration(null);
-        song.setUploaderId(userId);
-        song.setStatus(SongStatus.UPLOADING);
-        if (!songManager.save(song)) {
-            throw new BusinessException("歌曲信息保存失败");
-        }
-        String uploadUrl = ossManager.generatePresignedPutUrl(fileName, dto.getMimeType());
-        if (uploadUrl == null) {
-            throw new BusinessException("生成上传URL失败");
-        }
-        SongUploadPrepareVO prepareVO = new SongUploadPrepareVO();
-        prepareVO.setId(song.getId());
-        prepareVO.setFileName(fileName);
-        prepareVO.setUploadUrl(uploadUrl);
-        log.info("准备上传歌曲成功，歌曲ID: {}, 文件名: {}", song.getId(), fileName);
+        // 在事务内扣除积分并保存歌曲记录
+        SongUploadPrepareVO prepareVO = transactionTemplate.execute((status) -> {
+            // 再次查询用户，获取最新数据（防止并发问题）
+            User userInTx = userManager.getById(userId);
+            if (userInTx == null) {
+                throw new BusinessException("用户不存在");
+            }
+            if (userInTx.getPoints() < pointsPerUpload) {
+                throw new BusinessException("积分不足");
+            }
+            // 扣除积分
+            userInTx.setPoints(userInTx.getPoints() - pointsPerUpload);
+            if (!userManager.updateById(userInTx)) {
+                throw new BusinessException("扣除积分失败");
+            }
+            // 保存歌曲记录
+            Song song = new Song();
+            song.setId(songId);
+            song.setName(dto.getName());
+            song.setDescription(dto.getDescription());
+            song.setFileName(fileName);
+            song.setSize(null);
+            song.setDuration(null);
+            song.setUploaderId(userId);
+            song.setStatus(SongStatus.UPLOADING);
+            if (!songManager.save(song)) {
+                throw new BusinessException("歌曲信息保存失败");
+            }
+            // 生成上传URL
+            String uploadUrl = ossManager.generatePresignedPutUrl(fileName, dto.getMimeType());
+            if (uploadUrl == null) {
+                throw new BusinessException("生成上传URL失败");
+            }
+            SongUploadPrepareVO vo = new SongUploadPrepareVO();
+            vo.setId(song.getId());
+            vo.setFileName(fileName);
+            vo.setUploadUrl(uploadUrl);
+            return vo;
+        });
+        log.info("准备上传歌曲成功，歌曲ID: {}, 文件名: {}", songId, fileName);
         return prepareVO;
     }
 
@@ -363,6 +392,15 @@ public class SongServiceImpl implements SongService {
     @Override
     public BatchResult<SongUploadPrepareVO> batchPrepareUpload(SongBatchPrepareDTO dto, Long userId) {
         log.info("请求批量准备上传歌曲，用户ID: {}, 数量: {}", userId, dto.getSongs().size());
+        // 检查总积分是否足够
+        User uploader = userManager.getById(userId);
+        if (uploader == null) {
+            throw new BusinessException("用户不存在");
+        }
+        int totalPointsNeeded = dto.getSongs().size() * pointsPerUpload;
+        if (uploader.getPoints() < totalPointsNeeded) {
+            throw new BusinessException("积分不足，需要 " + totalPointsNeeded + " 积分");
+        }
         BatchResult<SongUploadPrepareVO> result = new BatchResult<>();
         List<SongPrepareUploadDTO> songs = dto.getSongs();
         for (int i = 0; i < songs.size(); i++) {
@@ -379,7 +417,6 @@ public class SongServiceImpl implements SongService {
         }
         log.info("批量准备上传歌曲完成，成功: {}, 失败: {}", result.getSuccessCount(), result.getFailureCount());
         return result;
-
     }
 
     @Override

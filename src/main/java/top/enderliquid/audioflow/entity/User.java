@@ -30,6 +30,8 @@ public class User {
 
     private Role role;
 
+    private Integer points;
+
     @TableField(value = "create_time", fill = FieldFill.INSERT)
     private LocalDateTime createTime;
 

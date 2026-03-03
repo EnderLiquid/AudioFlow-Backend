@@ -13,4 +13,5 @@ public class UserVO {
     private String email;
     private String name;
     private Role role;
+    private Integer points;
 }

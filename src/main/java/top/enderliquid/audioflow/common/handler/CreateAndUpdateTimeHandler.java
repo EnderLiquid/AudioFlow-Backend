@@ -10,7 +10,7 @@ import java.time.ZoneId;
 
 @Slf4j
 @Component
-public class MyMetaObjectHandler implements MetaObjectHandler {
+public class CreateAndUpdateTimeHandler implements MetaObjectHandler {
 
     @Override
     public void insertFill(MetaObject metaObject) {

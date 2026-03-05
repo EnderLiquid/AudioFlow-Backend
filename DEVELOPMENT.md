@@ -27,6 +27,34 @@
 4.Service层不得使用QueryWrapper，所有查询条件在Manager层构建。
 5.Service层不得创建Page，所有Page对象在Manager层构建。
 6.在Service层完成所有参数校验。
+7.**禁止使用`@Transactional`注解式事务**，统一使用`TransactionHelper`编程式事务管理。
+
+#### TransactionHelper 使用规范
+
+- 通过 try-with-resources 模式使用 `TransactionHelper`，确保事务自动清理
+- 在 try 块结束前必须手动调用 `commit()` 提交事务
+- 若发生异常未调用 `commit()`，`close()` 方法会自动回滚事务
+- 禁止直接使用 `TransactionTemplate` 或 `TransactionStatus`
+
+示例代码：
+
+```java
+// 注入 PlatformTransactionManager 
+@Autowired
+private PlatformTransactionManager txManager;
+
+public void someServiceMethod() {
+    // 开启事务
+    try (TransactionHelper tx = new TransactionHelper(txManager)) {
+        // 执行业务操作
+        manager.save(entity);
+
+        // 成功时手动提交（try 块结束前必须调用！）
+        tx.commit();
+    }
+    // 若未调用 commit()，close() 会自动回滚
+}
+```
 
 ### 代码风格规范
 

@@ -45,6 +45,31 @@ This is a Maven-based Spring Boot project using Java 21.
 - **Manager responsibility**: All QueryWrapper construction and Page object creation happen in Manager layer
 - **Service responsibility**: All parameter validation happens in Service layer
 
+### Transaction Management
+
+- **Never use `@Transactional` annotation**. Use `TransactionHelper` for programmatic transaction management instead
+- All transaction boundaries must be explicitly defined in Service layer
+- Use `TransactionHelper` with try-with-resources pattern to wrap transactional operations
+
+#### TransactionHelper Usage Pattern
+
+```java
+// Inject PlatformTransactionManager
+@Autowired
+private PlatformTransactionManager txManager;
+
+public void someServiceMethod() {
+    // Start transaction
+    try (TransactionHelper tx = new TransactionHelper(txManager)) {
+        // Execute business operations
+        manager.save(entity);
+
+        // Manually commit on success (must call before try block ends!)
+        tx.commit();
+    }
+    // If commit() is not called, close() will automatically rollback
+}
+```
 ## Code Style Requirements
 
 ### Language
@@ -90,6 +115,7 @@ This is a Maven-based Spring Boot project using Java 21.
 ### Response Format
 
 All responses use `HttpResponseBody<T>`:
+
 - Success: `HttpResponseBody.ok(data)` or `HttpResponseBody.ok(data, "message")`
 - Failure: `HttpResponseBody.fail("message")`
 - Business failures throw `BusinessException`
@@ -118,6 +144,7 @@ throw new BusinessException("失败原因");
 ## Configuration Structure
 
 Multi-environment configuration with priority (high to low):
+
 1. Command line arguments
 2. Environment variables
 3. External config: `config/application-{env}.properties`

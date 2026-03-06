@@ -43,7 +43,7 @@ public class OSSManagerImpl implements OSSManager {
     @Value("${file.storage.s3.bucket-name}")
     private String bucketName;
 
-    @Value("${file.storage.s3.presigned-url-expiration:3600}")
+    @Value("${file.storage.s3.presigned-url-expiration}")
     private int presignedUrlExpirationSeconds;
 
     @Value("${file.storage.s3.path-style-access}")
@@ -77,7 +77,7 @@ public class OSSManagerImpl implements OSSManager {
         // 构建 Presigner
         software.amazon.awssdk.services.s3.presigner.S3Presigner.Builder presignerBuilder = S3Presigner.builder()
                 .credentialsProvider(credentialsProvider)
-                .serviceConfiguration(s3Config) // Presigner 也最好应用同样的 Config
+                .serviceConfiguration(s3Config)
                 .region(Region.of(region));
 
         if (endpoint != null && !endpoint.isEmpty()) {
@@ -117,7 +117,9 @@ public class OSSManagerImpl implements OSSManager {
                             .build()
             );
 
-            // 前端上传时 Header 必须包含: Content-Type: [mimeType]
+            // 前端上传时 Header 必须包含:
+            // Content-Type: [mimeType]
+            // Content-Disposition: inline
             return presignedRequest.url().toString();
         } catch (SdkException e) {
             log.error("生成预签名上传URL失败，文件名: {}", fileName, e);

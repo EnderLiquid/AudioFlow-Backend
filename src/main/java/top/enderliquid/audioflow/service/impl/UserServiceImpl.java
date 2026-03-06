@@ -5,9 +5,10 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.transaction.PlatformTransactionManager;
 import top.enderliquid.audioflow.common.enums.Role;
 import top.enderliquid.audioflow.common.exception.BusinessException;
+import top.enderliquid.audioflow.common.transaction.TransactionHelper;
 import top.enderliquid.audioflow.dto.request.user.UserSaveDTO;
 import top.enderliquid.audioflow.dto.request.user.UserUpdatePasswordDTO;
 import top.enderliquid.audioflow.dto.request.user.UserVerifyPasswordDTO;
@@ -24,7 +25,7 @@ public class UserServiceImpl implements UserService {
     private UserManager userManager;
 
     @Autowired
-    private TransactionTemplate transactionTemplate;
+    private PlatformTransactionManager txManager;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -48,7 +49,7 @@ public class UserServiceImpl implements UserService {
         String encryptedPassword = passwordEncoder.encode(dto.getPassword());
         user.setPassword(encryptedPassword);
         user.setRole(role);
-        transactionTemplate.execute((status) -> {
+        try (TransactionHelper tx = new TransactionHelper(txManager)) {
             // 检查邮箱是否已存在
             if (userManager.existsByEmail(user.getEmail())) {
                 throw new BusinessException("邮箱已被注册");
@@ -57,8 +58,8 @@ public class UserServiceImpl implements UserService {
             if (!userManager.save(user)) {
                 throw new BusinessException("用户创建失败");
             }
-            return null;
-        });
+            tx.commit();
+        }
         UserVO userVO = new UserVO();
         BeanUtils.copyProperties(user, userVO);
         log.info("注册用户成功，用户ID: {}", user.getId());

@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import top.enderliquid.audioflow.common.enums.SongStatus;
 import top.enderliquid.audioflow.common.util.id.SnowflakeIdConverter;
 import top.enderliquid.audioflow.dto.bo.SongBO;
 import top.enderliquid.audioflow.dto.param.SongPageParam;
@@ -43,7 +44,7 @@ public class SongManagerImpl extends ServiceImpl<SongMapper, Song> implements So
     }
 
     @Override
-    public List<Song> listByStatusAndBeforeTime(String status, LocalDateTime time) {
+    public List<Song> listByStatusAndBeforeTime(SongStatus status, LocalDateTime time) {
         LambdaQueryWrapper<Song> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Song::getStatus, status)
                 .lt(Song::getCreateTime, time);

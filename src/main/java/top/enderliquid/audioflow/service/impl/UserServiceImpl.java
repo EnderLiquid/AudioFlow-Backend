@@ -104,19 +104,23 @@ public class UserServiceImpl implements UserService {
         if (dto.getNewPassword().equals(dto.getOldPassword())) {
             throw new BusinessException("新密码与旧密码相同");
         }
-        User user = userManager.getById(userId);
-        if (user == null) {
-            throw new BusinessException("用户不存在");
-        }
-        if (!passwordEncoder.matches(
-                dto.getOldPassword(), // 明文
-                user.getPassword() // 密文
-        )) {
-            throw new BusinessException("旧密码错误");
-        }
-        user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
-        if (!userManager.updateById(user)) {
-            throw new BusinessException("更新密码失败");
+        User user;
+        try (TransactionHelper tx = new TransactionHelper(txManager)) {
+            user = userManager.getById(userId);
+            if (user == null) {
+                throw new BusinessException("用户不存在");
+            }
+            if (!passwordEncoder.matches(
+                    dto.getOldPassword(), // 明文
+                    user.getPassword() // 密文
+            )) {
+                throw new BusinessException("旧密码错误");
+            }
+            user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+            if (!userManager.updateById(user)) {
+                throw new BusinessException("更新密码失败");
+            }
+            tx.commit();
         }
         UserVO userVO = new UserVO();
         BeanUtils.copyProperties(user, userVO);

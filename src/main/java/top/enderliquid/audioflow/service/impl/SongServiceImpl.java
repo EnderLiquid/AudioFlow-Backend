@@ -213,13 +213,11 @@ public class SongServiceImpl implements SongService {
         }
         String actualExtension = MIME_TYPE_TO_EXTENSION_MAP.get(actualMimeType);
         if (actualExtension == null) {
-            removeUploadingSong(song);
-            throw new BusinessException("文件类型不支持，请重新上传");
+            throw new BusinessException("文件类型不支持");
         }
         String expectedExtension = song.getFileName().substring(song.getFileName().lastIndexOf('.') + 1);
         if (!actualExtension.equals(expectedExtension)) {
-            removeUploadingSong(song);
-            throw new BusinessException("文件类型与后缀名不匹配，请重新上传");
+            throw new BusinessException("文件类型与后缀名不匹配");
         }
 
         // 校验文件大小
@@ -228,7 +226,7 @@ public class SongServiceImpl implements SongService {
             throw new BusinessException("获取文件大小失败");
         }
         if (fileSize > maxFileSizeBytes) {
-            throw new BusinessException("文件大小超过限制，最大仅允许 {%s}，请重新上传".formatted(maxFileSizeStr));
+            throw new BusinessException("文件大小超过限制，最大仅允许 {%s}".formatted(maxFileSizeStr));
         }
 
         // 解析歌曲持续时长
@@ -478,48 +476,45 @@ public class SongServiceImpl implements SongService {
 
     @Scheduled(cron = "0 0,20,40 * * * ? ")
     public void cleanupExpiredUploads() {
-        log.info("开始清理上传超时的歌曲");
+        log.info("开始清理上传超时的歌曲记录");
         LocalDateTime cutoffTime = LocalDateTime.now().minusMinutes(30);
         List<Song> expiredSongs = songManager.listByStatusAndBeforeTime(
                 SongStatus.UPLOADING, cutoffTime);
         if (expiredSongs == null || expiredSongs.isEmpty()) {
-            log.info("没有需要清理的上传超时的歌曲");
+            log.info("没有需要清理的上传超时的歌曲记录");
             return;
         }
         int cleanedCount = 0;
         for (Song song : expiredSongs) {
-            if (removeUploadingSong(song)) cleanedCount++;
-        }
-        log.info("清理上传超时的歌曲完成，成功清理记录条数: {}", cleanedCount);
-    }
-
-    private boolean removeUploadingSong(Song song) {
-        log.info("尝试清除上传中的歌曲，歌曲ID: {}", song.getId());
-        try (TransactionHelper tx = new TransactionHelper(txManager)) {
-            User uploader = userManager.getById(song.getUploaderId());
-            if (uploader != null) {
-                // 恢复积分
-                uploader.setPoints(uploader.getPoints() + pointsPerUpload);
-                if (!userManager.updateById(uploader)) {
-                    log.info("更新用户积分失败，用户ID: {}", uploader.getId());
-                    return false;
-                }
-                if (!songManager.removeById(song)) {
-                    log.info("删除歌曲信息失败");
-                    return false;
+            log.info("开始尝试清除上传超时的歌曲记录，歌曲ID: {}", song.getId());
+            if (ossManager.checkFileExists(song.getFileName())) {
+                if (!ossManager.deleteFile(song.getFileName())) {
+                    log.error("从OSS删除已存在的歌曲文件失败，文件名: {}", song.getFileName());
+                    continue;
                 }
             } else {
-                log.info("用户已不存在，跳过积分恢复逻辑");
+                log.info("歌曲文件还未上传至OSS，跳过文件清除逻辑");
             }
-            tx.commit();
-        }
-        if (ossManager.checkFileExists(song.getFileName())) {
-            if (!ossManager.deleteFile(song.getFileName())) {
-                log.error("删除已存在的歌曲文件失败，文件名: {}", song.getFileName());
+            try (TransactionHelper tx = new TransactionHelper(txManager)) {
+                User uploader = userManager.getById(song.getUploaderId());
+                if (uploader != null) {
+                    // 恢复积分
+                    uploader.setPoints(uploader.getPoints() + pointsPerUpload);
+                    if (!userManager.updateById(uploader)) {
+                        log.info("更新用户积分失败，用户ID: {}", uploader.getId());
+                        continue;
+                    }
+                    if (!songManager.removeById(song)) {
+                        log.info("删除歌曲记录失败");
+                        continue;
+                    }
+                } else {
+                    log.info("用户已不存在，跳过积分恢复逻辑");
+                }
+                tx.commit();
             }
-        } else {
-            log.info("歌曲文件还未上传，跳过文件清除逻辑");
+            cleanedCount++;
         }
-        return true;
+        log.info("清理上传超时的歌曲记录完成，清理记录条数: {}", cleanedCount);
     }
 }

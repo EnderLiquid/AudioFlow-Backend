@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum LimitType {
-    IP,      // 仅限IP
-    USER,    // 仅限账号
-    BOTH     // IP和账号双重限制
+    IP,      // IP 维度的限流
+    USER,    // 用户维度的限流
+    GLOBAL   // 接口总访问限制（不区分 IP/用户）
 }

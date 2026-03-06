@@ -14,6 +14,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.Nullable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.unit.DataSize;
@@ -41,6 +42,7 @@ import top.enderliquid.audioflow.service.SongService;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -116,7 +118,7 @@ public class SongServiceImpl implements SongService {
         }
         // 初步校验文件大小
         if (dto.getSize() > maxFileSizeBytes) {
-            throw new BusinessException("文件大小超过限制，最大允许: {}" + maxFileSizeStr);
+            throw new BusinessException("文件大小超过限制，最大仅允许 {%s}".formatted(maxFileSizeStr));
         }
 
         Long songId = IdWorker.getId();
@@ -171,6 +173,7 @@ public class SongServiceImpl implements SongService {
     @Override
     public SongVO completeUpload(SongCompleteUploadDTO dto, Long userId) {
         log.info("请求完成上传歌曲，用户ID: {}, 歌曲ID: {}", userId, dto.getSongId());
+
         User uploader = userManager.getById(userId);
         if (uploader == null) {
             throw new BusinessException("用户不存在");
@@ -186,12 +189,13 @@ public class SongServiceImpl implements SongService {
             throw new BusinessException("非歌曲上传者，无权操作");
         }
         if (!ossManager.checkFileExists(song.getFileName())) {
-            songManager.removeById(song);
             throw new BusinessException("上传文件不存在");
         }
+
+        // 校验文件类型
         InputStream inputStream = ossManager.getFileInputStream(song.getFileName());
         if (inputStream == null) {
-            throw new BusinessException("获取文件失败");
+            throw new BusinessException("获取文件流失败");
         }
         String actualMimeType;
         try {
@@ -209,45 +213,48 @@ public class SongServiceImpl implements SongService {
         }
         String actualExtension = MIME_TYPE_TO_EXTENSION_MAP.get(actualMimeType);
         if (actualExtension == null) {
-            songManager.removeById(song);
-            ossManager.deleteFile(song.getFileName());
-            throw new BusinessException("文件类型不支持");
+            removeUploadingSong(song);
+            throw new BusinessException("文件类型不支持，请重新上传");
         }
         String expectedExtension = song.getFileName().substring(song.getFileName().lastIndexOf('.') + 1);
         if (!actualExtension.equals(expectedExtension)) {
-            songManager.removeById(song);
-            ossManager.deleteFile(song.getFileName());
-            throw new BusinessException("文件类型与后缀名不匹配");
+            removeUploadingSong(song);
+            throw new BusinessException("文件类型与后缀名不匹配，请重新上传");
         }
+
+        // 校验文件大小
         Long fileSize = ossManager.getFileSize(song.getFileName());
         if (fileSize == null) {
             throw new BusinessException("获取文件大小失败");
         }
-        // 校验文件大小
         if (fileSize > maxFileSizeBytes) {
-            songManager.removeById(song);
-            ossManager.deleteFile(song.getFileName());
-            throw new BusinessException("文件大小超过限制，最大允许: {}" + maxFileSizeStr);
+            throw new BusinessException("文件大小超过限制，最大仅允许 {%s}，请重新上传".formatted(maxFileSizeStr));
         }
+
+        // 解析歌曲持续时长
+        Long duration = null;
         inputStream = ossManager.getFileInputStream(song.getFileName());
         if (inputStream == null) {
-            throw new BusinessException("获取文件失败");
-        }
-        Long duration = getAudioDurationInMills(inputStream);
-        try {
-            inputStream.close();
-        } catch (IOException e) {
-            log.warn("关闭文件流失败", e);
+            log.warn("获取文件失败");
+        } else {
+            duration = getAudioDurationInMills(inputStream);
+            try {
+                inputStream.close();
+            } catch (IOException e) {
+                log.warn("关闭文件流失败", e);
+            }
         }
         if (duration == null) {
             log.warn("解析歌曲持续时长失败");
         }
+
         song.setSize(fileSize);
         song.setDuration(duration);
         song.setStatus(SongStatus.NORMAL);
         if (!songManager.updateById(song)) {
             throw new BusinessException("歌曲信息更新失败");
         }
+
         SongVO songVO = new SongVO();
         BeanUtils.copyProperties(song, songVO);
         songVO.setUploaderName(uploader.getName());
@@ -407,7 +414,7 @@ public class SongServiceImpl implements SongService {
         }
         int totalPointsNeeded = dto.getSongs().size() * pointsPerUpload;
         if (uploader.getPoints() < totalPointsNeeded) {
-            throw new BusinessException("积分不足，需要 " + totalPointsNeeded + " 积分");
+            throw new BusinessException("积分不足，需要 {%s} 积分".formatted(totalPointsNeeded));
         }
         BatchResult<SongUploadPrepareVO> result = new BatchResult<>();
         List<SongPrepareUploadDTO> songs = dto.getSongs();
@@ -467,5 +474,52 @@ public class SongServiceImpl implements SongService {
         }
         log.info("批量删除歌曲完成，成功: {}, 失败: {}", result.getSuccessCount(), result.getFailureCount());
         return result;
+    }
+
+    @Scheduled(cron = "0 0,20,40 * * * ? ")
+    public void cleanupExpiredUploads() {
+        log.info("开始清理上传超时的歌曲");
+        LocalDateTime cutoffTime = LocalDateTime.now().minusMinutes(30);
+        List<Song> expiredSongs = songManager.listByStatusAndBeforeTime(
+                SongStatus.UPLOADING, cutoffTime);
+        if (expiredSongs == null || expiredSongs.isEmpty()) {
+            log.info("没有需要清理的上传超时的歌曲");
+            return;
+        }
+        int cleanedCount = 0;
+        for (Song song : expiredSongs) {
+            if (removeUploadingSong(song)) cleanedCount++;
+        }
+        log.info("清理上传超时的歌曲完成，成功清理记录条数: {}", cleanedCount);
+    }
+
+    private boolean removeUploadingSong(Song song) {
+        log.info("尝试清除上传中的歌曲，歌曲ID: {}", song.getId());
+        try (TransactionHelper tx = new TransactionHelper(txManager)) {
+            User uploader = userManager.getById(song.getUploaderId());
+            if (uploader != null) {
+                // 恢复积分
+                uploader.setPoints(uploader.getPoints() + pointsPerUpload);
+                if (!userManager.updateById(uploader)) {
+                    log.info("更新用户积分失败，用户ID: {}", uploader.getId());
+                    return false;
+                }
+                if (!songManager.removeById(song)) {
+                    log.info("删除歌曲信息失败");
+                    return false;
+                }
+            } else {
+                log.info("用户已不存在，跳过积分恢复逻辑");
+            }
+            tx.commit();
+        }
+        if (ossManager.checkFileExists(song.getFileName())) {
+            if (!ossManager.deleteFile(song.getFileName())) {
+                log.error("删除已存在的歌曲文件失败，文件名: {}", song.getFileName());
+            }
+        } else {
+            log.info("歌曲文件还未上传，跳过文件清除逻辑");
+        }
+        return true;
     }
 }

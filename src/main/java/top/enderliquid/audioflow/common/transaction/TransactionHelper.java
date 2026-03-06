@@ -25,11 +25,6 @@ public class TransactionHelper implements AutoCloseable {
         txManager.commit(status);
     }
 
-    // 手动回滚 (如有必要)
-    public void rollback() {
-        txManager.rollback(status);
-    }
-
     // try 块结束时，若未手动提交或回滚，则说明产生异常，自动回滚
     @Override
     public void close() {

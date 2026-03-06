@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import top.enderliquid.audioflow.common.annotation.RateLimit;
+import top.enderliquid.audioflow.common.annotation.RateLimits;
 import top.enderliquid.audioflow.common.enums.LimitType;
 import top.enderliquid.audioflow.common.response.HttpResponseBody;
 import top.enderliquid.audioflow.dto.request.user.UserSaveDTO;
@@ -28,10 +29,8 @@ public class UserController {
      * 用户注册
      */
     @PostMapping
-    @RateLimit(
-            refillRate = "3/60",
-            capacity = 3,
-            limitType = LimitType.IP,
+    @RateLimits(
+            value = @RateLimit(type = LimitType.IP, refillRate = "3/60", capacity = 3),
             message = "注册过于频繁，请稍后再试"
     )
     public HttpResponseBody<LoginResult> register(@Valid @RequestBody UserSaveDTO dto) {
@@ -46,7 +45,10 @@ public class UserController {
      */
     @SaCheckLogin
     @GetMapping("me")
-    @RateLimit
+    @RateLimits({
+            @RateLimit(type = LimitType.IP),
+            @RateLimit(type = LimitType.USER)
+    })
     public HttpResponseBody<UserVO> getUserInfo() {
         long userId = StpUtil.getLoginIdAsLong();
         UserVO userVO = userService.getUser(userId);
@@ -58,7 +60,10 @@ public class UserController {
      */
     @SaCheckLogin
     @PatchMapping("me/password")
-    @RateLimit
+    @RateLimits({
+            @RateLimit(type = LimitType.IP),
+            @RateLimit(type = LimitType.USER)
+    })
     public HttpResponseBody<UserVO> changePassword(@Valid @RequestBody UserUpdatePasswordDTO dto) {
         long userId = StpUtil.getLoginIdAsLong();
         UserVO userVO = userService.updateUserPassword(dto, userId);
@@ -66,4 +71,3 @@ public class UserController {
         return HttpResponseBody.ok(userVO, "密码修改成功，请重新登录");
     }
 }
-

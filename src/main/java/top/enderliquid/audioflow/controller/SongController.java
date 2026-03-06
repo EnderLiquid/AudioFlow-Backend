@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import top.enderliquid.audioflow.common.annotation.RateLimit;
+import top.enderliquid.audioflow.common.annotation.RateLimits;
 import top.enderliquid.audioflow.common.enums.LimitType;
 import top.enderliquid.audioflow.common.response.HttpResponseBody;
 import top.enderliquid.audioflow.dto.request.song.*;
@@ -35,10 +36,11 @@ public class SongController {
      */
     @SaCheckLogin
     @PostMapping("/prepare")
-    @RateLimit(
-            refillRate = "1/1",
-            capacity = 5,
-            limitType = LimitType.BOTH,
+    @RateLimits(
+            value = {
+                    @RateLimit(type = LimitType.IP, refillRate = "1/1", capacity = 5),
+                    @RateLimit(type = LimitType.USER, refillRate = "1/1", capacity = 5)
+            },
             message = "上传过于频繁，请稍后再试"
     )
     public HttpResponseBody<SongUploadPrepareVO> prepareUpload(@Valid @RequestBody SongPrepareUploadDTO dto) {
@@ -63,10 +65,8 @@ public class SongController {
      * 分页查询/搜索歌曲
      */
     @GetMapping
-    @RateLimit(
-            refillRate = "1/1",
-            capacity = 5,
-            limitType = LimitType.IP,
+    @RateLimits(
+            value = @RateLimit(type = LimitType.IP, refillRate = "1/1", capacity = 5),
             message = "查询过于频繁，请稍后再试"
     )
     public HttpResponseBody<PageVO<SongVO>> pageSongs(@Valid @ModelAttribute SongPageDTO dto) {
@@ -80,10 +80,11 @@ public class SongController {
      */
     @SaCheckLogin
     @DeleteMapping("{songId}")
-    @RateLimit(
-            refillRate = "1/1",
-            capacity = 5,
-            limitType = LimitType.BOTH,
+    @RateLimits(
+            value = {
+                    @RateLimit(type = LimitType.IP, refillRate = "1/1", capacity = 5),
+                    @RateLimit(type = LimitType.USER, refillRate = "1/1", capacity = 5)
+            },
             message = "删除过于频繁，请稍后再试"
     )
     public HttpResponseBody<Void> removeSong(@PathVariable Long songId) {
@@ -96,7 +97,7 @@ public class SongController {
      * 获取歌曲信息
      */
     @GetMapping("{songId}")
-    @RateLimit(limitType = LimitType.IP)
+    @RateLimits(@RateLimit(type = LimitType.IP))
     public HttpResponseBody<SongVO> getSongInfo(@PathVariable Long songId) {
         SongVO songVO = songService.getSong(songId);
         return HttpResponseBody.ok(songVO, null);
@@ -106,10 +107,8 @@ public class SongController {
      * 获取歌曲播放URL
      */
     @GetMapping("{songId}/play")
-    @RateLimit(
-            refillRate = "1/1",
-            capacity = 5,
-            limitType = LimitType.IP,
+    @RateLimits(
+            value = @RateLimit(type = LimitType.IP, refillRate = "1/1", capacity = 5),
             message = "获取Url过于频繁，请稍后再试"
     )
     public void getSongUrl(@PathVariable Long songId, HttpServletResponse response) {
@@ -131,7 +130,10 @@ public class SongController {
      */
     @SaCheckLogin
     @PatchMapping("{songId}")
-    @RateLimit
+    @RateLimits({
+            @RateLimit(type = LimitType.IP),
+            @RateLimit(type = LimitType.USER)
+    })
     public HttpResponseBody<SongVO> updateSong(@PathVariable Long songId, @Valid @RequestBody SongUpdateDTO dto) {
         long userId = StpUtil.getLoginIdAsLong();
         SongVO songVO = songService.updateSong(dto, songId, userId);
@@ -144,10 +146,11 @@ public class SongController {
      */
     @SaCheckLogin
     @PostMapping("/batch-prepare")
-    @RateLimit(
-            refillRate = "1/10",
-            capacity = 3,
-            limitType = LimitType.BOTH,
+    @RateLimits(
+            value = {
+                    @RateLimit(type = LimitType.IP, refillRate = "1/10", capacity = 3),
+                    @RateLimit(type = LimitType.USER, refillRate = "1/10", capacity = 3)
+            },
             message = "批量准备上传过于频繁，请稍后再试"
     )
     public HttpResponseBody<BatchResult<SongUploadPrepareVO>> batchPrepareUpload(@Valid @RequestBody SongBatchPrepareDTO dto) {
@@ -162,10 +165,11 @@ public class SongController {
      */
     @SaCheckLogin
     @PostMapping("/batch-complete")
-    @RateLimit(
-            refillRate = "1/10",
-            capacity = 3,
-            limitType = LimitType.BOTH,
+    @RateLimits(
+            value = {
+                    @RateLimit(type = LimitType.IP, refillRate = "1/10", capacity = 3),
+                    @RateLimit(type = LimitType.USER, refillRate = "1/10", capacity = 3)
+            },
             message = "批量完成上传过于频繁，请稍后再试"
     )
     public HttpResponseBody<BatchResult<SongVO>> batchCompleteUpload(@Valid @RequestBody SongBatchCompleteDTO dto) {
@@ -180,10 +184,11 @@ public class SongController {
      */
     @SaCheckLogin
     @PostMapping("/batch")
-    @RateLimit(
-            refillRate = "1/10",
-            capacity = 3,
-            limitType = LimitType.BOTH,
+    @RateLimits(
+            value = {
+                    @RateLimit(type = LimitType.IP, refillRate = "1/10", capacity = 3),
+                    @RateLimit(type = LimitType.USER, refillRate = "1/10", capacity = 3)
+            },
             message = "批量删除过于频繁，请稍后再试"
     )
     public HttpResponseBody<BatchResult<Object>> batchRemoveSongs(@Valid @RequestBody SongBatchDeleteDTO dto) {

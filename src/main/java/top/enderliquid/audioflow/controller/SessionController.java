@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import top.enderliquid.audioflow.common.annotation.RateLimit;
+import top.enderliquid.audioflow.common.annotation.RateLimits;
 import top.enderliquid.audioflow.common.enums.LimitType;
 import top.enderliquid.audioflow.common.response.HttpResponseBody;
 import top.enderliquid.audioflow.dto.request.user.UserVerifyPasswordDTO;
@@ -27,10 +28,8 @@ public class SessionController {
      * 用户登录
      */
     @PostMapping
-    @RateLimit(
-            refillRate = "3/60",
-            capacity = 3,
-            limitType = LimitType.IP,
+    @RateLimits(
+            value = @RateLimit(type = LimitType.IP, refillRate = "3/60", capacity = 3),
             message = "登录尝试过于频繁，请稍后再试"
     )
     public HttpResponseBody<LoginResult> login(@Valid @RequestBody UserVerifyPasswordDTO dto) {
@@ -45,7 +44,7 @@ public class SessionController {
      */
     @SaCheckLogin
     @DeleteMapping("current")
-    @RateLimit(limitType = LimitType.IP)
+    @RateLimits(@RateLimit(type = LimitType.IP))
     public HttpResponseBody<Void> logout() {
         StpUtil.logoutByTokenValue(StpUtil.getTokenValue());
         return HttpResponseBody.ok(null, "注销成功");

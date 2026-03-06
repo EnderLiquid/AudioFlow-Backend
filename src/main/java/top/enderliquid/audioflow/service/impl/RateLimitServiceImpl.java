@@ -27,25 +27,20 @@ public class RateLimitServiceImpl implements RateLimitService {
 
         String key;
         switch (limitType) {
-            case IP:
-                key = generateIpKey(ip, entry);
-                break;
-            case USER:
+            case IP -> key = generateIpKey(ip, entry);
+            case USER -> {
                 if (userId == null) {
                     log.debug("用户未登录，跳过用户限流检查，入口: {}", entry);
                     return;
                 }
                 key = generateUserIdKey(userId, entry);
-                break;
-            case GLOBAL:
-                key = generateGlobalKey(entry);
-                break;
-            default:
-                throw new IllegalArgumentException("未知的限流类型: " + limitType);
+            }
+            case GLOBAL -> key = generateGlobalKey(entry);
+            default -> throw new IllegalArgumentException("未知的限流类型: " + limitType);
         }
 
         if (!redisManager.tryAcquireRateLimitToken(key, capacity, refillRate, tokensRequested)) {
-            log.warn("{}限流检查失败，入口: {}, 容量: {}, 补充速率: {}, 需求量: {}", 
+            log.warn("限流检查失败，类型: {}，入口: {}, 容量: {}, 补充速率: {}, 需求量: {}",
                 limitType, entry, capacity, refillRate, tokensRequested);
             throw new RateLimitException(message);
         }

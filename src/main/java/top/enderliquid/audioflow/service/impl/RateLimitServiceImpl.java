@@ -1,6 +1,5 @@
 package top.enderliquid.audioflow.service.impl;
 
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,49 +17,56 @@ public class RateLimitServiceImpl implements RateLimitService {
     private RedisManager redisManager;
 
     @Override
-    public void verifyRateLimit(RateLimit rateLimit, String ip, Long userId, String methodName) {
-        double refillRate = new Fraction(rateLimit.refillRate()).toDouble();
-        int capacity = rateLimit.capacity();
-        LimitType limitType = rateLimit.limitType();
-        int tokensRequested = rateLimit.tokensRequested();
+    public void verifyRateLimit(RateLimit limit, String ip, Long userId, String entry, String message) {
+        double refillRate = new Fraction(limit.refillRate()).toDouble();
+        int capacity = limit.capacity();
+        LimitType limitType = limit.type();
+        int tokensRequested = limit.tokensRequested();
 
-        String entryKey;
-        if (rateLimit.entryKey().isEmpty()) {
-            entryKey = methodName;
-        } else {
-            entryKey = rateLimit.entryKey();
+        log.debug("验证限流，IP: {}, 用户ID: {}, 入口: {}, 类型: {}", ip, userId, entry, limitType);
+
+        String key;
+        switch (limitType) {
+            case IP:
+                key = generateIpKey(ip, entry);
+                break;
+            case USER:
+                if (userId == null) {
+                    log.debug("用户未登录，跳过用户限流检查，入口: {}", entry);
+                    return;
+                }
+                key = generateUserIdKey(userId, entry);
+                break;
+            case GLOBAL:
+                key = generateGlobalKey(entry);
+                break;
+            default:
+                throw new IllegalArgumentException("未知的限流类型: " + limitType);
         }
 
-        log.debug("验证限流，IP: {}, 用户ID: {}, 入口: {}", ip, userId, entryKey);
-
-        if (limitType == LimitType.BOTH || limitType == LimitType.IP) {
-            String ipKey = generateIpKey(ip, entryKey);
-            if (!redisManager.tryAcquireRateLimitToken(ipKey, capacity, refillRate, tokensRequested)) {
-                log.warn("IP限流检查失败，IP: {}, 入口: {}, 容量: {}, 补充速率: {}, 需求量: {}", ip, entryKey, capacity, refillRate, tokensRequested);
-                throw new RateLimitException(rateLimit.message());
-            }
+        if (!redisManager.tryAcquireRateLimitToken(key, capacity, refillRate, tokensRequested)) {
+            log.warn("{}限流检查失败，入口: {}, 容量: {}, 补充速率: {}, 需求量: {}", 
+                limitType, entry, capacity, refillRate, tokensRequested);
+            throw new RateLimitException(message);
         }
 
-        if (userId != null && (limitType == LimitType.BOTH || limitType == LimitType.USER)) {
-            String userIdKey = generateUserIdKey(userId, entryKey);
-            if (!redisManager.tryAcquireRateLimitToken(userIdKey, capacity, refillRate, tokensRequested)) {
-                log.warn("用户限流检查失败，用户ID: {}, 入口: {}, 容量: {}, 补充速率: {}, 需求量: {}", userId, entryKey, capacity, refillRate, tokensRequested);
-                throw new RateLimitException(rateLimit.message());
-            }
-        }
-
-        log.debug("限流验证通过，IP: {}, 用户ID: {}, 入口: {}", ip, userId, entryKey);
+        log.debug("限流验证通过，IP: {}, 用户ID: {}, 入口: {}, 类型: {}", ip, userId, entry, limitType);
     }
 
-    private String generateIpKey(String ip, String entryKey) {
+    private String generateIpKey(String ip, String entry) {
         return "rate_limit:" +
                 "ip-" + ip +
-                ";entry-" + entryKey;
+                ";entry-" + entry;
     }
 
-    private String generateUserIdKey(Long userId, String entryKey) {
+    private String generateUserIdKey(Long userId, String entry) {
         return "rate_limit:" +
-                "ip-" + userId +
-                ";entry-" + entryKey;
+                "user-" + userId +
+                ";entry-" + entry;
+    }
+
+    private String generateGlobalKey(String entry) {
+        return "rate_limit:" +
+                "global;entry-" + entry;
     }
 }

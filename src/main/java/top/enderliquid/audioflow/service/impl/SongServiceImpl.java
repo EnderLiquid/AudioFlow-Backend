@@ -14,7 +14,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.Nullable;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.unit.DataSize;
@@ -42,7 +41,6 @@ import top.enderliquid.audioflow.service.SongService;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -472,49 +470,5 @@ public class SongServiceImpl implements SongService {
         }
         log.info("批量删除歌曲完成，成功: {}, 失败: {}", result.getSuccessCount(), result.getFailureCount());
         return result;
-    }
-
-    @Scheduled(cron = "0 0,20,40 * * * ? ")
-    public void cleanupExpiredUploads() {
-        log.info("开始清理上传超时的歌曲记录");
-        LocalDateTime cutoffTime = LocalDateTime.now().minusMinutes(30);
-        List<Song> expiredSongs = songManager.listByStatusAndBeforeTime(
-                SongStatus.UPLOADING, cutoffTime);
-        if (expiredSongs == null || expiredSongs.isEmpty()) {
-            log.info("没有需要清理的上传超时的歌曲记录");
-            return;
-        }
-        int cleanedCount = 0;
-        for (Song song : expiredSongs) {
-            log.info("开始尝试清除上传超时的歌曲记录，歌曲ID: {}", song.getId());
-            if (ossManager.checkFileExists(song.getFileName())) {
-                if (!ossManager.deleteFile(song.getFileName())) {
-                    log.error("从OSS删除已存在的歌曲文件失败，文件名: {}", song.getFileName());
-                    continue;
-                }
-            } else {
-                log.info("歌曲文件还未上传至OSS，跳过文件清除逻辑");
-            }
-            try (TransactionHelper tx = new TransactionHelper(txManager)) {
-                User uploader = userManager.getById(song.getUploaderId());
-                if (uploader != null) {
-                    // 恢复积分
-                    uploader.setPoints(uploader.getPoints() + pointsPerUpload);
-                    if (!userManager.updateById(uploader)) {
-                        log.info("更新用户积分失败，用户ID: {}", uploader.getId());
-                        continue;
-                    }
-                    if (!songManager.removeById(song)) {
-                        log.info("删除歌曲记录失败");
-                        continue;
-                    }
-                } else {
-                    log.info("用户已不存在，跳过积分恢复逻辑");
-                }
-                tx.commit();
-            }
-            cleanedCount++;
-        }
-        log.info("清理上传超时的歌曲记录完成，清理记录条数: {}", cleanedCount);
     }
 }

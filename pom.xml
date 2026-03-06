@@ -133,6 +133,12 @@
             <artifactId>s3</artifactId>
             <version>2.29.45</version>
         </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing-bridge-brave</artifactId>
+            <version>1.6.3</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>

@@ -55,6 +55,12 @@ public class SongController {
      */
     @SaCheckLogin
     @PostMapping("/complete")
+    @RateLimits(
+            value = {
+                    @RateLimit(type = LimitType.IP),
+                    @RateLimit(type = LimitType.USER)
+            }
+    )
     public HttpResponseBody<SongVO> completeUpload(@Valid @RequestBody SongCompleteUploadDTO dto) {
         long userId = StpUtil.getLoginIdAsLong();
         SongVO songVO = songService.completeUpload(dto, userId);

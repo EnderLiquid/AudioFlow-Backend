@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import top.enderliquid.audioflow.common.annotation.RateLimit;
+import top.enderliquid.audioflow.common.annotation.RateLimits;
 import top.enderliquid.audioflow.service.RateLimitService;
 
 @Slf4j
@@ -22,8 +23,8 @@ public class RateLimitAspect {
     @Autowired
     private RateLimitService rateLimitService;
 
-    @Around("@annotation(rateLimit)")
-    public Object applyRateLimit(ProceedingJoinPoint joinPoint, RateLimit rateLimit) throws Throwable {
+    @Around("@annotation(rateLimits)")
+    public Object applyRateLimit(ProceedingJoinPoint joinPoint, RateLimits rateLimits) throws Throwable {
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if (attributes == null) {
             throw new RuntimeException("请求属性为空");
@@ -33,7 +34,12 @@ public class RateLimitAspect {
         Long userId = getUserId();
         MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
         String methodName = methodSignature.getMethod().getName();
-        rateLimitService.verifyRateLimit(rateLimit, ip, userId, methodName);
+        String entry = rateLimits.entry().isEmpty() ? methodName : rateLimits.entry();
+
+        for (RateLimit limit : rateLimits.value()) {
+            rateLimitService.verifyRateLimit(limit, ip, userId, entry, rateLimits.message());
+        }
+
         return joinPoint.proceed();
     }
 

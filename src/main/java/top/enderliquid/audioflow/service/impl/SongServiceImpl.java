@@ -310,33 +310,30 @@ public class SongServiceImpl implements SongService {
         return pageVO;
     }
 
-    @Override
+@Override
     public void removeSong(Long songId, Long userId) {
-        log.info("请求删除歌曲，用户ID: {} ，歌曲ID: {}", userId, songId);
+        log.info("请求删除歌曲，用户ID: {}，歌曲ID: {}", userId, songId);
         Song song = songManager.getById(songId);
         if (song == null) {
             throw new BusinessException("歌曲不存在");
         }
-        // 查询当前用户信息判断权限
+        if (song.getStatus() != SongStatus.NORMAL) {
+            throw new BusinessException("歌曲状态异常，无法删除");
+        }
         User user = userManager.getById(userId);
         if (user == null) {
             throw new BusinessException("用户不存在");
         }
-        // 判断权限：管理员可以删除任何歌曲，普通用户只能删除自己的歌曲
         if (!(user.getRole() == Role.ADMIN) && !song.getUploaderId().equals(userId)) {
             throw new BusinessException("无权删除他人上传的歌曲");
         }
-        if (!songManager.removeById(song)) {
-            log.error("删除歌曲信息失败");
-            throw new BusinessException("删除歌曲信息失败");
+
+        song.setStatus(SongStatus.DELETING);
+        if (!songManager.updateById(song)) {
+            throw new BusinessException("删除歌曲失败");
         }
-        log.info("删除歌曲信息成功");
-        String fileName = song.getFileName();
-        if (!ossManager.deleteFile(fileName)) {
-            log.error("删除歌曲文件失败");
-        } else {
-            log.info("删除歌曲文件成功");
-        }
+
+        log.info("删除歌曲成功，歌曲ID: {}", songId);
     }
 
     @Override

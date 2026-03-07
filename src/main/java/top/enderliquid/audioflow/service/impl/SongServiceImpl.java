@@ -310,7 +310,7 @@ public class SongServiceImpl implements SongService {
         return pageVO;
     }
 
-@Override
+    @Override
     public void removeSong(Long songId, Long userId) {
         log.info("请求删除歌曲，用户ID: {}，歌曲ID: {}", userId, songId);
         Song song = songManager.getById(songId);
@@ -324,6 +324,7 @@ public class SongServiceImpl implements SongService {
         if (user == null) {
             throw new BusinessException("用户不存在");
         }
+        // 判断权限：管理员可以删除任何歌曲，普通用户只能删除自己的歌曲
         if (!(user.getRole() == Role.ADMIN) && !song.getUploaderId().equals(userId)) {
             throw new BusinessException("无权删除他人上传的歌曲");
         }
@@ -336,7 +337,7 @@ public class SongServiceImpl implements SongService {
         log.info("删除歌曲成功，歌曲ID: {}", songId);
     }
 
-@Override
+    @Override
     public SongVO getSong(Long songId) {
         log.info("请求获取歌曲信息，歌曲ID: {}", songId);
         Song song = songManager.getById(songId);
@@ -354,7 +355,7 @@ public class SongServiceImpl implements SongService {
         return songVO;
     }
 
-@Override
+    @Override
     public String getSongUrl(Long songId) {
         log.info("请求获取歌曲播放链接，歌曲ID: {}", songId);
         Song song = songManager.getById(songId);
@@ -369,7 +370,7 @@ public class SongServiceImpl implements SongService {
         return url;
     }
 
-@Override
+    @Override
     public SongVO updateSong(SongUpdateDTO dto, Long songId, Long userId) {
         log.info("请求更新歌曲信息，歌曲ID: {}", songId);
         if (dto.getName() == null && dto.getDescription() == null) {
@@ -386,6 +387,7 @@ public class SongServiceImpl implements SongService {
         if (user == null) {
             throw new BusinessException("用户不存在");
         }
+        // 判断权限：管理员可以更新任何歌曲，普通用户只能更新自己的歌曲
         if (!(user.getRole() == Role.ADMIN) && !song.getUploaderId().equals(userId)) {
             throw new BusinessException("无权更新他人上传歌曲的信息");
         }
@@ -455,7 +457,7 @@ public class SongServiceImpl implements SongService {
         return result;
     }
 
-@Override
+    @Override
     public BatchResult<Object> batchRemoveSongs(SongBatchDeleteDTO dto, Long userId) {
         log.info("请求批量删除歌曲，用户ID: {}, 数量: {}", userId, dto.getSongIds().size());
         BatchResult<Object> result = new BatchResult<>();

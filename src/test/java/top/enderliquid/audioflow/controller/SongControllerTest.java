@@ -521,7 +521,7 @@ class SongControllerTest extends BaseControllerTest {
         batchDeleteDto.put("songIds", songIds);
         String deleteJson = objectMapper.writeValueAsString(batchDeleteDto);
 
-mockMvc.perform(post("/api/songs/batch")
+        mockMvc.perform(post("/api/songs/batch")
                         .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
                         .content(deleteJson)
                         .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))

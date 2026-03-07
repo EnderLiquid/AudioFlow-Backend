@@ -39,7 +39,7 @@ public class SongManagerImpl extends ServiceImpl<SongMapper, Song> implements So
                 param.getSongKeyword(),
                 songId,
                 param.getIsAsc()
-);
+        );
         return page;
     }
 

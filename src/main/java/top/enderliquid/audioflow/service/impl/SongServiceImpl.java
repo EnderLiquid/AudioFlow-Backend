@@ -451,7 +451,7 @@ public class SongServiceImpl implements SongService {
         return result;
     }
 
-    @Override
+@Override
     public BatchResult<Object> batchRemoveSongs(SongBatchDeleteDTO dto, Long userId) {
         log.info("请求批量删除歌曲，用户ID: {}, 数量: {}", userId, dto.getSongIds().size());
         BatchResult<Object> result = new BatchResult<>();
@@ -469,6 +469,61 @@ public class SongServiceImpl implements SongService {
             }
         }
         log.info("批量删除歌曲完成，成功: {}, 失败: {}", result.getSuccessCount(), result.getFailureCount());
+        return result;
+    }
+
+    @Override
+    public void cancelUpload(Long songId, Long userId) {
+        log.info("请求取消上传歌曲，用户ID: {}，歌曲ID: {}", userId, songId);
+        Song song = songManager.getById(songId);
+        if (song == null) {
+            throw new BusinessException("歌曲不存在");
+        }
+        if (song.getStatus() != SongStatus.UPLOADING) {
+            throw new BusinessException("歌曲状态异常，无法取消");
+        }
+        if (!song.getUploaderId().equals(userId)) {
+            throw new BusinessException("非歌曲上传者，无权操作");
+        }
+
+        User user = userManager.getById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+
+        try (TransactionHelper tx = new TransactionHelper(txManager)) {
+            song.setStatus(SongStatus.DELETING);
+            if (!songManager.updateById(song)) {
+                throw new BusinessException("更新歌曲状态失败");
+            }
+            user.setPoints(user.getPoints() + pointsPerUpload);
+            if (!userManager.updateById(user)) {
+                throw new BusinessException("返还积分失败");
+            }
+            tx.commit();
+        }
+
+        log.info("取消上传歌曲成功，积分已返还，歌曲ID: {}", songId);
+    }
+
+    @Override
+    public BatchResult<Object> batchCancelUpload(SongBatchCancelDTO dto, Long userId) {
+        log.info("请求批量取消上传歌曲，用户ID: {}，数量: {}", userId, dto.getSongIds().size());
+        BatchResult<Object> result = new BatchResult<>();
+        List<Long> songIds = dto.getSongIds();
+        for (int i = 0; i < songIds.size(); i++) {
+            Long songId = songIds.get(i);
+            try {
+                cancelUpload(songId, userId);
+                BatchResultItem<Object> successItem = new BatchResultItem<>(i, true, null, null);
+                result.add(successItem);
+            } catch (Exception e) {
+                BatchResultItem<Object> failureItem = new BatchResultItem<>(i, false, exceptionTranslator.translate(e).getMessage(), null);
+                result.add(failureItem);
+                if (!(e instanceof BusinessException)) break;
+            }
+        }
+        log.info("批量取消上传歌曲完成，成功: {}，失败: {}", result.getSuccessCount(), result.getFailureCount());
         return result;
     }
 }

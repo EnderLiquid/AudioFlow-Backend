@@ -336,12 +336,15 @@ public class SongServiceImpl implements SongService {
         log.info("删除歌曲成功，歌曲ID: {}", songId);
     }
 
-    @Override
+@Override
     public SongVO getSong(Long songId) {
         log.info("请求获取歌曲信息，歌曲ID: {}", songId);
         Song song = songManager.getById(songId);
         if (song == null) {
             throw new BusinessException("歌曲不存在");
+        }
+        if (song.getStatus() != SongStatus.NORMAL) {
+            throw new BusinessException("歌曲状态异常，无法查看");
         }
         SongVO songVO = new SongVO();
         BeanUtils.copyProperties(song, songVO);
@@ -351,11 +354,14 @@ public class SongServiceImpl implements SongService {
         return songVO;
     }
 
-    @Override
+@Override
     public String getSongUrl(Long songId) {
         log.info("请求获取歌曲播放链接，歌曲ID: {}", songId);
         Song song = songManager.getById(songId);
         if (song == null) {
+            return null;
+        }
+        if (song.getStatus() != SongStatus.NORMAL) {
             return null;
         }
         String url = ossManager.getPresignedGetUrl(song.getFileName(), Duration.ofSeconds(3600));
@@ -363,7 +369,7 @@ public class SongServiceImpl implements SongService {
         return url;
     }
 
-    @Override
+@Override
     public SongVO updateSong(SongUpdateDTO dto, Long songId, Long userId) {
         log.info("请求更新歌曲信息，歌曲ID: {}", songId);
         if (dto.getName() == null && dto.getDescription() == null) {
@@ -373,12 +379,13 @@ public class SongServiceImpl implements SongService {
         if (song == null) {
             throw new BusinessException("歌曲不存在");
         }
-        // 查询当前用户信息判断权限
+        if (song.getStatus() != SongStatus.NORMAL) {
+            throw new BusinessException("歌曲状态异常，无法更新");
+        }
         User user = userManager.getById(userId);
         if (user == null) {
             throw new BusinessException("用户不存在");
         }
-        // 判断权限：管理员可以更新任何歌曲，普通用户只能更新自己的歌曲
         if (!(user.getRole() == Role.ADMIN) && !song.getUploaderId().equals(userId)) {
             throw new BusinessException("无权更新他人上传歌曲的信息");
         }

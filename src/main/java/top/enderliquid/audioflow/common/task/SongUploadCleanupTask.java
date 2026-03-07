@@ -6,11 +6,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
+import top.enderliquid.audioflow.common.enums.PointsType;
 import top.enderliquid.audioflow.common.enums.SongStatus;
 import top.enderliquid.audioflow.common.transaction.TransactionHelper;
 import top.enderliquid.audioflow.entity.Song;
 import top.enderliquid.audioflow.entity.User;
 import top.enderliquid.audioflow.manager.OSSManager;
+import top.enderliquid.audioflow.manager.PointsRecordManager;
 import top.enderliquid.audioflow.manager.SongManager;
 import top.enderliquid.audioflow.manager.UserManager;
 
@@ -36,6 +38,9 @@ public class SongUploadCleanupTask {
 
     @Autowired
     private UserManager userManager;
+
+    @Autowired
+    private PointsRecordManager pointsRecordManager;
 
     @Autowired
     private PlatformTransactionManager txManager;
@@ -65,11 +70,12 @@ public class SongUploadCleanupTask {
                 User uploader = userManager.getById(song.getUploaderId());
                 if (uploader != null) {
                     if (song.getStatus() == SongStatus.UPLOADING) {
-                        uploader.setPoints(uploader.getPoints() + pointsPerUpload);
-                        if (!userManager.updateById(uploader)) {
+                        Integer newBalance = userManager.addPointsAndReturnBalance(uploader.getId(), pointsPerUpload);
+                        if (newBalance == null) {
                             log.info("更新用户积分失败，用户ID: {}", uploader.getId());
                             continue;
                         }
+                        pointsRecordManager.save(uploader.getId(), pointsPerUpload, newBalance, PointsType.SONG_UPLOAD_CANCEL, song.getId());
                     }
                 } else {
                     log.info("用户已不存在，跳过积分恢复逻辑");

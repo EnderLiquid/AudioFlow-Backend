@@ -10,4 +10,6 @@ public interface UserManager extends IService<User> {
     boolean existsByEmail(String email);
 
     boolean existsById(Long Id);
+
+    Integer addPointsAndReturnBalance(Long userId, int delta);
 }

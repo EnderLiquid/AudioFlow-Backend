@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.unit.DataSize;
 import org.xml.sax.helpers.DefaultHandler;
+import top.enderliquid.audioflow.common.enums.PointsType;
 import top.enderliquid.audioflow.common.enums.Role;
 import top.enderliquid.audioflow.common.enums.SongStatus;
 import top.enderliquid.audioflow.common.exception.BusinessException;
@@ -34,6 +35,7 @@ import top.enderliquid.audioflow.dto.response.song.SongVO;
 import top.enderliquid.audioflow.entity.Song;
 import top.enderliquid.audioflow.entity.User;
 import top.enderliquid.audioflow.manager.OSSManager;
+import top.enderliquid.audioflow.manager.PointsRecordManager;
 import top.enderliquid.audioflow.manager.SongManager;
 import top.enderliquid.audioflow.manager.UserManager;
 import top.enderliquid.audioflow.service.SongService;
@@ -80,8 +82,9 @@ public class SongServiceImpl implements SongService {
     @Autowired
     private OSSManager ossManager;
     @Autowired
+    private PointsRecordManager pointsRecordManager;
+    @Autowired
     private ExceptionTranslator exceptionTranslator;
-
     @Autowired
     private PlatformTransactionManager txManager;
 
@@ -133,19 +136,13 @@ public class SongServiceImpl implements SongService {
 
         // 在事务内扣除积分并保存歌曲记录
         try (TransactionHelper tx = new TransactionHelper(txManager)) {
-            // 再次查询用户，获取最新数据（防止并发问题）
-            uploader = userManager.getById(userId);
-            if (uploader == null) {
-                throw new BusinessException("用户不存在");
-            }
-            if (uploader.getPoints() < pointsPerUpload) {
+            // 原子扣除积分
+            Integer newBalance = userManager.addPointsAndReturnBalance(userId, -pointsPerUpload);
+            if (newBalance == null) {
                 throw new BusinessException("积分不足");
             }
-            // 扣除积分
-            uploader.setPoints(uploader.getPoints() - pointsPerUpload);
-            if (!userManager.updateById(uploader)) {
-                throw new BusinessException("扣除积分失败");
-            }
+            // 记录积分流水
+            pointsRecordManager.save(userId, -pointsPerUpload, newBalance, PointsType.SONG_UPLOAD, songId);
             // 保存歌曲记录
             if (!songManager.save(song)) {
                 throw new BusinessException("歌曲信息保存失败");
@@ -409,14 +406,9 @@ public class SongServiceImpl implements SongService {
     @Override
     public BatchResult<SongUploadPrepareVO> batchPrepareUpload(SongBatchPrepareDTO dto, Long userId) {
         log.info("请求批量准备上传歌曲，用户ID: {}, 数量: {}", userId, dto.getSongs().size());
-        // 快速检查总积分是否足够
         User uploader = userManager.getById(userId);
         if (uploader == null) {
             throw new BusinessException("用户不存在");
-        }
-        int totalPointsNeeded = dto.getSongs().size() * pointsPerUpload;
-        if (uploader.getPoints() < totalPointsNeeded) {
-            throw new BusinessException("积分不足，需要 {%s} 积分".formatted(totalPointsNeeded));
         }
         BatchResult<SongUploadPrepareVO> result = new BatchResult<>();
         List<SongPrepareUploadDTO> songs = dto.getSongs();
@@ -491,9 +483,7 @@ public class SongServiceImpl implements SongService {
         if (!song.getUploaderId().equals(userId)) {
             throw new BusinessException("非歌曲上传者，无权操作");
         }
-
-        User user = userManager.getById(userId);
-        if (user == null) {
+        if (!userManager.existsById(userId)) {
             throw new BusinessException("用户不存在");
         }
 
@@ -502,10 +492,11 @@ public class SongServiceImpl implements SongService {
             if (!songManager.updateById(song)) {
                 throw new BusinessException("更新歌曲状态失败");
             }
-            user.setPoints(user.getPoints() + pointsPerUpload);
-            if (!userManager.updateById(user)) {
+            Integer newBalance = userManager.addPointsAndReturnBalance(song.getUploaderId(), pointsPerUpload);
+            if (newBalance == null) {
                 throw new BusinessException("返还积分失败");
             }
+            pointsRecordManager.save(song.getUploaderId(), pointsPerUpload, newBalance, PointsType.SONG_UPLOAD_CANCEL, songId);
             tx.commit();
         }
 

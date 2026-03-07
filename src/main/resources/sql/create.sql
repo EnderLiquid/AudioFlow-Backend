@@ -36,6 +36,23 @@ CREATE TABLE IF NOT EXISTS `song` (
     ON UPDATE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='歌曲表';
 
+-- 积分流水表
+CREATE TABLE IF NOT EXISTS `points_record`
+(
+    `id`          BIGINT      NOT NULL AUTO_INCREMENT COMMENT '记录ID',
+    `user_id`     BIGINT      NOT NULL COMMENT '用户ID',
+    `delta`       INT         NOT NULL COMMENT '变动数量',
+    `balance`     INT         NOT NULL COMMENT '变动后余额',
+    `type`        VARCHAR(30) NOT NULL COMMENT '业务类型',
+    `ref_id`      BIGINT COMMENT '关联业务ID',
+    `create_time` DATETIME    NOT NULL COMMENT '创建时间',
+    PRIMARY KEY (`id`),
+    INDEX `idx_user_id_create_time` (`user_id`, `create_time`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci COMMENT ='积分流水表';
+
 -- 查看表结构
 SHOW CREATE TABLE `user`;
 SHOW CREATE TABLE `song`;
+SHOW CREATE TABLE `points_record`;

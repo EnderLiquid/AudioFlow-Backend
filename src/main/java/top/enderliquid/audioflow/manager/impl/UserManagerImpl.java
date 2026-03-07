@@ -29,4 +29,14 @@ public class UserManagerImpl extends ServiceImpl<UserMapper, User> implements Us
         wrapper.eq(User::getId, Id);
         return super.exists(wrapper);
     }
+
+    @Override
+    public Integer addPointsAndReturnBalance(Long userId, int delta) {
+        int affected = baseMapper.addPoints(userId, delta);
+        // TODO: 非原子操作，得分离出去
+        if (affected > 0) {
+            return getById(userId).getPoints();
+        }
+        return null;
+    }
 }

@@ -521,12 +521,176 @@ class SongControllerTest extends BaseControllerTest {
         batchDeleteDto.put("songIds", songIds);
         String deleteJson = objectMapper.writeValueAsString(batchDeleteDto);
 
-        mockMvc.perform(post("/api/songs/batch")
+mockMvc.perform(post("/api/songs/batch")
                         .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
                         .content(deleteJson)
                         .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.failureCount").value(1));
+    }
+
+    @Test
+    void shouldCancelUploadSuccessfully() throws Exception {
+        Song uploadingSong = testDataHelper.createTestUploadingSong(testUser.getId());
+
+        String email = testUser.getEmail();
+        String password = "test_password_123";
+
+        java.util.HashMap<String, String> loginDto = new java.util.HashMap<>();
+        loginDto.put("email", email);
+        loginDto.put("password", password);
+        String loginJson = objectMapper.writeValueAsString(loginDto);
+
+        MvcResult result = mockMvc.perform(post("/api/sessions")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(loginJson))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String cookie = result.getResponse().getCookie("satoken").getValue();
+
+        mockMvc.perform(post("/api/songs/{songId}/cancel", uploadingSong.getId())
+                        .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("取消上传成功"));
+    }
+
+    @Test
+    void shouldReturnErrorWhenCancelWithoutLogin() throws Exception {
+        Song uploadingSong = testDataHelper.createTestUploadingSong(testUser.getId());
+
+        mockMvc.perform(post("/api/songs/{songId}/cancel", uploadingSong.getId()))
+                .andExpect(status().is(401))
+                .andExpect(jsonPath("$.success").value(false));
+    }
+
+    @Test
+    void shouldReturnErrorWhenCancelNonUploadingSong() throws Exception {
+        String email = testUser.getEmail();
+        String password = "test_password_123";
+
+        java.util.HashMap<String, String> loginDto = new java.util.HashMap<>();
+        loginDto.put("email", email);
+        loginDto.put("password", password);
+        String loginJson = objectMapper.writeValueAsString(loginDto);
+
+        MvcResult result = mockMvc.perform(post("/api/sessions")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(loginJson))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String cookie = result.getResponse().getCookie("satoken").getValue();
+
+        mockMvc.perform(post("/api/songs/{songId}/cancel", testSong.getId())
+                        .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(false));
+    }
+
+    @Test
+    void shouldBatchCancelUploadSuccessfully() throws Exception {
+        Song uploadingSong1 = testDataHelper.createTestUploadingSong(testUser.getId());
+        Song uploadingSong2 = testDataHelper.createTestUploadingSong(testUser.getId());
+
+        String email = testUser.getEmail();
+        String password = "test_password_123";
+
+        java.util.HashMap<String, String> loginDto = new java.util.HashMap<>();
+        loginDto.put("email", email);
+        loginDto.put("password", password);
+        String loginJson = objectMapper.writeValueAsString(loginDto);
+
+        MvcResult result = mockMvc.perform(post("/api/sessions")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(loginJson))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String cookie = result.getResponse().getCookie("satoken").getValue();
+
+        java.util.HashMap<String, Object> batchCancelDto = new java.util.HashMap<>();
+        java.util.List<Long> songIds = new java.util.ArrayList<>();
+        songIds.add(uploadingSong1.getId());
+        songIds.add(uploadingSong2.getId());
+        batchCancelDto.put("songIds", songIds);
+        String cancelJson = objectMapper.writeValueAsString(batchCancelDto);
+
+        mockMvc.perform(post("/api/songs/batch-cancel")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(cancelJson)
+                        .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.successCount").value(2));
+    }
+
+    @Test
+    void shouldReturnErrorWhenDeleteNonNormalSong() throws Exception {
+        Song uploadingSong = testDataHelper.createTestUploadingSong(testUser.getId());
+
+        String email = testUser.getEmail();
+        String password = "test_password_123";
+
+        java.util.HashMap<String, String> loginDto = new java.util.HashMap<>();
+        loginDto.put("email", email);
+        loginDto.put("password", password);
+        String loginJson = objectMapper.writeValueAsString(loginDto);
+
+        MvcResult result = mockMvc.perform(post("/api/sessions")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(loginJson))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String cookie = result.getResponse().getCookie("satoken").getValue();
+
+        mockMvc.perform(delete("/api/songs/{songId}", uploadingSong.getId())
+                        .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(false));
+    }
+
+    @Test
+    void shouldReturnErrorWhenGetNonNormalSong() throws Exception {
+        Song uploadingSong = testDataHelper.createTestUploadingSong(testUser.getId());
+
+        mockMvc.perform(get("/api/songs/{songId}", uploadingSong.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(false));
+    }
+
+    @Test
+    void shouldReturnErrorWhenUpdateNonNormalSong() throws Exception {
+        Song uploadingSong = testDataHelper.createTestUploadingSong(testUser.getId());
+
+        String email = testUser.getEmail();
+        String password = "test_password_123";
+
+        java.util.HashMap<String, String> loginDto = new java.util.HashMap<>();
+        loginDto.put("email", email);
+        loginDto.put("password", password);
+        String loginJson = objectMapper.writeValueAsString(loginDto);
+
+        MvcResult result = mockMvc.perform(post("/api/sessions")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(loginJson))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String cookie = result.getResponse().getCookie("satoken").getValue();
+
+        java.util.HashMap<String, Object> updateDto = new java.util.HashMap<>();
+        updateDto.put("name", "Updated Title");
+        String updateJson = objectMapper.writeValueAsString(updateDto);
+
+        mockMvc.perform(patch("/api/songs/{songId}", uploadingSong.getId())
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(updateJson)
+                        .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(false));
     }
 }

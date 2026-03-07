@@ -15,4 +15,6 @@ public interface SongManager extends IService<Song> {
     IPage<SongBO> pageByUploaderKeywordAndSongKeyword(SongPageParam param);
 
     List<Song> listByStatusAndBeforeTime(SongStatus status, LocalDateTime time);
+
+    List<Song> listByStatusesAndBeforeTime(List<SongStatus> statuses, LocalDateTime time);
 }

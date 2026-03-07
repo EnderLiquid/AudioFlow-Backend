@@ -39,7 +39,7 @@ public class SongManagerImpl extends ServiceImpl<SongMapper, Song> implements So
                 param.getSongKeyword(),
                 songId,
                 param.getIsAsc()
-        );
+);
         return page;
     }
 
@@ -47,6 +47,14 @@ public class SongManagerImpl extends ServiceImpl<SongMapper, Song> implements So
     public List<Song> listByStatusAndBeforeTime(SongStatus status, LocalDateTime time) {
         LambdaQueryWrapper<Song> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Song::getStatus, status)
+                .lt(Song::getCreateTime, time);
+        return this.list(queryWrapper);
+    }
+
+    @Override
+    public List<Song> listByStatusesAndBeforeTime(List<SongStatus> statuses, LocalDateTime time) {
+        LambdaQueryWrapper<Song> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.in(Song::getStatus, statuses)
                 .lt(Song::getCreateTime, time);
         return this.list(queryWrapper);
     }

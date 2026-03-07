@@ -71,16 +71,12 @@ public class SongUploadCleanupTask {
                             continue;
                         }
                     }
-                    if (!songManager.removeById(song)) {
-                        log.info("删除歌曲记录失败");
-                        continue;
-                    }
                 } else {
                     log.info("用户已不存在，跳过积分恢复逻辑");
-                    if (!songManager.removeById(song)) {
-                        log.info("删除歌曲记录失败");
-                        continue;
-                    }
+                }
+                if (!songManager.removeById(song)) {
+                    log.info("删除歌曲记录失败");
+                    continue;
                 }
                 tx.commit();
             }

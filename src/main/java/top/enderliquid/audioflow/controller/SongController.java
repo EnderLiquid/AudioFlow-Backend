@@ -197,9 +197,47 @@ public class SongController {
             },
             message = "批量删除过于频繁，请稍后再试"
     )
-    public HttpResponseBody<BatchResult<Object>> batchRemoveSongs(@Valid @RequestBody SongBatchDeleteDTO dto) {
+public HttpResponseBody<BatchResult<Object>> batchRemoveSongs(@Valid @RequestBody SongBatchDeleteDTO dto) {
         long userId = StpUtil.getLoginIdAsLong();
         BatchResult<Object> result = songService.batchRemoveSongs(dto, userId);
+        return HttpResponseBody.ok(result);
+    }
+
+    /**
+     * 取消上传歌曲
+     * 需要登录
+     */
+    @SaCheckLogin
+    @PostMapping("{songId}/cancel")
+    @RateLimits(
+            value = {
+                    @RateLimit(type = LimitType.IP, refillRate = "1/1", capacity = 5),
+                    @RateLimit(type = LimitType.USER, refillRate = "1/1", capacity = 5)
+            },
+            message = "操作过于频繁，请稍后再试"
+    )
+    public HttpResponseBody<Void> cancelUpload(@PathVariable Long songId) {
+        long userId = StpUtil.getLoginIdAsLong();
+        songService.cancelUpload(songId, userId);
+        return HttpResponseBody.ok(null, "取消上传成功");
+    }
+
+    /**
+     * 批量取消上传歌曲
+     * 需要登录
+     */
+    @SaCheckLogin
+    @PostMapping("/batch-cancel")
+    @RateLimits(
+            value = {
+                    @RateLimit(type = LimitType.IP, refillRate = "1/10", capacity = 3),
+                    @RateLimit(type = LimitType.USER, refillRate = "1/10", capacity = 3)
+            },
+            message = "批量取消上传过于频繁，请稍后再试"
+    )
+    public HttpResponseBody<BatchResult<Object>> batchCancelUpload(@Valid @RequestBody SongBatchCancelDTO dto) {
+        long userId = StpUtil.getLoginIdAsLong();
+        BatchResult<Object> result = songService.batchCancelUpload(dto, userId);
         return HttpResponseBody.ok(result);
     }
 }

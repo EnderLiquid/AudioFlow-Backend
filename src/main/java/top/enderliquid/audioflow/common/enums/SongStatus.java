@@ -7,5 +7,6 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum SongStatus {
     UPLOADING,
+    DELETING,
     NORMAL
 }

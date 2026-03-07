@@ -88,4 +88,17 @@ public Song createTestSong(Long userId) {
         songManager.save(song);
         return song;
     }
+
+    public Song createTestUploadingSong(Long userId) {
+        Song song = new Song();
+        song.setName("Test Uploading Song");
+        song.setDescription("Test Uploading Description");
+        song.setFileName("test-uploading-song.mp3");
+        song.setSize(1024L);
+        song.setDuration(180L);
+        song.setUploaderId(userId);
+        song.setStatus(SongStatus.UPLOADING);
+        songManager.save(song);
+        return song;
+    }
 }

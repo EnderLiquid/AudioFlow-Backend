@@ -15,6 +15,7 @@ import top.enderliquid.audioflow.manager.SongManager;
 import top.enderliquid.audioflow.manager.UserManager;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
@@ -23,6 +24,9 @@ public class SongUploadCleanupTask {
 
     @Value("${file.upload.points-per-upload:10}")
     private int pointsPerUpload = 10;
+
+    @Value("${file.storage.s3.presigned-url-expiration}")
+    private int presignedUrlExpirationSeconds;
 
     @Autowired
     private SongManager songManager;
@@ -38,17 +42,17 @@ public class SongUploadCleanupTask {
 
     @Scheduled(cron = "0 0,20,40 * * * ? ")
     public void cleanupExpiredUploads() {
-        log.info("开始清理上传超时的歌曲记录");
-        LocalDateTime cutoffTime = LocalDateTime.now().minusMinutes(30);
-        List<Song> expiredSongs = songManager.listByStatusAndBeforeTime(
-                SongStatus.UPLOADING, cutoffTime);
+        log.info("开始清理过期歌曲记录");
+        LocalDateTime cutoffTime = LocalDateTime.now().minusSeconds(presignedUrlExpirationSeconds);
+        List<Song> expiredSongs = songManager.listByStatusesAndBeforeTime(
+                Arrays.asList(SongStatus.UPLOADING, SongStatus.DELETING), cutoffTime);
         if (expiredSongs == null || expiredSongs.isEmpty()) {
-            log.info("没有需要清理的上传超时的歌曲记录");
+            log.info("没有需要清理的过期歌曲记录");
             return;
         }
         int cleanedCount = 0;
         for (Song song : expiredSongs) {
-            log.info("开始尝试清除上传超时的歌曲记录，歌曲ID: {}", song.getId());
+            log.info("开始尝试清除过期歌曲记录，歌曲ID: {}, 状态: {}", song.getId(), song.getStatus());
             if (ossManager.checkFileExists(song.getFileName())) {
                 if (!ossManager.deleteFile(song.getFileName())) {
                     log.error("从OSS删除已存在的歌曲文件失败，文件名: {}", song.getFileName());
@@ -60,11 +64,12 @@ public class SongUploadCleanupTask {
             try (TransactionHelper tx = new TransactionHelper(txManager)) {
                 User uploader = userManager.getById(song.getUploaderId());
                 if (uploader != null) {
-                    // 恢复积分
-                    uploader.setPoints(uploader.getPoints() + pointsPerUpload);
-                    if (!userManager.updateById(uploader)) {
-                        log.info("更新用户积分失败，用户ID: {}", uploader.getId());
-                        continue;
+                    if (song.getStatus() == SongStatus.UPLOADING) {
+                        uploader.setPoints(uploader.getPoints() + pointsPerUpload);
+                        if (!userManager.updateById(uploader)) {
+                            log.info("更新用户积分失败，用户ID: {}", uploader.getId());
+                            continue;
+                        }
                     }
                     if (!songManager.removeById(song)) {
                         log.info("删除歌曲记录失败");
@@ -72,11 +77,15 @@ public class SongUploadCleanupTask {
                     }
                 } else {
                     log.info("用户已不存在，跳过积分恢复逻辑");
+                    if (!songManager.removeById(song)) {
+                        log.info("删除歌曲记录失败");
+                        continue;
+                    }
                 }
                 tx.commit();
             }
             cleanedCount++;
         }
-        log.info("清理上传超时的歌曲记录完成，清理记录条数: {}", cleanedCount);
+        log.info("清理过期歌曲记录完成，清理记录条数: {}", cleanedCount);
     }
 }

@@ -11,5 +11,5 @@ public interface UserManager extends IService<User> {
 
     boolean existsById(Long Id);
 
-    Integer addPointsAndReturnBalance(Long userId, int delta);
+    boolean addPoints(Long userId, int delta);
 }

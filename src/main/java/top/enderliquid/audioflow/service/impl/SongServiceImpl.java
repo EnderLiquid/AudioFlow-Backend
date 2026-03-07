@@ -137,12 +137,12 @@ public class SongServiceImpl implements SongService {
         // 在事务内扣除积分并保存歌曲记录
         try (TransactionHelper tx = new TransactionHelper(txManager)) {
             // 原子扣除积分
-            Integer newBalance = userManager.addPointsAndReturnBalance(userId, -pointsPerUpload);
-            if (newBalance == null) {
+            if (!userManager.addPoints(userId, -pointsPerUpload)) {
                 throw new BusinessException("积分不足");
             }
+            uploader = userManager.getById(uploader.getId());
             // 记录积分流水
-            pointsRecordManager.save(userId, -pointsPerUpload, newBalance, PointsType.SONG_UPLOAD, songId);
+            pointsRecordManager.save(uploader.getId(), -pointsPerUpload, uploader.getPoints(), PointsType.SONG_UPLOAD, songId);
             // 保存歌曲记录
             if (!songManager.save(song)) {
                 throw new BusinessException("歌曲信息保存失败");
@@ -492,11 +492,11 @@ public class SongServiceImpl implements SongService {
             if (!songManager.updateById(song)) {
                 throw new BusinessException("更新歌曲状态失败");
             }
-            Integer newBalance = userManager.addPointsAndReturnBalance(song.getUploaderId(), pointsPerUpload);
-            if (newBalance == null) {
-                throw new BusinessException("返还积分失败");
+            if (!userManager.addPoints(song.getUploaderId(), pointsPerUpload)) {
+                throw new BusinessException("返还用户积分失败");
             }
-            pointsRecordManager.save(song.getUploaderId(), pointsPerUpload, newBalance, PointsType.SONG_UPLOAD_CANCEL, songId);
+            User uploader = userManager.getById(userId);
+            pointsRecordManager.save(song.getUploaderId(), pointsPerUpload, uploader.getPoints(), PointsType.SONG_UPLOAD_CANCEL, songId);
             tx.commit();
         }
 

@@ -31,12 +31,7 @@ public class UserManagerImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public Integer addPointsAndReturnBalance(Long userId, int delta) {
-        int affected = baseMapper.addPoints(userId, delta);
-        // TODO: 非原子操作，得分离出去
-        if (affected > 0) {
-            return getById(userId).getPoints();
-        }
-        return null;
+    public boolean addPoints(Long userId, int delta) {
+        return baseMapper.addPoints(userId, delta) > 0;
     }
 }

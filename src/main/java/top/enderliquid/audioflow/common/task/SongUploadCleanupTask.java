@@ -67,18 +67,13 @@ public class SongUploadCleanupTask {
                 log.info("歌曲文件还未上传至OSS，跳过文件清除逻辑");
             }
             try (TransactionHelper tx = new TransactionHelper(txManager)) {
-                User uploader = userManager.getById(song.getUploaderId());
-                if (uploader != null) {
-                    if (song.getStatus() == SongStatus.UPLOADING) {
-                        Integer newBalance = userManager.addPointsAndReturnBalance(uploader.getId(), pointsPerUpload);
-                        if (newBalance == null) {
-                            log.info("更新用户积分失败，用户ID: {}", uploader.getId());
-                            continue;
-                        }
-                        pointsRecordManager.save(uploader.getId(), pointsPerUpload, newBalance, PointsType.SONG_UPLOAD_CANCEL, song.getId());
+                if (song.getStatus() == SongStatus.UPLOADING) {
+                    if (!userManager.addPoints(song.getUploaderId(), pointsPerUpload)) {
+                        log.info("返还用户积分失败");
+                    } else {
+                        User uploader = userManager.getById(song.getUploaderId());
+                        pointsRecordManager.save(uploader.getId(), pointsPerUpload, uploader.getPoints(), PointsType.SONG_UPLOAD_CANCEL, song.getId());
                     }
-                } else {
-                    log.info("用户已不存在，跳过积分恢复逻辑");
                 }
                 if (!songManager.removeById(song)) {
                     log.info("删除歌曲记录失败");

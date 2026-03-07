@@ -31,5 +31,9 @@ public interface SongService {
 
     BatchResult<SongVO> batchCompleteUpload(@Valid SongBatchCompleteDTO dto, @NotNull(message = "用户Id不能为空") Long userId);
 
-    BatchResult<Object> batchRemoveSongs(@Valid SongBatchDeleteDTO dto, @NotNull(message = "用户Id不能为空") Long userId);
+BatchResult<Object> batchRemoveSongs(@Valid SongBatchDeleteDTO dto, @NotNull(message = "用户Id不能为空") Long userId);
+
+    void cancelUpload(@NotNull(message = "歌曲Id不能为空") Long songId, @NotNull(message = "用户Id不能为空") Long userId);
+
+    BatchResult<Object> batchCancelUpload(@Valid SongBatchCancelDTO dto, @NotNull(message = "用户Id不能为空") Long userId);
 }

@@ -61,6 +61,7 @@ public class TestDataHelper {
         user.setName("test_user_" + uniqueId);
         user.setEmail("test_user_" + uniqueId + "@example.com");
         user.setPassword(passwordEncoder.encode("test_password_123"));
+        user.setPoints(100);
         userManager.save(user);
         return user;
     }
@@ -72,11 +73,12 @@ public class TestDataHelper {
         admin.setEmail("admin_user_" + uniqueId + "@example.com");
         admin.setPassword(passwordEncoder.encode("test_password_123"));
         admin.setRole(Role.ADMIN);
+        admin.setPoints(0);
         userManager.save(admin);
         return admin;
     }
 
-public Song createTestSong(Long userId) {
+    public Song createTestSong(Long userId) {
         Song song = new Song();
         song.setName("Test Song");
         song.setDescription("Test Description");
@@ -84,7 +86,7 @@ public Song createTestSong(Long userId) {
         song.setSize(1024L);
         song.setDuration(180L);
         song.setUploaderId(userId);
-    song.setStatus(SongStatus.NORMAL);
+        song.setStatus(SongStatus.NORMAL);
         songManager.save(song);
         return song;
     }

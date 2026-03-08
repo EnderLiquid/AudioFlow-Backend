@@ -90,8 +90,8 @@ public class SongServiceImpl implements SongService {
 
     @Value("${file.storage.max-file-size:20MB}")
     private String maxFileSizeStr;
-    @Value("${file.upload.points-per-upload:10}")
-    private int pointsPerUpload = 10;
+    @Value("${points.upload}")
+    private int pointsPerUpload;
 
     private long maxFileSizeBytes;
 

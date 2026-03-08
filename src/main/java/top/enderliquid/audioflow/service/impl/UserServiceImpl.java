@@ -3,6 +3,7 @@ package top.enderliquid.audioflow.service.impl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -14,8 +15,11 @@ import top.enderliquid.audioflow.dto.request.user.UserUpdatePasswordDTO;
 import top.enderliquid.audioflow.dto.request.user.UserVerifyPasswordDTO;
 import top.enderliquid.audioflow.dto.response.user.UserVO;
 import top.enderliquid.audioflow.entity.User;
+import top.enderliquid.audioflow.manager.PointsRecordManager;
 import top.enderliquid.audioflow.manager.UserManager;
 import top.enderliquid.audioflow.service.UserService;
+
+import static top.enderliquid.audioflow.common.enums.PointsType.USER_REGISTER;
 
 @Slf4j
 @Service
@@ -29,6 +33,12 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private PointsRecordManager pointsRecordManager;
+
+    @Value("${points.register}")
+    private int pointsWhenRegister;
 
     @Override
     public UserVO saveUser(UserSaveDTO dto) {
@@ -49,6 +59,7 @@ public class UserServiceImpl implements UserService {
         String encryptedPassword = passwordEncoder.encode(dto.getPassword());
         user.setPassword(encryptedPassword);
         user.setRole(role);
+        user.setPoints(100);
         try (TransactionHelper tx = new TransactionHelper(txManager)) {
             // 检查邮箱是否已存在
             if (userManager.existsByEmail(user.getEmail())) {
@@ -58,6 +69,7 @@ public class UserServiceImpl implements UserService {
             if (!userManager.save(user)) {
                 throw new BusinessException("用户创建失败");
             }
+            pointsRecordManager.save(user.getId(), pointsWhenRegister, pointsWhenRegister, USER_REGISTER, null);
             tx.commit();
         }
         UserVO userVO = new UserVO();

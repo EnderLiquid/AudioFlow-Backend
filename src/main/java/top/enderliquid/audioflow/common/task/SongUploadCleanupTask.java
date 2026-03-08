@@ -24,8 +24,8 @@ import java.util.List;
 @Component
 public class SongUploadCleanupTask {
 
-    @Value("${file.upload.points-per-upload:10}")
-    private int pointsPerUpload = 10;
+    @Value("${points.upload}")
+    private int pointsPerUpload;
 
     @Value("${file.storage.s3.presigned-url-expiration}")
     private int presignedUrlExpirationSeconds;

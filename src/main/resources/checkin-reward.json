@@ -1,0 +1,28 @@
+{
+  "rewards": [
+    {
+      "name": "普通奖励",
+      "weight": 60,
+      "minPoints": 3,
+      "maxPoints": 7
+    },
+    {
+      "name": "良好奖励",
+      "weight": 30,
+      "minPoints": 8,
+      "maxPoints": 12
+    },
+    {
+      "name": "优秀奖励",
+      "weight": 9,
+      "minPoints": 15,
+      "maxPoints": 25
+    },
+    {
+      "name": "幸运奖励",
+      "weight": 1,
+      "minPoints": 50,
+      "maxPoints": 100
+    }
+  ]
+}

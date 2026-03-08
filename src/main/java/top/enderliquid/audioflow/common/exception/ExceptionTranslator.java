@@ -9,6 +9,7 @@ import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.stereotype.Component;
@@ -205,6 +206,16 @@ public class ExceptionTranslator {
             case HttpRequestMethodNotSupportedException e -> {
                 log.warn("请求方法不支持: {}", e.getMethod());
                 yield new ExceptionTranslateResult(HttpStatus.METHOD_NOT_ALLOWED, "请求方法不支持: {%s}".formatted(e.getMethod()));
+            }
+
+            // ==================== 5. 持久层异常 ====================
+
+            /*
+              键冲突 / 数据完整性违规 / 数据库宕机 / 连接池耗尽 / 网络异常 / SQL语法错误 / 查询超时 / 死锁
+            */
+            case DataAccessException e -> {
+                log.error("数据库异常", e);
+                yield new ExceptionTranslateResult(HttpStatus.INTERNAL_SERVER_ERROR, "数据库访问异常，请稍后再试");
             }
 
             // ==================== 6. 全局兜底异常 ====================

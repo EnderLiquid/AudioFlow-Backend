@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS `song` (
     `size` BIGINT COMMENT '文件大小（字节）',
     `duration` BIGINT COMMENT '音频时长（毫秒）',
     `uploader_id` BIGINT NOT NULL COMMENT '上传者ID',
-    `status` VARCHAR(20) NOT NULL DEFAULT 'UPLOADING' COMMENT '歌曲状态: UPLOADING, NORMAL',
+    `status` VARCHAR(20) NOT NULL DEFAULT 'UPLOADING' COMMENT '歌曲状态: UPLOADING, NORMAL, DELETING',
     `create_time` DATETIME NOT NULL COMMENT '创建时间',
     `update_time` DATETIME NOT NULL COMMENT '更新时间',
     PRIMARY KEY (`id`),
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS `user_checkin_log`(
     COLLATE = utf8mb4_unicode_ci COMMENT ='签到记录表';
 
 -- 签到统计表
-CREATE TABLE `user_checkin_summary` (
+CREATE TABLE IF NOT EXISTS `user_checkin_summary` (
     `user_id` BIGINT NOT NULL COMMENT '用户ID',
     `total_days` INT NOT NULL DEFAULT 0 COMMENT '累计签到天数',
     `continuous_days` INT NOT NULL DEFAULT 0 COMMENT '当前连续签到天数',

@@ -48,3 +48,7 @@ build/
 
 ### GSD Planning ###
 .planning/
+
+### OMC and Claude ###
+.omc/
+.claude/

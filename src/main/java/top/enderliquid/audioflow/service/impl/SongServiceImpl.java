@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.unit.DataSize;
 import org.xml.sax.helpers.DefaultHandler;
-import top.enderliquid.audioflow.common.enums.PointsType;
 import top.enderliquid.audioflow.common.enums.Role;
 import top.enderliquid.audioflow.common.enums.SongStatus;
 import top.enderliquid.audioflow.common.exception.BusinessException;
@@ -47,6 +46,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static top.enderliquid.audioflow.common.enums.PointsType.SONG_UPLOAD;
+import static top.enderliquid.audioflow.common.enums.PointsType.SONG_UPLOAD_CANCEL;
 
 @Slf4j
 @Service
@@ -142,7 +144,7 @@ public class SongServiceImpl implements SongService {
             }
             uploader = userManager.getById(uploader.getId());
             // 记录积分流水
-            pointsRecordManager.addRecord(uploader.getId(), -pointsPerUpload, uploader.getPoints(), PointsType.SONG_UPLOAD, songId);
+            pointsRecordManager.addRecord(uploader.getId(), -pointsPerUpload, uploader.getPoints(), SONG_UPLOAD, songId);
             // 保存歌曲记录
             if (!songManager.save(song)) {
                 throw new BusinessException("歌曲信息保存失败");
@@ -496,7 +498,7 @@ public class SongServiceImpl implements SongService {
                 throw new BusinessException("返还用户积分失败");
             }
             User uploader = userManager.getById(userId);
-            pointsRecordManager.addRecord(song.getUploaderId(), pointsPerUpload, uploader.getPoints(), PointsType.SONG_UPLOAD_CANCEL, songId);
+            pointsRecordManager.addRecord(song.getUploaderId(), pointsPerUpload, uploader.getPoints(), SONG_UPLOAD_CANCEL, songId);
             tx.commit();
         }
 

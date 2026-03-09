@@ -8,6 +8,6 @@ import top.enderliquid.audioflow.entity.CheckinSummary;
 
 @Mapper
 public interface CheckinSummaryMapper extends BaseMapper<CheckinSummary> {
-    @Select("SELECT * FROM user_checkin_summary WHERE user_id = #{userID} FOR UPDATE")
-    CheckinSummary getByUserIdForUpdate(@Param("userID") Long userID);
+    @Select("SELECT * FROM user_checkin_summary WHERE user_id = #{userId} FOR UPDATE")
+    CheckinSummary getByUserIdForUpdate(@Param("userId") Long userId);
 }

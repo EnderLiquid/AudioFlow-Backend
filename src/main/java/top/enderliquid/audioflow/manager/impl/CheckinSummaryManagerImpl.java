@@ -11,7 +11,7 @@ import top.enderliquid.audioflow.mapper.CheckinSummaryMapper;
 @Repository
 public class CheckinSummaryManagerImpl extends ServiceImpl<CheckinSummaryMapper, CheckinSummary> implements CheckinSummaryManager {
     @Autowired
-    private  CheckinSummaryMapper checkinSummaryMapper;
+    private CheckinSummaryMapper checkinSummaryMapper;
 
     @Override
     public CheckinSummary getByUserId(Long userId) {

@@ -69,7 +69,7 @@ public class UserServiceImpl implements UserService {
             if (!userManager.save(user)) {
                 throw new BusinessException("用户创建失败");
             }
-            pointsRecordManager.save(user.getId(), pointsWhenRegister, pointsWhenRegister, USER_REGISTER, null);
+            pointsRecordManager.addRecord(user.getId(), pointsWhenRegister, pointsWhenRegister, USER_REGISTER, null);
             tx.commit();
         }
         UserVO userVO = new UserVO();

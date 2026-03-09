@@ -114,7 +114,7 @@ public class CheckinServiceImpl implements CheckinService {
             // 先读后写，拿到行锁，无并发问题
             userManager.addPoints(userId, rewardPoints);
             int balance = userManager.getById(userId).getPoints();
-            pointsRecordManager.save(
+            pointsRecordManager.addRecord(
                     userId,
                     rewardPoints,
                     balance,

@@ -72,7 +72,7 @@ public class SongUploadCleanupTask {
                         log.info("返还用户积分失败");
                     } else {
                         User uploader = userManager.getById(song.getUploaderId());
-                        pointsRecordManager.save(uploader.getId(), pointsPerUpload, uploader.getPoints(), PointsType.SONG_UPLOAD_CANCEL, song.getId());
+                        pointsRecordManager.addRecord(uploader.getId(), pointsPerUpload, uploader.getPoints(), PointsType.SONG_UPLOAD_CANCEL, song.getId());
                     }
                 }
                 if (!songManager.removeById(song)) {

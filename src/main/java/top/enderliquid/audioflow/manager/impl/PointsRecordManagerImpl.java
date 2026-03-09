@@ -10,7 +10,7 @@ import top.enderliquid.audioflow.mapper.PointsRecordMapper;
 @Repository
 public class PointsRecordManagerImpl extends ServiceImpl<PointsRecordMapper, PointsRecord> implements PointsRecordManager {
     @Override
-    public void save(Long userId, int delta, int balance, PointsType type, Long refId) {
+    public void addRecord(Long userId, int delta, int balance, PointsType type, Long refId) {
         PointsRecord record = new PointsRecord();
         record.setUserId(userId);
         record.setDelta(delta);

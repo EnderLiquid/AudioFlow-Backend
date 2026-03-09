@@ -11,8 +11,7 @@ import top.enderliquid.audioflow.common.enums.Role;
 import top.enderliquid.audioflow.common.enums.SongStatus;
 import top.enderliquid.audioflow.entity.Song;
 import top.enderliquid.audioflow.entity.User;
-import top.enderliquid.audioflow.manager.SongManager;
-import top.enderliquid.audioflow.manager.UserManager;
+import top.enderliquid.audioflow.manager.*;
 
 import java.util.UUID;
 
@@ -31,6 +30,15 @@ public class TestDataHelper {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private PointsRecordManager pointsRecordManager;
+
+    @Autowired
+    private CheckinLogManager checkinLogManager;
+
+    @Autowired
+    private CheckinSummaryManager checkinSummaryManager;
 
     public void cleanAll() {
         long startTime = System.currentTimeMillis();
@@ -53,6 +61,9 @@ public class TestDataHelper {
     public void cleanDatabase() {
         songManager.lambdaUpdate().remove();
         userManager.lambdaUpdate().remove();
+        pointsRecordManager.lambdaUpdate().remove();
+        checkinLogManager.lambdaUpdate().remove();
+        checkinSummaryManager.lambdaUpdate().remove();
     }
 
     public User createTestUser() {
@@ -73,7 +84,7 @@ public class TestDataHelper {
         admin.setEmail("admin_user_" + uniqueId + "@example.com");
         admin.setPassword(passwordEncoder.encode("test_password_123"));
         admin.setRole(Role.ADMIN);
-        admin.setPoints(0);
+        admin.setPoints(100);
         userManager.save(admin);
         return admin;
     }

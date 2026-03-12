@@ -6,7 +6,6 @@ import org.apache.ibatis.reflection.MetaObject;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 
 @Slf4j
 @Component
@@ -15,14 +14,14 @@ public class CreateAndUpdateTimeHandler implements MetaObjectHandler {
     @Override
     public void insertFill(MetaObject metaObject) {
         this.strictInsertFill(metaObject, "createTime", LocalDateTime.class,
-                LocalDateTime.now(ZoneId.of("Asia/Shanghai")));
+                LocalDateTime.now());
         this.strictInsertFill(metaObject, "updateTime", LocalDateTime.class,
-                LocalDateTime.now(ZoneId.of("Asia/Shanghai")));
+                LocalDateTime.now());
     }
 
     @Override
     public void updateFill(MetaObject metaObject) {
         this.strictUpdateFill(metaObject, "updateTime", LocalDateTime.class,
-                LocalDateTime.now(ZoneId.of("Asia/Shanghai")));
+                LocalDateTime.now());
     }
 }

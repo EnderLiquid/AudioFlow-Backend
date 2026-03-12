@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
-import top.enderliquid.audioflow.common.enums.Role;
 import top.enderliquid.audioflow.common.exception.BusinessException;
 import top.enderliquid.audioflow.common.transaction.TransactionHelper;
 import top.enderliquid.audioflow.dto.request.user.UserSaveDTO;
@@ -43,22 +42,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserVO saveUser(UserSaveDTO dto) {
         log.info("请求注册普通用户，邮箱: {}", dto.getEmail());
-        return doSaveUser(dto, Role.USER);
-    }
-
-    @Override
-    public UserVO saveAdminUser(UserSaveDTO dto) {
-        log.info("请求注册管理员用户，邮箱: {}", dto.getEmail());
-        return doSaveUser(dto, Role.ADMIN);
-    }
-
-    private UserVO doSaveUser(UserSaveDTO dto, Role role) {
         User user = new User();
         user.setEmail(dto.getEmail());
         user.setName(dto.getName());
         String encryptedPassword = passwordEncoder.encode(dto.getPassword());
         user.setPassword(encryptedPassword);
-        user.setRole(role);
         user.setPoints(100);
         try (TransactionHelper tx = new TransactionHelper(txManager)) {
             // 检查邮箱是否已存在

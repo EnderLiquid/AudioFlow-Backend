@@ -12,8 +12,6 @@ import top.enderliquid.audioflow.dto.response.user.UserVO;
 public interface UserService {
     UserVO saveUser(@Valid UserSaveDTO dto);
 
-    UserVO saveAdminUser(@Valid UserSaveDTO dto);
-
     UserVO verifyUserPassword(@Valid UserVerifyPasswordDTO dto);
 
     UserVO getUser(@NotNull(message = "用户Id不能为空") Long userId);

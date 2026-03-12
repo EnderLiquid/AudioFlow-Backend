@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.unit.DataSize;
 import org.xml.sax.helpers.DefaultHandler;
-import top.enderliquid.audioflow.common.enums.Role;
 import top.enderliquid.audioflow.common.enums.SongStatus;
 import top.enderliquid.audioflow.common.exception.BusinessException;
 import top.enderliquid.audioflow.common.exception.ExceptionTranslator;
@@ -323,8 +322,7 @@ public class SongServiceImpl implements SongService {
         if (user == null) {
             throw new BusinessException("用户不存在");
         }
-        // 判断权限：管理员可以删除任何歌曲，普通用户只能删除自己的歌曲
-        if (!(user.getRole() == Role.ADMIN) && !song.getUploaderId().equals(userId)) {
+        if (!song.getUploaderId().equals(userId)) {
             throw new BusinessException("无权删除他人上传的歌曲");
         }
 
@@ -386,8 +384,7 @@ public class SongServiceImpl implements SongService {
         if (user == null) {
             throw new BusinessException("用户不存在");
         }
-        // 判断权限：管理员可以更新任何歌曲，普通用户只能更新自己的歌曲
-        if (!(user.getRole() == Role.ADMIN) && !song.getUploaderId().equals(userId)) {
+        if (!song.getUploaderId().equals(userId)) {
             throw new BusinessException("无权更新他人上传歌曲的信息");
         }
         if (dto.getName() != null) song.setName(dto.getName());

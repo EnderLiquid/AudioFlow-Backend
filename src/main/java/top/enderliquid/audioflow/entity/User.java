@@ -9,7 +9,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import top.enderliquid.audioflow.common.enums.Role;
 
 import java.time.LocalDateTime;
 
@@ -27,8 +26,6 @@ public class User {
     private String name;
 
     private String password;
-
-    private Role role;
 
     private Integer points;
 

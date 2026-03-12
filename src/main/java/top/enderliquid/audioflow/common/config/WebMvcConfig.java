@@ -1,6 +1,7 @@
 package top.enderliquid.audioflow.common.config;
 
 import cn.dev33.satoken.interceptor.SaInterceptor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -17,6 +18,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Value("${app.cors.allowed-origin-patterns}")
     private String[] allowedOriginPatterns;
+
+    @Autowired
+    private RateLimitInterceptor rateLimitInterceptor;
+
     @Bean
     public FilterRegistrationBean<HttpMethodOverrideFilter> httpMethodOverrideFilterRegistration() {
         FilterRegistrationBean<HttpMethodOverrideFilter> registration = new FilterRegistrationBean<>(new HttpMethodOverrideFilter());
@@ -38,9 +43,11 @@ public class WebMvcConfig implements WebMvcConfigurer {
         }
     }
 
-    // 注册 Sa-Token 拦截器，打开注解式鉴权功能
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        // 注册限流拦截器
+        registry.addInterceptor(rateLimitInterceptor).addPathPatterns("/**");
+        // 注册 Sa-Token 鉴权拦截器
         registry.addInterceptor(new SaInterceptor()).addPathPatterns("/**");
     }
 }

@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -41,7 +42,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserVO saveUser(UserSaveDTO dto) {
-        log.info("请求注册普通用户，邮箱: {}", dto.getEmail());
+        log.info("请求注册用户，邮箱: {}", dto.getEmail());
         User user = new User();
         user.setEmail(dto.getEmail());
         user.setName(dto.getName());
@@ -49,14 +50,13 @@ public class UserServiceImpl implements UserService {
         user.setPassword(encryptedPassword);
         user.setPoints(100);
         try (TransactionHelper tx = new TransactionHelper(txManager)) {
-            // 检查邮箱是否已存在
-            if (userManager.existsByEmail(user.getEmail())) {
+            // 依赖数据库唯一键防止邮箱重复
+            try {
+                userManager.save(user);
+            } catch (DuplicateKeyException e) {
                 throw new BusinessException("邮箱已被注册");
             }
-            // 创建用户
-            if (!userManager.save(user)) {
-                throw new BusinessException("用户创建失败");
-            }
+
             pointsRecordManager.addRecord(user.getId(), pointsWhenRegister, pointsWhenRegister, USER_REGISTER, null);
             tx.commit();
         }
@@ -106,7 +106,7 @@ public class UserServiceImpl implements UserService {
         }
         User user;
         try (TransactionHelper tx = new TransactionHelper(txManager)) {
-            user = userManager.getById(userId);
+            user = userManager.getByIdForUpdate(userId);
             if (user == null) {
                 throw new BusinessException("用户不存在");
             }

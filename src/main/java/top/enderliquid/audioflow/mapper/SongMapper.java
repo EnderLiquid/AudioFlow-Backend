@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 import top.enderliquid.audioflow.dto.bo.SongBO;
 import top.enderliquid.audioflow.entity.Song;
 
@@ -17,4 +18,7 @@ public interface SongMapper extends BaseMapper<Song> {
             @Param("songId") Long songId,
             @Param("isAsc") boolean isAsc
     );
+
+    @Select("SELECT * FROM song WHERE id = #{id} FOR UPDATE")
+    Song selectByIdForUpdate(Long id);
 }

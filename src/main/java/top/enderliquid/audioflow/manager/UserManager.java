@@ -12,4 +12,6 @@ public interface UserManager extends IService<User> {
     boolean existsById(Long Id);
 
     boolean addPoints(Long userId, int delta);
+
+    User getByIdForUpdate(Long id);
 }

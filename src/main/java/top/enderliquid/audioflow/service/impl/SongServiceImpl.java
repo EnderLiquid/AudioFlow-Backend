@@ -105,7 +105,6 @@ public class SongServiceImpl implements SongService {
     public SongUploadPrepareVO prepareUpload(SongPrepareUploadDTO dto, Long userId) {
         log.info("请求准备上传歌曲，用户ID: {}", userId);
         User uploader = userManager.getById(userId);
-
         if (uploader == null) {
             throw new BusinessException("用户不存在");
         }
@@ -135,19 +134,14 @@ public class SongServiceImpl implements SongService {
         song.setUploaderId(userId);
         song.setStatus(SongStatus.UPLOADING);
 
-        // 在事务内扣除积分并保存歌曲记录
         try (TransactionHelper tx = new TransactionHelper(txManager)) {
-            // 原子扣除积分
             if (!userManager.addPoints(userId, -pointsPerUpload)) {
-                throw new BusinessException("积分不足");
+                // 可能是积分不足，也有可能是用户已经不存在
+                throw new BusinessException("扣除积分失败");
             }
             uploader = userManager.getById(uploader.getId());
-            // 记录积分流水
             pointsRecordManager.addRecord(uploader.getId(), -pointsPerUpload, uploader.getPoints(), SONG_UPLOAD, songId);
-            // 保存歌曲记录
-            if (!songManager.save(song)) {
-                throw new BusinessException("歌曲信息保存失败");
-            }
+            songManager.save(song);
             tx.commit();
         }
 
@@ -174,15 +168,18 @@ public class SongServiceImpl implements SongService {
         if (uploader == null) {
             throw new BusinessException("用户不存在");
         }
+
+        // 初步检查，快速失败
         Song song = songManager.getById(dto.getSongId());
         if (song == null) {
             throw new BusinessException("歌曲不存在");
         }
-        if (!(song.getStatus() == SongStatus.UPLOADING)) {
-            throw new BusinessException("歌曲状态异常");
-        }
+        // 先检查上传者是否匹配，再检查状态是否正常，防止状态泄露
         if (!song.getUploaderId().equals(userId)) {
             throw new BusinessException("非歌曲上传者，无权操作");
+        }
+        if (!(song.getStatus() == SongStatus.UPLOADING)) {
+            throw new BusinessException("歌曲状态异常，无法完成上传");
         }
         if (!ossManager.checkFileExists(song.getFileName())) {
             throw new BusinessException("上传文件不存在");
@@ -242,11 +239,26 @@ public class SongServiceImpl implements SongService {
             log.warn("解析歌曲持续时长失败");
         }
 
-        song.setSize(fileSize);
-        song.setDuration(duration);
-        song.setStatus(SongStatus.NORMAL);
-        if (!songManager.updateById(song)) {
-            throw new BusinessException("歌曲信息更新失败");
+        try (TransactionHelper tx = new TransactionHelper(txManager)) {
+            // 再次检查
+            song = songManager.getByIdForUpdate(song.getId());
+            if (song == null) {
+                throw new BusinessException("歌曲不存在");
+            }
+            // 先检查上传者是否匹配，再检查状态是否正常，防止状态泄露
+            if (!song.getUploaderId().equals(userId)) {
+                throw new BusinessException("非歌曲上传者，无权操作");
+            }
+            if (!(song.getStatus() == SongStatus.UPLOADING)) {
+                throw new BusinessException("歌曲状态异常，无法完成上传");
+            }
+            song.setSize(fileSize);
+            song.setDuration(duration);
+            song.setStatus(SongStatus.NORMAL);
+            if (!songManager.updateById(song)) {
+                throw new BusinessException("歌曲信息更新失败");
+            }
+            tx.commit();
         }
 
         SongVO songVO = new SongVO();
@@ -311,26 +323,27 @@ public class SongServiceImpl implements SongService {
     @Override
     public void removeSong(Long songId, Long userId) {
         log.info("请求删除歌曲，用户ID: {}，歌曲ID: {}", userId, songId);
-        Song song = songManager.getById(songId);
-        if (song == null) {
-            throw new BusinessException("歌曲不存在");
-        }
-        if (song.getStatus() != SongStatus.NORMAL) {
-            throw new BusinessException("歌曲状态异常，无法删除");
-        }
-        User user = userManager.getById(userId);
-        if (user == null) {
+        if (!userManager.existsById(userId)) {
             throw new BusinessException("用户不存在");
         }
-        if (!song.getUploaderId().equals(userId)) {
-            throw new BusinessException("无权删除他人上传的歌曲");
+        try (TransactionHelper tx = new TransactionHelper(txManager)) {
+            Song song = songManager.getByIdForUpdate(songId);
+            if (song == null) {
+                throw new BusinessException("歌曲不存在");
+            }
+            // 先检查上传者是否匹配，再检查状态是否正常，防止状态泄露
+            if (!song.getUploaderId().equals(userId)) {
+                throw new BusinessException("无权删除他人上传的歌曲");
+            }
+            if (song.getStatus() != SongStatus.NORMAL) {
+                throw new BusinessException("歌曲状态异常，无法删除");
+            }
+            song.setStatus(SongStatus.DELETING);
+            if (!songManager.updateById(song)) {
+                throw new BusinessException("删除歌曲失败");
+            }
+            tx.commit();
         }
-
-        song.setStatus(SongStatus.DELETING);
-        if (!songManager.updateById(song)) {
-            throw new BusinessException("删除歌曲失败");
-        }
-
         log.info("删除歌曲成功，歌曲ID: {}", songId);
     }
 
@@ -373,24 +386,28 @@ public class SongServiceImpl implements SongService {
         if (dto.getName() == null && dto.getDescription() == null) {
             throw new BusinessException("更新信息不能全为空");
         }
-        Song song = songManager.getById(songId);
-        if (song == null) {
-            throw new BusinessException("歌曲不存在");
-        }
-        if (song.getStatus() != SongStatus.NORMAL) {
-            throw new BusinessException("歌曲状态异常，无法更新");
-        }
-        User user = userManager.getById(userId);
-        if (user == null) {
+        if (!userManager.existsById(userId)) {
             throw new BusinessException("用户不存在");
         }
-        if (!song.getUploaderId().equals(userId)) {
-            throw new BusinessException("无权更新他人上传歌曲的信息");
-        }
-        if (dto.getName() != null) song.setName(dto.getName());
-        if (dto.getDescription() != null) song.setDescription(dto.getDescription());
-        if (!songManager.updateById(song)) {
-            throw new BusinessException("歌曲信息更新失败");
+        Song song;
+        try (TransactionHelper tx = new TransactionHelper(txManager)) {
+            song = songManager.getByIdForUpdate(songId);
+            if (song == null) {
+                throw new BusinessException("歌曲不存在");
+            }
+            // 先检查上传者是否匹配，再检查状态是否正常，防止状态泄露
+            if (!song.getUploaderId().equals(userId)) {
+                throw new BusinessException("无权更新他人上传歌曲的信息");
+            }
+            if (song.getStatus() != SongStatus.NORMAL) {
+                throw new BusinessException("歌曲状态异常，无法更新");
+            }
+            if (dto.getName() != null) song.setName(dto.getName());
+            if (dto.getDescription() != null) song.setDescription(dto.getDescription());
+            if (!songManager.updateById(song)) {
+                throw new BusinessException("歌曲信息更新失败");
+            }
+            tx.commit();
         }
         SongVO songVO = new SongVO();
         BeanUtils.copyProperties(song, songVO);
@@ -472,21 +489,22 @@ public class SongServiceImpl implements SongService {
     @Override
     public void cancelUpload(Long songId, Long userId) {
         log.info("请求取消上传歌曲，用户ID: {}，歌曲ID: {}", userId, songId);
-        Song song = songManager.getById(songId);
-        if (song == null) {
-            throw new BusinessException("歌曲不存在");
-        }
-        if (song.getStatus() != SongStatus.UPLOADING) {
-            throw new BusinessException("歌曲状态异常，无法取消");
-        }
-        if (!song.getUploaderId().equals(userId)) {
-            throw new BusinessException("非歌曲上传者，无权操作");
-        }
         if (!userManager.existsById(userId)) {
             throw new BusinessException("用户不存在");
         }
-
+        Song song;
         try (TransactionHelper tx = new TransactionHelper(txManager)) {
+            song = songManager.getByIdForUpdate(songId);
+            if (song == null) {
+                throw new BusinessException("歌曲不存在");
+            }
+            // 先检查上传者是否匹配，再检查状态是否正常，防止状态泄露
+            if (!song.getUploaderId().equals(userId)) {
+                throw new BusinessException("非歌曲上传者，无权操作");
+            }
+            if (song.getStatus() != SongStatus.UPLOADING) {
+                throw new BusinessException("歌曲状态异常，无法取消");
+            }
             song.setStatus(SongStatus.DELETING);
             if (!songManager.updateById(song)) {
                 throw new BusinessException("更新歌曲状态失败");

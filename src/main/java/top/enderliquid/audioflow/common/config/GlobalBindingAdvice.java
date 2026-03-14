@@ -1,4 +1,4 @@
-package top.enderliquid.audioflow.common.handler;
+package top.enderliquid.audioflow.common.config;
 
 import org.springframework.beans.propertyeditors.StringTrimmerEditor;
 import org.springframework.web.bind.WebDataBinder;

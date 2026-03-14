@@ -24,6 +24,7 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import top.enderliquid.audioflow.common.util.StrFormatter;
 
 import java.util.stream.Collectors;
 
@@ -87,7 +88,7 @@ public class ExceptionTranslator {
             */
             case SaTokenException e -> {
                 log.warn("鉴权异常: {}", e.getMessage());
-                yield new ExceptionTranslateResult(HttpStatus.FORBIDDEN, "鉴权失败: {%s}".formatted(e.getMessage()));
+                yield new ExceptionTranslateResult(HttpStatus.FORBIDDEN, StrFormatter.format("鉴权失败: {}", e.getMessage()));
             }
 
             // ==================== 3. 请求解析与格式异常 ====================
@@ -108,7 +109,7 @@ public class ExceptionTranslator {
             case HttpMediaTypeNotSupportedException e -> {
                 log.warn("不支持的媒体类型: {}", e.getContentType());
                 yield new ExceptionTranslateResult(HttpStatus.UNSUPPORTED_MEDIA_TYPE,
-                        "不支持的媒体类型: {%s}".formatted(e.getContentType()));
+                        StrFormatter.format("不支持的媒体类型: {}", e.getContentType()));
             }
 
             /*
@@ -129,7 +130,7 @@ public class ExceptionTranslator {
                         .map(FieldError::getDefaultMessage)
                         .collect(Collectors.joining("; "));
                 log.warn("参数校验错误(Body): {}", errorMessage);
-                yield new ExceptionTranslateResult(HttpStatus.BAD_REQUEST, "Body参数错误: {%s}".formatted(errorMessage));
+                yield new ExceptionTranslateResult(HttpStatus.BAD_REQUEST, StrFormatter.format("Body参数错误: {}", errorMessage));
             }
 
             /*
@@ -140,7 +141,7 @@ public class ExceptionTranslator {
                         .map(ConstraintViolation::getMessage)
                         .collect(Collectors.joining("; "));
                 log.warn("参数校验错误(URL): {}", errorMessage);
-                yield new ExceptionTranslateResult(HttpStatus.BAD_REQUEST, "URL参数错误: {%s}".formatted(errorMessage));
+                yield new ExceptionTranslateResult(HttpStatus.BAD_REQUEST, StrFormatter.format("URL参数错误: {}", errorMessage));
             }
 
             /*
@@ -151,7 +152,7 @@ public class ExceptionTranslator {
                         .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
                         .collect(Collectors.joining("; "));
                 log.warn("参数绑定失败: {}", errorMessage);
-                yield new ExceptionTranslateResult(HttpStatus.BAD_REQUEST, "参数绑定失败: {%s}".formatted(errorMessage));
+                yield new ExceptionTranslateResult(HttpStatus.BAD_REQUEST, StrFormatter.format("参数绑定失败: {}", errorMessage));
             }
 
             /*
@@ -159,7 +160,7 @@ public class ExceptionTranslator {
             */
             case MissingServletRequestParameterException e -> {
                 log.warn("请求缺少必要参数: {}", e.getParameterName());
-                yield new ExceptionTranslateResult(HttpStatus.BAD_REQUEST, "请求缺少必要参数: {%s}".formatted(e.getParameterName()));
+                yield new ExceptionTranslateResult(HttpStatus.BAD_REQUEST, StrFormatter.format("请求缺少必要参数: {}", e.getParameterName()));
             }
 
             /*
@@ -167,7 +168,7 @@ public class ExceptionTranslator {
             */
             case MissingServletRequestPartException e -> {
                 log.warn("请求缺少必要部分: {}", e.getRequestPartName());
-                yield new ExceptionTranslateResult(HttpStatus.BAD_REQUEST, "请求缺少必要部分: {%s}".formatted(e.getRequestPartName()));
+                yield new ExceptionTranslateResult(HttpStatus.BAD_REQUEST, StrFormatter.format("请求缺少必要部分: {}", e.getRequestPartName()));
             }
 
             /*
@@ -177,7 +178,7 @@ public class ExceptionTranslator {
             case MethodArgumentTypeMismatchException e -> {
                 String requiredType = e.getRequiredType() != null ? e.getRequiredType().getSimpleName() : "未知类型";
                 log.warn("参数类型不匹配: {} 应为 {}", e.getName(), requiredType);
-                yield new ExceptionTranslateResult(HttpStatus.BAD_REQUEST, "参数类型不匹配: {%s} 应为 {%s}".formatted(e.getName(), requiredType));
+                yield new ExceptionTranslateResult(HttpStatus.BAD_REQUEST, StrFormatter.format("参数类型不匹配: {} 应为 {}", e.getName(), requiredType));
             }
 
             // ==================== 5. 路由与 HTTP 协议异常 ====================
@@ -188,7 +189,7 @@ public class ExceptionTranslator {
             */
             case NoResourceFoundException e -> {
                 log.warn("请求的资源不存在: [{} {}]", e.getHttpMethod(), e.getResourcePath());
-                yield new ExceptionTranslateResult(HttpStatus.NOT_FOUND, "请求的资源不存在: [{%s} {%s}]".formatted(e.getHttpMethod(), e.getResourcePath()));
+                yield new ExceptionTranslateResult(HttpStatus.NOT_FOUND, StrFormatter.format("请求的资源不存在: [{} {}]", e.getHttpMethod(), e.getResourcePath()));
             }
 
             /*
@@ -196,7 +197,7 @@ public class ExceptionTranslator {
             */
             case NoHandlerFoundException e -> {
                 log.warn("接口不存在: [{} {}]", e.getHttpMethod(), e.getRequestURL());
-                yield new ExceptionTranslateResult(HttpStatus.NOT_FOUND, "接口不存在: [{%s} {%s}]".formatted(e.getHttpMethod(), e.getRequestURL()));
+                yield new ExceptionTranslateResult(HttpStatus.NOT_FOUND, StrFormatter.format("接口不存在: [{} {}]", e.getHttpMethod(), e.getRequestURL()));
             }
 
             /*
@@ -205,7 +206,7 @@ public class ExceptionTranslator {
             */
             case HttpRequestMethodNotSupportedException e -> {
                 log.warn("请求方法不支持: {}", e.getMethod());
-                yield new ExceptionTranslateResult(HttpStatus.METHOD_NOT_ALLOWED, "请求方法不支持: {%s}".formatted(e.getMethod()));
+                yield new ExceptionTranslateResult(HttpStatus.METHOD_NOT_ALLOWED, StrFormatter.format("请求方法不支持: {}", e.getMethod()));
             }
 
             // ==================== 5. 持久层异常 ====================
@@ -228,9 +229,9 @@ public class ExceptionTranslator {
                 String requestID = MDC.get("requestId");
                 if (requestID == null) requestID = "未分配";
                 if (exposeUncaughtExceptionDetail) {
-                    yield new ExceptionTranslateResult(HttpStatus.INTERNAL_SERVER_ERROR, "系统内部错误: {%s}，请求ID: {%s}".formatted(e.getMessage(), requestID));
+                    yield new ExceptionTranslateResult(HttpStatus.INTERNAL_SERVER_ERROR, StrFormatter.format("系统内部错误: {}，请求ID: {}", e.getMessage(), requestID));
                 }
-                yield new ExceptionTranslateResult(HttpStatus.INTERNAL_SERVER_ERROR, "系统内部错误，请联系管理员，请求ID: {%s}".formatted(requestID));
+                yield new ExceptionTranslateResult(HttpStatus.INTERNAL_SERVER_ERROR, StrFormatter.format("系统内部错误，请联系管理员，请求ID: {}", requestID));
             }
         };
     }

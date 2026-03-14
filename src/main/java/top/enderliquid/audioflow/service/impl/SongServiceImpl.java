@@ -22,6 +22,7 @@ import top.enderliquid.audioflow.common.enums.SongStatus;
 import top.enderliquid.audioflow.common.exception.BusinessException;
 import top.enderliquid.audioflow.common.exception.ExceptionTranslator;
 import top.enderliquid.audioflow.common.transaction.TransactionHelper;
+import top.enderliquid.audioflow.common.util.StrFormatter;
 import top.enderliquid.audioflow.dto.bo.SongBO;
 import top.enderliquid.audioflow.dto.param.SongPageParam;
 import top.enderliquid.audioflow.dto.request.song.*;
@@ -119,7 +120,7 @@ public class SongServiceImpl implements SongService {
         }
         // 初步校验文件大小
         if (dto.getSize() > maxFileSizeBytes) {
-            throw new BusinessException("文件大小超过限制，最大仅允许 {%s}".formatted(maxFileSizeStr));
+            throw new BusinessException(StrFormatter.format("文件大小超过限制，最大仅允许 {}", maxFileSizeStr));
         }
 
         Long songId = IdWorker.getId();
@@ -219,7 +220,7 @@ public class SongServiceImpl implements SongService {
             throw new BusinessException("获取文件大小失败");
         }
         if (fileSize > maxFileSizeBytes) {
-            throw new BusinessException("文件大小超过限制，最大仅允许 {%s}".formatted(maxFileSizeStr));
+            throw new BusinessException(StrFormatter.format("文件大小超过限制，最大仅允许 {}", maxFileSizeStr));
         }
 
         // 解析歌曲持续时长

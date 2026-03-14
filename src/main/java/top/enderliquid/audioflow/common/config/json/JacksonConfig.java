@@ -25,7 +25,7 @@ public class JacksonConfig {
     public Jackson2ObjectMapperBuilderCustomizer jacksonTrimmingCustomizer() {
         return builder -> {
             // 自动 trim 字符串
-            builder.deserializerByType(String.class, new StringTrimDeserializer());
+            builder.deserializerByType(String.class, new StringTrimmingDeserializer());
 
             // i18n
             builder.serializerByType(String.class, new I18nStringSerializer(messageSource));

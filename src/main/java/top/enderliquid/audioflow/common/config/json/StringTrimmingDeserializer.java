@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 
 import java.io.IOException;
 
-public class StringTrimDeserializer extends JsonDeserializer<String> {
+public class StringTrimmingDeserializer extends JsonDeserializer<String> {
     @Override
     public String deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
         String result = p.getText();

@@ -197,7 +197,7 @@ public class SongController {
             },
             message = "批量删除过于频繁，请稍后再试"
     )
-public HttpResponseBody<BatchResult<Object>> batchRemoveSongs(@Valid @RequestBody SongBatchDeleteDTO dto) {
+    public HttpResponseBody<BatchResult<Object>> batchRemoveSongs(@Valid @RequestBody SongBatchDeleteDTO dto) {
         long userId = StpUtil.getLoginIdAsLong();
         BatchResult<Object> result = songService.batchRemoveSongs(dto, userId);
         return HttpResponseBody.ok(result);

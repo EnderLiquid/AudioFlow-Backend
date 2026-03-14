@@ -8,6 +8,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.TimeZone;
 
+import static top.enderliquid.audioflow.common.constant.TimeZoneConstants.GLOBAL_TIME_ZONE_ID;
+
 @EnableScheduling
 @SpringBootApplication
 @MapperScan("top.enderliquid.audioflow.mapper")
@@ -15,7 +17,7 @@ public class AudioFlowApplication {
 
     @PostConstruct
     public void setTimeZone() {
-        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Shanghai"));
+        TimeZone.setDefault(TimeZone.getTimeZone(GLOBAL_TIME_ZONE_ID));
     }
 
     public static void main(String[] args) {

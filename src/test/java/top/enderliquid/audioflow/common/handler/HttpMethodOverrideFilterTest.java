@@ -1,4 +1,4 @@
-package top.enderliquid.audioflow.common.filter;
+package top.enderliquid.audioflow.common.handler;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

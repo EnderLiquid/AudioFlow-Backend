@@ -1,4 +1,4 @@
-package top.enderliquid.audioflow.common.config;
+package top.enderliquid.audioflow.common.handler;
 
 import cn.dev33.satoken.stp.StpUtil;
 import jakarta.servlet.http.HttpServletRequest;

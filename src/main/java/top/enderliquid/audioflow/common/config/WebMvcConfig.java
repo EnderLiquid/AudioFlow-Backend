@@ -11,7 +11,8 @@ import org.springframework.lang.NonNull;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import top.enderliquid.audioflow.common.filter.HttpMethodOverrideFilter;
+import top.enderliquid.audioflow.common.handler.HttpMethodOverrideFilter;
+import top.enderliquid.audioflow.common.handler.RateLimitInterceptor;
 
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {

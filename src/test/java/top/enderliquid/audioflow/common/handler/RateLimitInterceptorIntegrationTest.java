@@ -1,4 +1,4 @@
-package top.enderliquid.audioflow.common.config;
+package top.enderliquid.audioflow.common.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -24,7 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
-class RateLimitAspectIntegrationTest {
+class RateLimitInterceptorIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;

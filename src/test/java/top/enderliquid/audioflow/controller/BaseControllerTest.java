@@ -1,4 +1,4 @@
-package top.enderliquid.audioflow.config;
+package top.enderliquid.audioflow.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;

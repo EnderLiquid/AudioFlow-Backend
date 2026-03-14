@@ -3,7 +3,6 @@ package top.enderliquid.audioflow.controller;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
-import top.enderliquid.audioflow.config.BaseControllerTest;
 import top.enderliquid.audioflow.entity.User;
 
 import java.util.HashMap;

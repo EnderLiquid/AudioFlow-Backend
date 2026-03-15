@@ -30,6 +30,7 @@ public class SessionController {
     @PostMapping
     @RateLimits(
             value = @RateLimit(type = LimitType.IP, refillRate = "1/60", capacity = 3),
+            value = @RateLimit(type = LimitType.IP, refillRate = "1/10", capacity = 5),
             message = "登录尝试过于频繁，请稍后再试"
     )
     public HttpResponseBody<LoginResult> login(@Valid @RequestBody UserLoginDTO dto) {

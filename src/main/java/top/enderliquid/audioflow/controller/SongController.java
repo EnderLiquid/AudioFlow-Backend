@@ -154,8 +154,8 @@ public class SongController {
     @PostMapping("/batch-prepare")
     @RateLimits(
             value = {
-                    @RateLimit(type = LimitType.IP, refillRate = "1/10", capacity = 3),
-                    @RateLimit(type = LimitType.USER, refillRate = "1/10", capacity = 3)
+                    @RateLimit(type = LimitType.IP, refillRate = "1/10", capacity = 5),
+                    @RateLimit(type = LimitType.USER, refillRate = "1/10", capacity = 5)
             },
             message = "批量准备上传过于频繁，请稍后再试"
     )
@@ -173,8 +173,8 @@ public class SongController {
     @PostMapping("/batch-complete")
     @RateLimits(
             value = {
-                    @RateLimit(type = LimitType.IP, refillRate = "1/10", capacity = 3),
-                    @RateLimit(type = LimitType.USER, refillRate = "1/10", capacity = 3)
+                    @RateLimit(type = LimitType.IP, refillRate = "1/10", capacity = 5),
+                    @RateLimit(type = LimitType.USER, refillRate = "1/10", capacity = 5)
             },
             message = "批量完成上传过于频繁，请稍后再试"
     )
@@ -192,8 +192,8 @@ public class SongController {
     @PostMapping("/batch")
     @RateLimits(
             value = {
-                    @RateLimit(type = LimitType.IP, refillRate = "1/10", capacity = 3),
-                    @RateLimit(type = LimitType.USER, refillRate = "1/10", capacity = 3)
+                    @RateLimit(type = LimitType.IP, refillRate = "1/10", capacity = 5),
+                    @RateLimit(type = LimitType.USER, refillRate = "1/10", capacity = 5)
             },
             message = "批量删除过于频繁，请稍后再试"
     )
@@ -230,8 +230,8 @@ public class SongController {
     @PostMapping("/batch-cancel")
     @RateLimits(
             value = {
-                    @RateLimit(type = LimitType.IP, refillRate = "1/10", capacity = 3),
-                    @RateLimit(type = LimitType.USER, refillRate = "1/10", capacity = 3)
+                    @RateLimit(type = LimitType.IP, refillRate = "1/10", capacity = 5),
+                    @RateLimit(type = LimitType.USER, refillRate = "1/10", capacity = 5)
             },
             message = "批量取消上传过于频繁，请稍后再试"
     )

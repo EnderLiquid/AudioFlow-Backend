@@ -13,6 +13,8 @@ import top.enderliquid.audioflow.common.annotation.RateLimit;
 import top.enderliquid.audioflow.common.annotation.RateLimits;
 import top.enderliquid.audioflow.service.RateLimitService;
 
+import static top.enderliquid.audioflow.common.util.RequestUtil.getClientIp;
+
 /**
  * 限流拦截器
  * 用于拦截带有 @RateLimits 注解的请求并进行限流检查
@@ -49,24 +51,6 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         }
 
         return true;
-    }
-
-    /**
-     * 获取客户端 IP 地址
-     * 优先从 X-Real-IP 和 X-Forwarded-For 头中获取，否则使用 remoteAddr
-     */
-    private String getClientIp(HttpServletRequest request) {
-        String ip = request.getHeader("X-Real-IP");
-        if (ip == null || ip.isEmpty()) {
-            ip = request.getHeader("X-Forwarded-For");
-            if (ip != null && !ip.isEmpty()) {
-                ip = ip.split(",")[0].trim();
-            }
-        }
-        if (ip == null || ip.isEmpty()) {
-            ip = request.getRemoteAddr();
-        }
-        return ip;
     }
 
     /**

@@ -7,8 +7,6 @@ import cn.dev33.satoken.exception.SaTokenException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.MDC;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -31,9 +29,6 @@ import java.util.stream.Collectors;
 @Component
 @Slf4j
 public class ExceptionTranslator {
-
-    @Value("${response.exception.expose-uncaught-exception-detail:false}")
-    boolean exposeUncaughtExceptionDetail;
 
     public ExceptionTranslateResult translate(Exception exception) {
         return switch (exception) {
@@ -88,7 +83,7 @@ public class ExceptionTranslator {
             */
             case SaTokenException e -> {
                 log.warn("鉴权异常: {}", e.getMessage());
-                yield new ExceptionTranslateResult(HttpStatus.FORBIDDEN, StrFormatter.format("鉴权失败: {}", e.getMessage()));
+                yield new ExceptionTranslateResult(HttpStatus.FORBIDDEN, "鉴权失败");
             }
 
             // ==================== 3. 请求解析与格式异常 ====================
@@ -226,12 +221,7 @@ public class ExceptionTranslator {
             */
             case Exception e -> {
                 log.error("未捕获异常", e);
-                String requestID = MDC.get("requestId");
-                if (requestID == null) requestID = "未分配";
-                if (exposeUncaughtExceptionDetail) {
-                    yield new ExceptionTranslateResult(HttpStatus.INTERNAL_SERVER_ERROR, StrFormatter.format("系统内部错误: {}，请求ID: {}", e.getMessage(), requestID));
-                }
-                yield new ExceptionTranslateResult(HttpStatus.INTERNAL_SERVER_ERROR, StrFormatter.format("系统内部错误，请联系管理员，请求ID: {}", requestID));
+                yield new ExceptionTranslateResult(HttpStatus.INTERNAL_SERVER_ERROR, StrFormatter.format("系统内部错误，请联系管理员"));
             }
         };
     }

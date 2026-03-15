@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserVerifyPasswordDTO {
+public class UserLoginDTO {
     @NotBlank(message = "邮箱不能为空")
     @Email(message = "邮箱格式不正确")
     @Size(min = 1, max = 128, message = "邮箱长度必须在1-128个字符之间")

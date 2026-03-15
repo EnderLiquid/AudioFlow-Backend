@@ -10,9 +10,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import top.enderliquid.audioflow.common.exception.BusinessException;
 import top.enderliquid.audioflow.common.transaction.TransactionHelper;
+import top.enderliquid.audioflow.dto.request.user.UserLoginDTO;
 import top.enderliquid.audioflow.dto.request.user.UserSaveDTO;
 import top.enderliquid.audioflow.dto.request.user.UserUpdatePasswordDTO;
-import top.enderliquid.audioflow.dto.request.user.UserVerifyPasswordDTO;
 import top.enderliquid.audioflow.dto.response.user.UserVO;
 import top.enderliquid.audioflow.entity.User;
 import top.enderliquid.audioflow.manager.PointsRecordManager;
@@ -67,8 +67,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserVO verifyUserPassword(UserVerifyPasswordDTO dto) {
-        log.info("请求校验用户密码，邮箱: {}", dto.getEmail());
+    public UserVO login(UserLoginDTO dto) {
+        log.info("用户请求登录，邮箱: {}", dto.getEmail());
         User user = userManager.getByEmail(dto.getEmail());
         if (user == null) {
             throw new BusinessException("用户不存在");
@@ -81,7 +81,7 @@ public class UserServiceImpl implements UserService {
         }
         UserVO userVO = new UserVO();
         BeanUtils.copyProperties(user, userVO);
-        log.info("用户密码校验成功，用户ID: {}", user.getId());
+        log.info("用户登录成功，用户ID: {}", user.getId());
         return userVO;
     }
 

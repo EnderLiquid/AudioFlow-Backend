@@ -27,9 +27,6 @@ public class JacksonConfig {
             // 自动 trim 字符串
             builder.deserializerByType(String.class, new StringTrimmingDeserializer());
 
-            // i18n
-            builder.serializerByType(String.class, new I18nStringSerializer(messageSource));
-
             // 时区
             // 1. 格式化 LocalDateTime
             // 默认为 ISO-8601 标准，如 "2023-10-25T10:00:00"

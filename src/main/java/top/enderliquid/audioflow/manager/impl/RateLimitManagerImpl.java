@@ -13,6 +13,7 @@ import top.enderliquid.audioflow.manager.RateLimitManager;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Objects;
 
 @Slf4j
 @Component
@@ -55,6 +56,7 @@ public class RateLimitManagerImpl implements RateLimitManager {
                     String.valueOf(System.currentTimeMillis()),
                     String.valueOf(tokensRequested)
             );
+            Objects.requireNonNull(result);
             return result != -1;
         } catch (Exception e) {
             log.error("Redis限流脚本执行异常，默认放行。Key: {}", key, e);

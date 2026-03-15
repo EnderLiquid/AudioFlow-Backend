@@ -24,7 +24,6 @@ import top.enderliquid.audioflow.common.exception.ExceptionTranslator;
 import top.enderliquid.audioflow.common.transaction.TransactionHelper;
 import top.enderliquid.audioflow.common.util.StrFormatter;
 import top.enderliquid.audioflow.dto.bo.SongBO;
-import top.enderliquid.audioflow.dto.param.SongPageParam;
 import top.enderliquid.audioflow.dto.request.song.*;
 import top.enderliquid.audioflow.dto.response.BatchResult;
 import top.enderliquid.audioflow.dto.response.BatchResultItem;
@@ -296,13 +295,18 @@ public class SongServiceImpl implements SongService {
     @Override
     public PageVO<SongVO> pageSongsByUploaderKeywordAndSongKeyword(SongPageDTO dto) {
         log.info("请求分页查询歌曲");
-        SongPageParam param = new SongPageParam();
-        BeanUtils.copyProperties(dto, param);
-        if (param.getAsc() == null) param.setAsc(false);
-        if (param.getPageIndex() == null) param.setPageIndex(1L);
-        if (param.getPageSize() == null) param.setPageSize(10L);
-        IPage<SongBO> songBOPage = songManager.pageByUploaderKeywordAndSongKeyword(param);
-        List<SongBO> songBOList = songBOPage.getRecords();
+        Long pageIndex = dto.getPageIndex() != null ? dto.getPageIndex() : 1L;
+        Long pageSize = dto.getPageSize() != null ? dto.getPageSize() : 10L;
+        Boolean asc = dto.getAsc() != null ? dto.getAsc() : false;
+
+        IPage<SongBO> page = songManager.pageByUploaderKeywordAndSongKeyword(
+                dto.getUploaderKeyword(),
+                dto.getSongKeyword(),
+                asc,
+                pageIndex,
+                pageSize
+        );
+        List<SongBO> songBOList = page.getRecords();
         List<SongVO> songVOList = new ArrayList<>();
         if (songBOList != null && !songBOList.isEmpty()) {
             for (SongBO songBO : songBOList) {
@@ -314,9 +318,9 @@ public class SongServiceImpl implements SongService {
         }
         PageVO<SongVO> pageVO = new PageVO<>();
         pageVO.setList(songVOList);
-        pageVO.setPageIndex(songBOPage.getCurrent());
-        pageVO.setPageSize(songBOPage.getSize());
-        pageVO.setTotal(songBOPage.getTotal());
+        pageVO.setPageIndex(page.getCurrent());
+        pageVO.setPageSize(page.getSize());
+        pageVO.setTotal(page.getTotal());
         log.info("分页查询歌曲成功");
         return pageVO;
     }

@@ -13,10 +13,7 @@ import top.enderliquid.audioflow.dto.response.checkin.CheckinStatusVO;
 import top.enderliquid.audioflow.dto.response.checkin.CheckinSummaryVO;
 import top.enderliquid.audioflow.entity.CheckinLog;
 import top.enderliquid.audioflow.entity.CheckinSummary;
-import top.enderliquid.audioflow.manager.CheckinLogManager;
-import top.enderliquid.audioflow.manager.CheckinSummaryManager;
-import top.enderliquid.audioflow.manager.PointsRecordManager;
-import top.enderliquid.audioflow.manager.UserManager;
+import top.enderliquid.audioflow.manager.*;
 import top.enderliquid.audioflow.service.CheckinService;
 
 import java.time.LocalDate;
@@ -44,6 +41,9 @@ public class CheckinServiceImpl implements CheckinService {
 
     @Autowired
     private PlatformTransactionManager txManager;
+
+    @Autowired
+    private CheckinCountManager checkinCountManager;
 
     @Override
     public CheckinResultVO checkin(Long userId) {

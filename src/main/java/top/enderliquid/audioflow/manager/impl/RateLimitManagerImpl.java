@@ -9,14 +9,14 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Component;
-import top.enderliquid.audioflow.manager.RedisManager;
+import top.enderliquid.audioflow.manager.RateLimitManager;
 
 import java.io.IOException;
 import java.util.Collections;
 
 @Slf4j
 @Component
-public class RedisManagerImpl implements RedisManager {
+public class RateLimitManagerImpl implements RateLimitManager {
 
     @Autowired
     private StringRedisTemplate redisTemplate;

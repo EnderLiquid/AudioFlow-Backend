@@ -7,14 +7,14 @@ import top.enderliquid.audioflow.common.annotation.RateLimit;
 import top.enderliquid.audioflow.common.enums.LimitType;
 import top.enderliquid.audioflow.common.exception.RateLimitException;
 import top.enderliquid.audioflow.common.util.Fraction;
-import top.enderliquid.audioflow.manager.RedisManager;
+import top.enderliquid.audioflow.manager.RateLimitManager;
 import top.enderliquid.audioflow.service.RateLimitService;
 
 @Slf4j
 @Service
 public class RateLimitServiceImpl implements RateLimitService {
     @Autowired
-    private RedisManager redisManager;
+    private RateLimitManager rateLimitManager;
 
     @Override
     public void verifyRateLimit(RateLimit limit, String ip, Long userId, String entry, String message) {
@@ -39,7 +39,7 @@ public class RateLimitServiceImpl implements RateLimitService {
             default -> throw new IllegalArgumentException("未知的限流类型: " + limitType);
         }
 
-        if (!redisManager.tryAcquireRateLimitToken(key, capacity, refillRate, tokensRequested)) {
+        if (!rateLimitManager.tryAcquireRateLimitToken(key, capacity, refillRate, tokensRequested)) {
             log.warn("限流检查失败，类型: {}，入口: {}, 容量: {}, 补充速率: {}, 需求量: {}",
                 limitType, entry, capacity, refillRate, tokensRequested);
             throw new RateLimitException(message);

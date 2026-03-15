@@ -1,11 +1,7 @@
 package top.enderliquid.audioflow.common.exception;
 
-public class BusinessException extends RuntimeException {
-    public BusinessException(String message) {
-        super(message);
-    }
+import lombok.experimental.StandardException;
 
-    public BusinessException(String message, Throwable cause) {
-        super(message, cause);
-    }
+@StandardException
+public class BusinessException extends RuntimeException {
 }

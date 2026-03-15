@@ -26,13 +26,7 @@ CREATE TABLE IF NOT EXISTS `song` (
     PRIMARY KEY (`id`),
     INDEX `idx_create_time` (`create_time`),
     INDEX `idx_uploader_id` (`uploader_id`),
-    INDEX `idx_status_create_time` (`status`, `create_time`),
-    -- 创建外键约束
-    CONSTRAINT `fk_song_user`
-    FOREIGN KEY (`uploader_id`)
-    REFERENCES `user` (`id`)
-    ON DELETE RESTRICT
-    ON UPDATE CASCADE
+    INDEX `idx_status_create_time` (`status`, `create_time`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='歌曲表';
 
 -- 积分流水表

@@ -8,6 +8,7 @@ target/
 *.log
 settings.local.json
 /run-claude-code.bat
+/docs/plans
 
 ### STS ###
 .apt_generated

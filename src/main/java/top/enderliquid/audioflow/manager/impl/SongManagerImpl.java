@@ -38,7 +38,7 @@ public class SongManagerImpl extends ServiceImpl<SongMapper, Song> implements So
                 uploaderId,
                 param.getSongKeyword(),
                 songId,
-                param.getIsAsc()
+                param.getAsc()
         );
         return page;
     }

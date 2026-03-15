@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 public class SongPageParam {
     private String uploaderKeyword;
     private String songKeyword;
-    private Boolean isAsc;
+    private Boolean asc;
     private Long pageIndex;
     private Long pageSize;
 }

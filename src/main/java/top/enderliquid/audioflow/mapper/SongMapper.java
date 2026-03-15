@@ -16,7 +16,7 @@ public interface SongMapper extends BaseMapper<Song> {
             @Param("uploaderId") Long uploaderId,
             @Param("songKeyword") String songKeyword,
             @Param("songId") Long songId,
-            @Param("isAsc") boolean isAsc
+            @Param("asc") boolean asc
     );
 
     @Select("SELECT * FROM song WHERE id = #{id} FOR UPDATE")

@@ -19,7 +19,7 @@ public class SongPageDTO {
     private String songKeyword;
 
     // null: 默认 false ，倒序
-    private Boolean isAsc;
+    private Boolean asc;
 
     // null: 默认 1
     @Min(value = 1, message = "页码必须大于0")

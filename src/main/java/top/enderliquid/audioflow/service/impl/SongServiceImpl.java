@@ -298,7 +298,7 @@ public class SongServiceImpl implements SongService {
         log.info("请求分页查询歌曲");
         SongPageParam param = new SongPageParam();
         BeanUtils.copyProperties(dto, param);
-        if (param.getIsAsc() == null) param.setIsAsc(false);
+        if (param.getAsc() == null) param.setAsc(false);
         if (param.getPageIndex() == null) param.setPageIndex(1L);
         if (param.getPageSize() == null) param.setPageSize(10L);
         IPage<SongBO> songBOPage = songManager.pageByUploaderKeywordAndSongKeyword(param);

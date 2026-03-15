@@ -36,7 +36,7 @@
         <!-- 3. 排序逻辑 -->
         ORDER BY s.create_time
         <choose>
-            <when test="isAsc">ASC</when>
+            <when test="asc">ASC</when>
             <otherwise>DESC</otherwise>
         </choose>
     </select>

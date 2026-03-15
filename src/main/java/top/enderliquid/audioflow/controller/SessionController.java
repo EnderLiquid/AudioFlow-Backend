@@ -14,7 +14,7 @@ import top.enderliquid.audioflow.common.response.HttpResponseBody;
 import top.enderliquid.audioflow.dto.request.user.UserLoginDTO;
 import top.enderliquid.audioflow.dto.response.session.LoginResult;
 import top.enderliquid.audioflow.dto.response.user.UserVO;
-import top.enderliquid.audioflow.service.UserService;
+import top.enderliquid.audioflow.service.SessionService;
 
 @RestController
 @RequestMapping("/api/sessions")
@@ -22,7 +22,7 @@ import top.enderliquid.audioflow.service.UserService;
 public class SessionController {
 
     @Autowired
-    private UserService userService;
+    private SessionService sessionService;
 
     /**
      * 用户登录
@@ -33,7 +33,7 @@ public class SessionController {
             message = "登录尝试过于频繁，请稍后再试"
     )
     public HttpResponseBody<LoginResult> login(@Valid @RequestBody UserLoginDTO dto) {
-        UserVO userVO = userService.login(dto);
+        UserVO userVO = sessionService.login(dto);
         StpUtil.login(userVO.getId());
         SaTokenInfo tokenInfo = StpUtil.getTokenInfo();
         return HttpResponseBody.ok(new LoginResult(userVO, tokenInfo), "登录成功");

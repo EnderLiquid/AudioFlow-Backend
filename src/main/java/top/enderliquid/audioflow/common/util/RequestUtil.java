@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import nl.basjes.parse.useragent.UserAgent;
 import nl.basjes.parse.useragent.UserAgentAnalyzer;
+import org.springframework.lang.Nullable;
 
 /**
  * 请求工具类
@@ -32,19 +33,19 @@ public final class RequestUtil {
      */
     public static String getClientIp(HttpServletRequest request) {
         // 优先从 X-Real-IP 头获取
-        String ip = request.getHeader("X-Real-IP");
+        String ip = getHeaderIfNotBlank(request, "X-Real-IP");
 
         // 其次从 X-Forwarded-For 头获取（取第一个 IP）
-        if (ip == null || ip.isEmpty()) {
-            ip = request.getHeader("X-Forwarded-For");
-            if (ip != null && !ip.isEmpty()) {
+        if (ip == null) {
+            ip = getHeaderIfNotBlank(request, "X-Forwarded-For");
+            if (ip != null) {
                 // X-Forwarded-For 可能包含多个 IP，取第一个
                 ip = ip.split(",")[0].trim();
             }
         }
 
         // 最后使用 RemoteAddr
-        if (ip == null || ip.isEmpty()) {
+        if (ip == null) {
             ip = request.getRemoteAddr();
         }
 
@@ -58,13 +59,11 @@ public final class RequestUtil {
      * Desktop, Mobile, Tablet, Phone, Game Console, Smart TV 等
      *
      * @param request HTTP 请求对象
-     * @return 设备类型，如果无法解析则返回 "Unknown"
+     * @return 设备类型，如果无法解析则返回 null
      */
     public static String getDeviceType(HttpServletRequest request) {
-        String userAgentHeader = request.getHeader("User-Agent");
-        if (userAgentHeader == null || userAgentHeader.isEmpty()) {
-            return "Unknown";
-        }
+        String userAgentHeader = getUserAgent(request);
+        if (userAgentHeader == null) return null;
 
         try {
             UserAgentAnalyzer analyzer = UserAgentAnalyzerHolder.INSTANCE;
@@ -72,7 +71,7 @@ public final class RequestUtil {
             return userAgent.getValue("DeviceClass");
         } catch (Exception e) {
             log.warn("解析 User-Agent 失败: {}", e.getMessage());
-            return "Unknown";
+            return null;
         }
     }
 
@@ -83,13 +82,11 @@ public final class RequestUtil {
      * Chrome 103.0.5060.134, Firefox 102.0, Safari 15.6 等
      *
      * @param request HTTP 请求对象
-     * @return 浏览器名称和版本，如果无法解析则返回 "Unknown"
+     * @return 浏览器名称和版本，如果无法解析则返回 null
      */
     public static String getBrowser(HttpServletRequest request) {
-        String userAgentHeader = request.getHeader("User-Agent");
-        if (userAgentHeader == null || userAgentHeader.isEmpty()) {
-            return "Unknown";
-        }
+        String userAgentHeader = getUserAgent(request);
+        if (userAgentHeader == null) return null;
 
         try {
             UserAgentAnalyzer analyzer = UserAgentAnalyzerHolder.INSTANCE;
@@ -97,7 +94,7 @@ public final class RequestUtil {
             return userAgent.getValue("AgentNameVersion");
         } catch (Exception e) {
             log.warn("解析 User-Agent 失败: {}", e.getMessage());
-            return "Unknown";
+            return null;
         }
     }
 
@@ -108,13 +105,11 @@ public final class RequestUtil {
      * Windows 10, macOS 12.5, Linux, Android 13, iOS 16.5 等
      *
      * @param request HTTP 请求对象
-     * @return 操作系统名称和版本，如果无法解析则返回 "Unknown"
+     * @return 操作系统名称和版本，如果无法解析则返回 null
      */
     public static String getOs(HttpServletRequest request) {
-        String userAgentHeader = request.getHeader("User-Agent");
-        if (userAgentHeader == null || userAgentHeader.isEmpty()) {
-            return "Unknown";
-        }
+        String userAgentHeader = getUserAgent(request);
+        if (userAgentHeader == null) return null;
 
         try {
             UserAgentAnalyzer analyzer = UserAgentAnalyzerHolder.INSTANCE;
@@ -122,8 +117,19 @@ public final class RequestUtil {
             return userAgent.getValue("OperatingSystemNameVersion");
         } catch (Exception e) {
             log.warn("解析 User-Agent 失败: {}", e.getMessage());
-            return "Unknown";
+            return null;
         }
+    }
+
+    public static String getUserAgent(HttpServletRequest request) {
+        return getHeaderIfNotBlank(request, "User-Agent");
+    }
+
+    @Nullable
+    public static String getHeaderIfNotBlank(HttpServletRequest request, String name) {
+        String header = request.getHeader(name);
+        if (header == null || header.isBlank()) return null;
+        return header.trim();
     }
 
     /**

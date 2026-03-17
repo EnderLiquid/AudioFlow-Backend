@@ -21,15 +21,20 @@ public class LoginLogManagerImpl extends ServiceImpl<LoginLogMapper, LoginLog> i
      * @param userId 用户ID
      * @param pageIndex 页码
      * @param pageSize 每页大小
-     * @return 登录流水分页结果，按创建时间倒序
+     * @param asc 是否升序
+     * @return 登录流水分页结果
      */
     @Override
-    public Page<LoginLog> pageByUserId(Long userId, Long pageIndex, Long pageSize) {
+    public Page<LoginLog> pageByUserId(Long userId, Long pageIndex, Long pageSize, boolean asc) {
         Page<LoginLog> page = new Page<>(pageIndex, pageSize);
         LambdaQueryWrapper<LoginLog> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(LoginLog::getUserId, userId)
-               .eq(LoginLog::isSuccess, true)
-               .orderByDesc(LoginLog::getCreateTime);
+               .eq(LoginLog::isSuccess, true);
+        if (asc) {
+            wrapper.orderByAsc(LoginLog::getCreateTime);
+        } else {
+            wrapper.orderByDesc(LoginLog::getCreateTime);
+        }
         return super.page(page, wrapper);
     }
 

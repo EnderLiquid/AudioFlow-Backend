@@ -9,7 +9,7 @@ import top.enderliquid.audioflow.entity.LoginLog;
  * 登录流水 Manager
  */
 public interface LoginLogManager extends IService<LoginLog> {
-    Page<LoginLog> pageByUserId(Long userId, Long pageIndex, Long pageSize);
+    Page<LoginLog> pageByUserId(Long userId, Long pageIndex, Long pageSize, boolean asc);
 
     public void addRecord(Long userId, String email, boolean success, String failReason, LoginContext context);
 }

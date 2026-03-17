@@ -24,4 +24,7 @@ public class LoginLogPageDTO {
     @Nullable
     @Min(value = PAGE_SIZE_MIN, message = "分页大小必须不小于" + PAGE_SIZE_MIN)
     private Long pageSize;
+
+    @Nullable
+    private Boolean asc;
 }

@@ -15,8 +15,7 @@ import top.enderliquid.audioflow.service.LoginLogService;
 import java.util.ArrayList;
 import java.util.List;
 
-import static top.enderliquid.audioflow.common.constant.DefaultConstants.PAGE_DEFAULT_INDEX;
-import static top.enderliquid.audioflow.common.constant.DefaultConstants.PAGE_DEFAULT_SIZE;
+import static top.enderliquid.audioflow.common.constant.DefaultConstants.*;
 
 @Slf4j
 @Service
@@ -31,11 +30,13 @@ public class LoginLogServiceImpl implements LoginLogService {
 
         Long pageIndex = dto.getPageIndex() != null ? dto.getPageIndex() : PAGE_DEFAULT_INDEX;
         Long pageSize = dto.getPageSize() != null ? dto.getPageSize() : PAGE_DEFAULT_SIZE;
+        boolean asc = dto.getAsc() != null ? dto.getAsc() : PAGE_DEFAULT_ASC;
 
         Page<LoginLog> page = loginLogManager.pageByUserId(
                 userId,
                 pageIndex,
-                pageSize
+                pageSize,
+                asc
         );
 
         List<LoginLog> logList = page.getRecords();

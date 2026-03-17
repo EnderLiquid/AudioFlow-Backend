@@ -47,7 +47,7 @@ public class UserServiceImpl implements UserService {
         user.setName(dto.getName());
         String encryptedPassword = passwordEncoder.encode(dto.getPassword());
         user.setPassword(encryptedPassword);
-        user.setPoints(100);
+        user.setPoints(pointsWhenRegister);
         try (TransactionHelper tx = new TransactionHelper(txManager)) {
             // 依赖数据库唯一键防止邮箱重复
             try {

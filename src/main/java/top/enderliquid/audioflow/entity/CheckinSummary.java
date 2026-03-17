@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = false)
-@TableName("user_checkin_summary")
+@TableName("checkin_summary")
 public class CheckinSummary {
     @TableId
     private Long userId;

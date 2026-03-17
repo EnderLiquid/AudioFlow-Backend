@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS `points_record`(
     COLLATE = utf8mb4_unicode_ci COMMENT ='积分流水表';
 
 -- 签到记录表
-CREATE TABLE IF NOT EXISTS `user_checkin_log`(
+CREATE TABLE IF NOT EXISTS `checkin_log`(
     `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '记录ID',
     `user_id` BIGINT NOT NULL COMMENT '用户ID',
     `checkin_date` DATE NOT NULL COMMENT '签到日期',
@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS `user_checkin_log`(
     COLLATE = utf8mb4_unicode_ci COMMENT ='签到记录表';
 
 -- 签到统计表
-CREATE TABLE IF NOT EXISTS `user_checkin_summary` (
+CREATE TABLE IF NOT EXISTS `checkin_summary` (
     `user_id` BIGINT NOT NULL COMMENT '用户ID',
     `total_days` INT NOT NULL DEFAULT 0 COMMENT '累计签到天数',
     `continuous_days` INT NOT NULL DEFAULT 0 COMMENT '当前连续签到天数',
@@ -96,6 +96,6 @@ CREATE TABLE IF NOT EXISTS `login_log` (
 SHOW CREATE TABLE `user`;
 SHOW CREATE TABLE `song`;
 SHOW CREATE TABLE `points_record`;
-SHOW CREATE TABLE `user_checkin_log`;
-SHOW CREATE TABLE `user_checkin_summary`;
+SHOW CREATE TABLE `checkin_log`;
+SHOW CREATE TABLE `checkin_summary`;
 SHOW CREATE TABLE `login_log`;

@@ -55,7 +55,7 @@ class SessionControllerTest extends BaseControllerTest {
                         .content(requestJson))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.message").value("密码错误"));
+                .andExpect(jsonPath("$.message").value("用户名或密码错误"));
     }
 
     @Test

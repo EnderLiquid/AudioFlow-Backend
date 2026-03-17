@@ -8,11 +8,14 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+import static top.enderliquid.audioflow.common.constant.ValidationConstants.BATCH_SIZE_MAX;
+import static top.enderliquid.audioflow.common.constant.ValidationConstants.BATCH_SIZE_MIN;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class SongBatchPrepareDTO {
     @Valid
-    @Size(min = 1, max = 10, message = "批量上传数量必须在1-10之间")
+    @Size(min = BATCH_SIZE_MIN, max = BATCH_SIZE_MAX, message = "批量上传数量必须在" + BATCH_SIZE_MIN + "-" + BATCH_SIZE_MAX + "之间")
     private List<SongPrepareUploadDTO> songs;
 }

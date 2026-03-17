@@ -85,6 +85,11 @@ public void someServiceMethod() {
 - **Never use `var` keyword**: All variables must use explicit type declarations
 - This applies to: local variables, for-each loops, try-with-resources, lambda parameters
 
+### Import Statements
+
+- **Use static imports for constants**: When referencing constants, prefer `import static` over qualified names
+- Example: Use `import static FieldLengthConstants.LOGIN_LOG_IP_MAX` then `LOGIN_LOG_IP_MAX` instead of `FieldLengthConstants.LOGIN_LOG_IP_MAX`
+
 ### Naming Conventions
 
 - **DTO naming**: Use entity name as prefix (e.g., `UserSaveDTO`, `SongPageDTO`, `UserUpdatePasswordDTO`)

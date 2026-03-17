@@ -60,6 +60,7 @@ public void someServiceMethod() {
 
 1.禁止使用 `var` 关键字，所有变量必须使用显式类型声明。
 2.禁止使用 Java 10+ 的类型推断特性。
+3.引用常量时优先使用 `import static`，避免使用类名前缀。
 
 ### DTO规范
 

@@ -3,12 +3,13 @@ package top.enderliquid.audioflow.manager.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Repository;
 import top.enderliquid.audioflow.dto.request.session.LoginContext;
 import top.enderliquid.audioflow.entity.LoginLog;
 import top.enderliquid.audioflow.manager.LoginLogManager;
 import top.enderliquid.audioflow.mapper.LoginLogMapper;
+
+import static top.enderliquid.audioflow.common.constant.FieldLengthConstants.*;
 
 /**
  * 登录流水 Manager 实现
@@ -43,8 +44,25 @@ public class LoginLogManagerImpl extends ServiceImpl<LoginLogMapper, LoginLog> i
         loginLog.setUserId(userId);
         loginLog.setEmail(email);
         loginLog.setSuccess(success);
-        loginLog.setFailReason(failReason);
-        BeanUtils.copyProperties(context, loginLog);
+        loginLog.setFailReason(truncate(failReason, LOGIN_LOG_FAIL_REASON_MAX));
+        loginLog.setIp(truncate(context.getIp(), LOGIN_LOG_IP_MAX));
+        loginLog.setDeviceType(truncate(context.getDeviceType(), LOGIN_LOG_DEVICE_TYPE_MAX));
+        loginLog.setOs(truncate(context.getOs(), LOGIN_LOG_OS_MAX));
+        loginLog.setBrowser(truncate(context.getBrowser(), LOGIN_LOG_BROWSER_MAX));
+        loginLog.setUserAgent(truncate(context.getUserAgent(), LOGIN_LOG_USER_AGENT_MAX));
         super.save(loginLog);
+    }
+
+    /**
+     * 截断字符串到指定长度
+     * @param str 待截断的字符串
+     * @param maxLength 最大长度
+     * @return 截断后的字符串，null返回null
+     */
+    private String truncate(String str, int maxLength) {
+        if (str == null) {
+            return null;
+        }
+        return str.length() <= maxLength ? str : str.substring(0, maxLength);
     }
 }

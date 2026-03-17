@@ -3,6 +3,7 @@ package top.enderliquid.audioflow.controller;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -11,6 +12,8 @@ import top.enderliquid.audioflow.common.annotation.RateLimit;
 import top.enderliquid.audioflow.common.annotation.RateLimits;
 import top.enderliquid.audioflow.common.enums.LimitType;
 import top.enderliquid.audioflow.common.response.HttpResponseBody;
+import top.enderliquid.audioflow.common.util.RequestUtil;
+import top.enderliquid.audioflow.dto.request.session.LoginContext;
 import top.enderliquid.audioflow.dto.request.user.UserLoginDTO;
 import top.enderliquid.audioflow.dto.response.session.LoginResult;
 import top.enderliquid.audioflow.dto.response.user.UserVO;
@@ -29,12 +32,20 @@ public class SessionController {
      */
     @PostMapping
     @RateLimits(
-            value = @RateLimit(type = LimitType.IP, refillRate = "1/60", capacity = 3),
             value = @RateLimit(type = LimitType.IP, refillRate = "1/10", capacity = 5),
             message = "登录尝试过于频繁，请稍后再试"
     )
-    public HttpResponseBody<LoginResult> login(@Valid @RequestBody UserLoginDTO dto) {
-        UserVO userVO = sessionService.login(dto);
+    public HttpResponseBody<LoginResult> login(@Valid @RequestBody UserLoginDTO dto,
+                                               HttpServletRequest request) {
+        // 获取设备信息
+        LoginContext context = new LoginContext();
+        context.setIp(RequestUtil.getClientIp(request));
+        context.setDeviceType(RequestUtil.getDeviceType(request));
+        context.setOs(RequestUtil.getOs(request));
+        context.setBrowser(RequestUtil.getBrowser(request));
+        context.setUserAgent(RequestUtil.getUserAgent(request));
+
+        UserVO userVO = sessionService.login(dto, context);
         StpUtil.login(userVO.getId());
         SaTokenInfo tokenInfo = StpUtil.getTokenInfo();
         return HttpResponseBody.ok(new LoginResult(userVO, tokenInfo), "登录成功");

@@ -64,12 +64,33 @@ CREATE TABLE IF NOT EXISTS `user_checkin_summary` (
     `total_days` INT NOT NULL DEFAULT 0 COMMENT '累计签到天数',
     `continuous_days` INT NOT NULL DEFAULT 0 COMMENT '当前连续签到天数',
     `max_continuous` INT NOT NULL DEFAULT 0 COMMENT '历史最大连续签到天数',
-    `last_checkin_date` DATE DEFAULT NULL COMMENT '最后一次签到日期',
+    `last_checkin_date` DATE NOT NULL COMMENT '最后一次签到日期',
+    `create_time` DATETIME NOT NULL COMMENT '创建时间',
     `update_time` DATETIME NOT NULL COMMENT '更新时间',
     PRIMARY KEY (`user_id`)
     ) ENGINE = InnoDB
     DEFAULT CHARSET = utf8mb4
     COLLATE = utf8mb4_unicode_ci COMMENT ='签到统计表';
+
+-- 登录流水表
+CREATE TABLE IF NOT EXISTS `login_log` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+    `user_id` BIGINT NULL COMMENT '用户ID，账号不存在时为null',
+    `email` VARCHAR(255) NOT NULL COMMENT '尝试登录的邮箱',
+    `success` TINYINT(1) NOT NULL COMMENT '是否登录成功',
+    `fail_reason` VARCHAR(255) NULL COMMENT '失败原因',
+    `ip` VARCHAR(45) NULL COMMENT 'IP地址',
+    `device_type` VARCHAR(50) NULL COMMENT '设备类型',
+    `os` VARCHAR(100) NULL COMMENT '操作系统',
+    `browser` VARCHAR(100) NULL COMMENT '浏览器',
+    `user_agent` VARCHAR(512) NULL COMMENT '完整的 User-Agent',
+    `create_time` DATETIME NOT NULL COMMENT '创建时间',
+    PRIMARY KEY (`id`),
+    INDEX `idx_user_id` (`user_id`),
+    INDEX `idx_create_time` (`create_time`)
+    ) ENGINE = InnoDB
+    DEFAULT CHARSET = utf8mb4
+    COLLATE = utf8mb4_unicode_ci COMMENT ='登录流水表';
 
 -- 查看表结构
 SHOW CREATE TABLE `user`;
@@ -77,3 +98,4 @@ SHOW CREATE TABLE `song`;
 SHOW CREATE TABLE `points_record`;
 SHOW CREATE TABLE `user_checkin_log`;
 SHOW CREATE TABLE `user_checkin_summary`;
+SHOW CREATE TABLE `login_log`;

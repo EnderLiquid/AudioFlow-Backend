@@ -24,6 +24,8 @@ public class CheckinSummary {
     private Integer continuousDays;
     private Integer maxContinuous;
     private LocalDate lastCheckinDate;
+    @TableField(value = "create_time", fill = FieldFill.INSERT)
+    private LocalDateTime createTime;
     @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
 }

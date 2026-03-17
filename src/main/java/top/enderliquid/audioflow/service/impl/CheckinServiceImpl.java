@@ -82,7 +82,7 @@ public class CheckinServiceImpl implements CheckinService {
                     // 如果抛出唯一键冲突异常，说明别的并发请求抢先初始化并提交了，
                     // 此时当前线程只需要重新用 for update 查出来锁定即可
                     summary = checkinSummaryManager.getByUserIdForUpdate(userId);
-                    // 可能有极低概率仍然读到值为空的快照
+                    // 防御性编程：不可能读到值为空的值，除非该行被其他操作删除
                     if (summary == null) {
                         throw new BusinessException("签到初始化失败，请重试");
                     }

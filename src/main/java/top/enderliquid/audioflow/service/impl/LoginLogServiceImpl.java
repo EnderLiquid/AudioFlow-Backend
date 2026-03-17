@@ -28,16 +28,18 @@ public class LoginLogServiceImpl implements LoginLogService {
     public PageVO<LoginLogVO> page(Long userId, LoginLogPageDTO dto) {
         log.info("查询登录流水，用户ID: {}", userId);
 
-        Long pageIndex = dto.getPageIndex() != null ? dto.getPageIndex() : PAGE_DEFAULT_INDEX;
-        Long pageSize = dto.getPageSize() != null ? dto.getPageSize() : PAGE_DEFAULT_SIZE;
-        boolean asc = dto.getAsc() != null ? dto.getAsc() : PAGE_DEFAULT_ASC;
+        // 设置默认值
+        if (dto.getPageIndex() == null) {
+            dto.setPageIndex(PAGE_DEFAULT_INDEX);
+        }
+        if (dto.getPageSize() == null) {
+            dto.setPageSize(PAGE_DEFAULT_SIZE);
+        }
+        if (dto.getAsc() == null) {
+            dto.setAsc(PAGE_DEFAULT_ASC);
+        }
 
-        Page<LoginLog> page = loginLogManager.pageByUserId(
-                userId,
-                pageIndex,
-                pageSize,
-                asc
-        );
+        Page<LoginLog> page = loginLogManager.pageByUserId(userId, dto);
 
         List<LoginLog> logList = page.getRecords();
         List<LoginLogVO> logVOList = new ArrayList<>();

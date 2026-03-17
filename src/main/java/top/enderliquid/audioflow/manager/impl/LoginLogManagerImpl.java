@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Repository;
+import top.enderliquid.audioflow.dto.request.loginlog.LoginLogPageDTO;
 import top.enderliquid.audioflow.dto.request.session.LoginContext;
 import top.enderliquid.audioflow.entity.LoginLog;
 import top.enderliquid.audioflow.manager.LoginLogManager;
@@ -20,18 +21,16 @@ public class LoginLogManagerImpl extends ServiceImpl<LoginLogMapper, LoginLog> i
     /**
      * 分页查询用户登录流水
      * @param userId 用户ID
-     * @param pageIndex 页码
-     * @param pageSize 每页大小
-     * @param asc 是否升序
+     * @param dto 分页查询参数（已含默认值）
      * @return 登录流水分页结果
      */
     @Override
-    public Page<LoginLog> pageByUserId(Long userId, Long pageIndex, Long pageSize, boolean asc) {
-        Page<LoginLog> page = new Page<>(pageIndex, pageSize);
+    public Page<LoginLog> pageByUserId(Long userId, LoginLogPageDTO dto) {
+        Page<LoginLog> page = new Page<>(dto.getPageIndex(), dto.getPageSize());
         LambdaQueryWrapper<LoginLog> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(LoginLog::getUserId, userId)
                .eq(LoginLog::isSuccess, true);
-        if (asc) {
+        if (dto.getAsc()) {
             wrapper.orderByAsc(LoginLog::getCreateTime);
         } else {
             wrapper.orderByDesc(LoginLog::getCreateTime);

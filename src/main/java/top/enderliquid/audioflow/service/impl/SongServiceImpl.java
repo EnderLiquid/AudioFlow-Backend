@@ -296,17 +296,19 @@ public class SongServiceImpl implements SongService {
     @Override
     public PageVO<SongVO> pageSongsByUploaderKeywordAndSongKeyword(SongPageDTO dto) {
         log.info("请求分页查询歌曲");
-        Long pageIndex = dto.getPageIndex() != null ? dto.getPageIndex() : PAGE_DEFAULT_INDEX;
-        Long pageSize = dto.getPageSize() != null ? dto.getPageSize() : PAGE_DEFAULT_SIZE;
-        boolean asc = dto.getAsc() != null ? dto.getAsc() : PAGE_DEFAULT_ASC;
 
-        IPage<SongBO> page = songManager.pageByUploaderKeywordAndSongKeyword(
-                dto.getUploaderKeyword(),
-                dto.getSongKeyword(),
-                asc,
-                pageIndex,
-                pageSize
-        );
+        // 设置默认值
+        if (dto.getPageIndex() == null) {
+            dto.setPageIndex(PAGE_DEFAULT_INDEX);
+        }
+        if (dto.getPageSize() == null) {
+            dto.setPageSize(PAGE_DEFAULT_SIZE);
+        }
+        if (dto.getAsc() == null) {
+            dto.setAsc(PAGE_DEFAULT_ASC);
+        }
+
+        IPage<SongBO> page = songManager.pageByUploaderKeywordAndSongKeyword(dto);
         List<SongBO> songBOList = page.getRecords();
         List<SongVO> songVOList = new ArrayList<>();
         if (songBOList != null && !songBOList.isEmpty()) {

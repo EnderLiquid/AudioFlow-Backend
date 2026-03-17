@@ -11,21 +11,21 @@
         LEFT JOIN user u ON s.uploader_id = u.id
         <where>
             <!-- 1. 筛选上传者 (名字模糊匹配 OR ID精确匹配) -->
-            <if test="uploaderKeyword != null or uploaderId != null">
+            <if test="param.uploaderKeyword != null or param.uploaderId != null">
                 AND (
-                u.name LIKE CONCAT('%', #{uploaderKeyword}, '%')
-                    <if test="uploaderId != null">
-                        OR u.id = #{uploaderId}
+                u.name LIKE CONCAT('%', #{param.uploaderKeyword}, '%')
+                    <if test="param.uploaderId != null">
+                        OR u.id = #{param.uploaderId}
                     </if>
                 )
             </if>
 
             <!-- 2. 筛选歌曲 (歌名模糊匹配 OR ID精确匹配) -->
-            <if test="songKeyword != null or songId != null">
+            <if test="param.songKeyword != null or param.songId != null">
                 AND (
-                s.name LIKE CONCAT('%', #{songKeyword}, '%')
-                    <if test="songId != null">
-                        OR s.id = #{songId}
+                s.name LIKE CONCAT('%', #{param.songKeyword}, '%')
+                    <if test="param.songId != null">
+                        OR s.id = #{param.songId}
                     </if>
                 )
             </if>
@@ -38,7 +38,7 @@
         <!-- 3. 排序逻辑 -->
         ORDER BY s.create_time
         <choose>
-            <when test="asc">ASC</when>
+            <when test="param.asc">ASC</when>
             <otherwise>DESC</otherwise>
         </choose>
     </select>

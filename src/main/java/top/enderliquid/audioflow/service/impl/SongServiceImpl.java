@@ -46,6 +46,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static top.enderliquid.audioflow.common.constant.DefaultConstants.*;
 import static top.enderliquid.audioflow.common.enums.PointsType.SONG_UPLOAD;
 import static top.enderliquid.audioflow.common.enums.PointsType.SONG_UPLOAD_CANCEL;
 
@@ -295,9 +296,9 @@ public class SongServiceImpl implements SongService {
     @Override
     public PageVO<SongVO> pageSongsByUploaderKeywordAndSongKeyword(SongPageDTO dto) {
         log.info("请求分页查询歌曲");
-        Long pageIndex = dto.getPageIndex() != null ? dto.getPageIndex() : 1L;
-        Long pageSize = dto.getPageSize() != null ? dto.getPageSize() : 10L;
-        boolean asc = dto.getAsc() != null ? dto.getAsc() : false;
+        Long pageIndex = dto.getPageIndex() != null ? dto.getPageIndex() : PAGE_DEFAULT_INDEX;
+        Long pageSize = dto.getPageSize() != null ? dto.getPageSize() : PAGE_DEFAULT_SIZE;
+        boolean asc = dto.getAsc() != null ? dto.getAsc() : PAGE_DEFAULT_ASC;
 
         IPage<SongBO> page = songManager.pageByUploaderKeywordAndSongKeyword(
                 dto.getUploaderKeyword(),

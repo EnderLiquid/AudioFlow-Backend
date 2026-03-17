@@ -15,6 +15,9 @@ import top.enderliquid.audioflow.service.LoginLogService;
 import java.util.ArrayList;
 import java.util.List;
 
+import static top.enderliquid.audioflow.common.constant.DefaultConstants.PAGE_DEFAULT_INDEX;
+import static top.enderliquid.audioflow.common.constant.DefaultConstants.PAGE_DEFAULT_SIZE;
+
 @Slf4j
 @Service
 public class LoginLogServiceImpl implements LoginLogService {
@@ -26,8 +29,8 @@ public class LoginLogServiceImpl implements LoginLogService {
     public PageVO<LoginLogVO> page(Long userId, LoginLogPageDTO dto) {
         log.info("查询登录流水，用户ID: {}", userId);
 
-        Long pageIndex = dto.getPageIndex() != null ? dto.getPageIndex() : 1L;
-        Long pageSize = dto.getPageSize() != null ? dto.getPageSize() : 10L;
+        Long pageIndex = dto.getPageIndex() != null ? dto.getPageIndex() : PAGE_DEFAULT_INDEX;
+        Long pageSize = dto.getPageSize() != null ? dto.getPageSize() : PAGE_DEFAULT_SIZE;
 
         Page<LoginLog> page = loginLogManager.pageByUserId(
                 userId,

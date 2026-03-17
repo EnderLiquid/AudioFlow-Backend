@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import top.enderliquid.audioflow.common.enums.SongStatus;
 import top.enderliquid.audioflow.common.util.id.SnowflakeIdConverter;
 import top.enderliquid.audioflow.dto.bo.SongBO;
-import top.enderliquid.audioflow.dto.bo.SongPageBO;
+import top.enderliquid.audioflow.dto.bo.SongPageParam;
 import top.enderliquid.audioflow.dto.request.song.SongPageDTO;
 import top.enderliquid.audioflow.entity.Song;
 import top.enderliquid.audioflow.manager.SongManager;
@@ -32,7 +32,7 @@ public class SongManagerImpl extends ServiceImpl<SongMapper, Song> implements So
         Long songId = snowflakeIdConverter.fromString(dto.getSongKeyword());
 
         // 构建Mapper参数包装类
-        SongPageBO param = new SongPageBO(
+        SongPageParam param = new SongPageParam(
                 dto.getUploaderKeyword(),
                 uploaderId,
                 dto.getSongKeyword(),

@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SongPageBO {
+public class SongPageParam {
     /**
      * 上传者关键字（用户名模糊匹配）
      */

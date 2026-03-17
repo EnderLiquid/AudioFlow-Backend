@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS `user_checkin_summary` (
     `total_days` INT NOT NULL DEFAULT 0 COMMENT '累计签到天数',
     `continuous_days` INT NOT NULL DEFAULT 0 COMMENT '当前连续签到天数',
     `max_continuous` INT NOT NULL DEFAULT 0 COMMENT '历史最大连续签到天数',
-    `last_checkin_date` DATE NOT NULL COMMENT '最后一次签到日期',
+    `last_checkin_date` DATE COMMENT '最后一次签到日期',
     `create_time` DATETIME NOT NULL COMMENT '创建时间',
     `update_time` DATETIME NOT NULL COMMENT '更新时间',
     PRIMARY KEY (`user_id`)

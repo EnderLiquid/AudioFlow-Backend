@@ -18,11 +18,11 @@ import static top.enderliquid.audioflow.common.constant.ValidationConstants.PAGE
 public class LoginLogPageDTO {
 
     @Nullable
-    @Min(value = PAGE_INDEX_MIN, message = "页码必须不小于" + PAGE_INDEX_MIN)
+    @Min(value = PAGE_INDEX_MIN, message = "页码不能小于{value}")
     private Long pageIndex;
 
     @Nullable
-    @Min(value = PAGE_SIZE_MIN, message = "分页大小必须不小于" + PAGE_SIZE_MIN)
+    @Min(value = PAGE_SIZE_MIN, message = "分页大小不能小于{value}")
     private Long pageSize;
 
     @Nullable

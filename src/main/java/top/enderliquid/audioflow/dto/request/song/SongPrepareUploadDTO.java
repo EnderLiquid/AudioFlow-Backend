@@ -19,13 +19,13 @@ public class SongPrepareUploadDTO {
     private String mimeType;
 
     @NotNull(message = "文件大小不能为空")
-    @Min(value = FILE_SIZE_MIN, message = "文件大小必须不小于" + FILE_SIZE_MIN)
+    @Min(value = FILE_SIZE_MIN, message = "文件大小不能小于{value}")
     private Long size;
 
     @NotBlank(message = "歌曲名称不能为空")
-    @Size(min = SONG_NAME_MIN, max = SONG_NAME_MAX, message = "歌曲名称长度必须在" + SONG_NAME_MIN + "-" + SONG_NAME_MAX + "个字符之间")
+    @Size(min = SONG_NAME_MIN, max = SONG_NAME_MAX, message = "歌曲名称长度必须在{min}-{max}个字符之间")
     private String name;
 
-    @Size(min = SONG_DESCRIPTION_MIN, max = SONG_DESCRIPTION_MAX, message = "描述长度必须在" + SONG_DESCRIPTION_MIN + "-" + SONG_DESCRIPTION_MAX + "个字符之间")
+    @Size(min = SONG_DESCRIPTION_MIN, max = SONG_DESCRIPTION_MAX, message = "描述长度必须在{min}-{max}个字符之间")
     private String description;
 }

@@ -17,21 +17,21 @@ import static top.enderliquid.audioflow.common.constant.ValidationConstants.PAGE
 @NoArgsConstructor
 public class SongPageDTO {
     @Nullable
-    @Size(min = SONG_NAME_MIN, max = SONG_NAME_MAX, message = "关键字长度必须在" + SONG_NAME_MIN + "-" + SONG_NAME_MAX + "个字符之间")
+    @Size(min = SONG_NAME_MIN, max = SONG_NAME_MAX, message = "关键字长度必须在{min}-{max}个字符之间")
     private String uploaderKeyword;
 
     @Nullable
-    @Size(min = SONG_NAME_MIN, max = SONG_NAME_MAX, message = "关键字长度必须在" + SONG_NAME_MIN + "-" + SONG_NAME_MAX + "个字符之间")
+    @Size(min = SONG_NAME_MIN, max = SONG_NAME_MAX, message = "关键字长度必须在{min}-{max}个字符之间")
     private String songKeyword;
 
     @Nullable
     private Boolean asc;
 
     @Nullable
-    @Min(value = PAGE_INDEX_MIN, message = "页码必须不小于" + PAGE_INDEX_MIN)
+    @Min(value = PAGE_INDEX_MIN, message = "页码不能小于{value}")
     private Long pageIndex;
 
     @Nullable
-    @Min(value = PAGE_SIZE_MIN, message = "分页大小必须不小于" + PAGE_SIZE_MIN)
+    @Min(value = PAGE_SIZE_MIN, message = "分页大小不能小于{value}")
     private Long pageSize;
 }

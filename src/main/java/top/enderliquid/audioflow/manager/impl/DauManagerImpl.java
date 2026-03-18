@@ -1,30 +1,38 @@
 package top.enderliquid.audioflow.manager.impl;
 
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Component;
+import top.enderliquid.audioflow.entity.Dau;
 import top.enderliquid.audioflow.manager.DauManager;
+import top.enderliquid.audioflow.mapper.DauMapper;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Collections;
 import java.util.Objects;
+
+import static top.enderliquid.audioflow.common.constant.DefaultConstants.DAILY_STATS_REDIS_EXPIRE_DAYS;
 
 /**
  * 日活统计管理器实现
  * 使用Redis HyperLogLog进行日活的粗略统计
  * 键格式: dau:yyyy-M-d（如 dau:2026-3-15）
- * 过期时间: 30天
+ * 同时继承ServiceImpl管理数据库操作
  */
 @Slf4j
 @Component
-public class DauManagerImpl implements DauManager {
+public class DauManagerImpl extends ServiceImpl<DauMapper, Dau> implements DauManager {
 
     @Autowired
     private StringRedisTemplate redisTemplate;
@@ -32,8 +40,7 @@ public class DauManagerImpl implements DauManager {
     private RedisScript<Long> dauAddScript;
 
     private static final String KEY_PREFIX = "dau:";
-    private static final long EXPIRE_DAYS = 30;
-    private static final long EXPIRE_SECONDS = EXPIRE_DAYS * 24 * 60 * 60;
+    private static final long EXPIRE_SECONDS = DAILY_STATS_REDIS_EXPIRE_DAYS * 24 * 60 * 60;
 
     @PostConstruct
     public void init() {
@@ -48,7 +55,7 @@ public class DauManagerImpl implements DauManager {
     }
 
     @Override
-    public void recordDau(Long userId, LocalDate date) {
+    public void addRecord(Long userId, LocalDate date) {
         String key = buildKey(date);
         String element = String.valueOf(userId);
 
@@ -62,10 +69,10 @@ public class DauManagerImpl implements DauManager {
             );
             Objects.requireNonNull(added);
             if (added > 0) {
-                log.debug("记录日活成功，用户ID: {}, 日期: {}", userId, date);
+                log.debug("添加日活记录成功，用户ID: {}, 日期: {}", userId, date);
             }
         } catch (Exception e) {
-            log.error("记录日活失败，用户ID: {}, 日期: {}", userId, date, e);
+            log.error("添加日活记录失败，用户ID: {}, 日期: {}", userId, date, e);
         }
     }
 
@@ -74,6 +81,50 @@ public class DauManagerImpl implements DauManager {
         String key = buildKey(date);
         Long count = redisTemplate.opsForHyperLogLog().size(key);
         return count != null ? count : 0L;
+    }
+
+    @Override
+    public int syncAllFromRedis() {
+        LocalDate startDate = LocalDate.now().minusDays(DAILY_STATS_REDIS_EXPIRE_DAYS - 1);
+        LocalDate today = LocalDate.now();
+        int syncCount = 0;
+
+        for (LocalDate date = startDate; !date.isAfter(today); date = date.plusDays(1)) {
+            long count = getDauCount(date);
+            if (count == 0) {
+                continue;
+            }
+
+            // 查询数据库中是否已存在该日期的记录
+            Dau existing = lambdaQuery()
+                    .eq(Dau::getDate, date)
+                    .one();
+
+            if (existing == null) {
+                // 记录不存在，尝试插入
+                try {
+                    Dau dau = new Dau();
+                    dau.setDate(date);
+                    dau.setCount(count);
+                    save(dau);
+                    log.debug("插入日活数据成功，日期: {}, 日活数: {}", date, count);
+                    syncCount++;
+                } catch (DuplicateKeyException e) {
+                    log.warn("插入日活数据时发生唯一键冲突，可能存在并发写入，日期: {}", date);
+                }
+            } else {
+                // 记录存在，检查updateTime是否已写入最终数据
+                LocalDateTime dayEndTime = date.atTime(LocalTime.MAX);
+                if (existing.getUpdateTime() != null && !existing.getUpdateTime().isAfter(dayEndTime)) {
+                    // updateTime不晚于当天结束时间，需要更新
+                    existing.setCount(count);
+                    updateById(existing);
+                    log.debug("更新日活数据成功，日期: {}, 日活数: {}", date, count);
+                    syncCount++;
+                }
+            }
+        }
+        return syncCount;
     }
 
     /**

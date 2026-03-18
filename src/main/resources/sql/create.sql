@@ -92,6 +92,32 @@ CREATE TABLE IF NOT EXISTS `login_log` (
     DEFAULT CHARSET = utf8mb4
     COLLATE = utf8mb4_unicode_ci COMMENT ='登录流水表';
 
+-- 日活统计表
+CREATE TABLE IF NOT EXISTS `dau` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+    `date` DATE NOT NULL COMMENT '统计日期',
+    `count` BIGINT NOT NULL DEFAULT 0 COMMENT '日活数',
+    `create_time` DATETIME NOT NULL COMMENT '创建时间',
+    `update_time` DATETIME NOT NULL COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_date` (`date`)
+    ) ENGINE = InnoDB
+    DEFAULT CHARSET = utf8mb4
+    COLLATE = utf8mb4_unicode_ci COMMENT ='日活统计表';
+
+-- 日签到数统计表
+CREATE TABLE IF NOT EXISTS `checkin_count` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+    `date` DATE NOT NULL COMMENT '统计日期',
+    `count` BIGINT NOT NULL DEFAULT 0 COMMENT '签到数',
+    `create_time` DATETIME NOT NULL COMMENT '创建时间',
+    `update_time` DATETIME NOT NULL COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_date` (`date`)
+    ) ENGINE = InnoDB
+    DEFAULT CHARSET = utf8mb4
+    COLLATE = utf8mb4_unicode_ci COMMENT ='日签到数统计表';
+
 -- 查看表结构
 SHOW CREATE TABLE `user`;
 SHOW CREATE TABLE `song`;
@@ -99,3 +125,5 @@ SHOW CREATE TABLE `points_record`;
 SHOW CREATE TABLE `checkin_log`;
 SHOW CREATE TABLE `checkin_summary`;
 SHOW CREATE TABLE `login_log`;
+SHOW CREATE TABLE `dau`;
+SHOW CREATE TABLE `checkin_count`;

@@ -18,6 +18,9 @@ import top.enderliquid.audioflow.service.SessionService;
 
 import java.time.LocalDate;
 
+import static top.enderliquid.audioflow.common.enums.LoginFailReason.PASSWORD_WRONG;
+import static top.enderliquid.audioflow.common.enums.LoginFailReason.USER_NOT_FOUND;
+
 @Slf4j
 @Service
 public class SessionServiceImpl implements SessionService {
@@ -43,7 +46,7 @@ public class SessionServiceImpl implements SessionService {
 
         // 用户不存在
         if (user == null) {
-            loginLogManager.addRecord(null, dto.getEmail(), false, "用户不存在", context);
+            loginLogManager.addRecord(null, dto.getEmail(), false, USER_NOT_FOUND, context);
             throw new BusinessException("用户名或密码错误");
         }
 
@@ -52,7 +55,7 @@ public class SessionServiceImpl implements SessionService {
                 dto.getPassword(), // 明文
                 user.getPassword() // 密文
         )) {
-            loginLogManager.addRecord(user.getId(), dto.getEmail(), false, "密码错误", context);
+            loginLogManager.addRecord(user.getId(), dto.getEmail(), false, PASSWORD_WRONG, context);
             throw new BusinessException("用户名或密码错误");
         }
 

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Repository;
+import top.enderliquid.audioflow.common.enums.LoginFailReason;
 import top.enderliquid.audioflow.dto.request.loginlog.LoginLogPageDTO;
 import top.enderliquid.audioflow.dto.request.session.LoginContext;
 import top.enderliquid.audioflow.entity.LoginLog;
@@ -38,12 +39,12 @@ public class LoginLogManagerImpl extends ServiceImpl<LoginLogMapper, LoginLog> i
         return super.page(page, wrapper);
     }
 
-    public void addRecord(Long userId, String email, boolean success, String failReason, LoginContext context) {
+    public void addRecord(Long userId, String email, boolean success, LoginFailReason failReason, LoginContext context) {
         LoginLog loginLog = new LoginLog();
         loginLog.setUserId(userId);
         loginLog.setEmail(email);
         loginLog.setSuccess(success);
-        loginLog.setFailReason(truncate(failReason, LOGIN_LOG_FAIL_REASON_MAX));
+        loginLog.setFailReason(failReason);
         loginLog.setIp(truncate(context.getIp(), LOGIN_LOG_IP_MAX));
         loginLog.setDeviceType(truncate(context.getDeviceType(), LOGIN_LOG_DEVICE_TYPE_MAX));
         loginLog.setOs(truncate(context.getOs(), LOGIN_LOG_OS_MAX));

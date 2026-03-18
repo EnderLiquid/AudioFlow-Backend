@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS `login_log` (
     `user_id` BIGINT NULL COMMENT '用户ID，账号不存在时为null',
     `email` VARCHAR(255) NOT NULL COMMENT '尝试登录的邮箱',
     `success` TINYINT(1) NOT NULL COMMENT '是否登录成功',
-    `fail_reason` VARCHAR(255) NULL COMMENT '失败原因',
+    `fail_reason` VARCHAR(30) NULL COMMENT '失败原因: USER_NOT_FOUND, PASSWORD_WRONG',
     `ip` VARCHAR(45) NULL COMMENT 'IP地址',
     `device_type` VARCHAR(50) NULL COMMENT '设备类型',
     `os` VARCHAR(100) NULL COMMENT '操作系统',

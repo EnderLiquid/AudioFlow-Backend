@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import top.enderliquid.audioflow.common.enums.LoginFailReason;
 
 import java.time.LocalDateTime;
 
@@ -29,7 +30,7 @@ public class LoginLog {
     // 是否登录成功
     private boolean success;
     // 失败原因
-    private String failReason;
+    private LoginFailReason failReason;
     // IP地址
     private String ip;
     // 设备类型

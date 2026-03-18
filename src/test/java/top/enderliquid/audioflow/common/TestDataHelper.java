@@ -5,13 +5,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import top.enderliquid.audioflow.common.enums.SongStatus;
 import top.enderliquid.audioflow.entity.Song;
 import top.enderliquid.audioflow.entity.User;
-import top.enderliquid.audioflow.manager.*;
+import top.enderliquid.audioflow.manager.SongManager;
+import top.enderliquid.audioflow.manager.UserManager;
 
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -28,16 +31,10 @@ public class TestDataHelper {
     private StringRedisTemplate redisTemplate;
 
     @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private PointsRecordManager pointsRecordManager;
-
-    @Autowired
-    private CheckinLogManager checkinLogManager;
-
-    @Autowired
-    private CheckinSummaryManager checkinSummaryManager;
 
     public void cleanAll() {
         long startTime = System.currentTimeMillis();
@@ -58,11 +55,22 @@ public class TestDataHelper {
     }
 
     public void cleanDatabase() {
-        songManager.lambdaUpdate().remove();
-        userManager.lambdaUpdate().remove();
-        pointsRecordManager.lambdaUpdate().remove();
-        checkinLogManager.lambdaUpdate().remove();
-        checkinSummaryManager.lambdaUpdate().remove();
+        // 禁用外键检查以避免约束错误
+        jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 0");
+        try {
+            // 从元数据查询当前数据库的所有表名
+            List<String> tables = jdbcTemplate.queryForList(
+                "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE()",
+                String.class
+            );
+            // 批量清空所有表
+            for (String table : tables) {
+                jdbcTemplate.execute("TRUNCATE TABLE " + table);
+            }
+        } finally {
+            // 重新启用外键检查
+            jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 1");
+        }
     }
 
     public User createTestUser() {

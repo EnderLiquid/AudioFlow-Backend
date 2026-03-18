@@ -26,4 +26,13 @@ public class CheckinLogManagerImpl extends ServiceImpl<CheckinLogMapper, Checkin
                .eq(CheckinLog::getCheckinDate, date);
         return super.getOne(wrapper);
     }
+
+    @Override
+    public void addRecord(Long userId, LocalDate checkinDate, Integer rewardPoints) {
+        CheckinLog checkinLog = new CheckinLog();
+        checkinLog.setUserId(userId);
+        checkinLog.setCheckinDate(checkinDate);
+        checkinLog.setRewardPoints(rewardPoints);
+        save(checkinLog);
+    }
 }

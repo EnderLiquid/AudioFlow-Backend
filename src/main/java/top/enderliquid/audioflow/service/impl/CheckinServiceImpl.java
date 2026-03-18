@@ -120,7 +120,7 @@ public class CheckinServiceImpl implements CheckinService {
             tx.commit();
         }
 
-        checkinCountManager.incrementCheckinCount(LocalDate.now());
+        checkinCountManager.addRecord(LocalDate.now());
 
         log.info("签到成功，获得积分: {}", rewardPoints);
 

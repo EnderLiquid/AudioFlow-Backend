@@ -61,7 +61,7 @@ public class SessionServiceImpl implements SessionService {
 
         // 登录成功
         loginLogManager.addRecord(user.getId(), dto.getEmail(), true, null, context);
-        dauManager.recordDau(user.getId(), LocalDate.now());
+        dauManager.addRecord(user.getId(), LocalDate.now());
 
         UserVO userVO = new UserVO();
         BeanUtils.copyProperties(user, userVO);

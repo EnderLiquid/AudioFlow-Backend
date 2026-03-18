@@ -17,8 +17,8 @@ import java.util.Collections;
 import java.util.Objects;
 
 /**
- * 日登录数统计管理器实现
- * 使用Redis String自增进行日登录数的精确统计
+ * 日签到数统计管理器实现
+ * 使用Redis String自增进行日签到数的精确统计
  * 键格式: checkin_count:yyyy-M-d（如 checkin_count:2026-3-15）
  * 过期时间: 30天
  */
@@ -42,8 +42,8 @@ public class CheckinCountManagerImpl implements CheckinCountManager {
             String script = new String(resource.getContentAsByteArray());
             checkinCountScript = new DefaultRedisScript<>(script, Long.class);
         } catch (IOException e) {
-            log.error("加载登录计数Lua脚本失败", e);
-            throw new RuntimeException("加载登录计数Lua脚本失败", e);
+            log.error("加载签到计数Lua脚本失败", e);
+            throw new RuntimeException("加载签到计数Lua脚本失败", e);
         }
     }
 
@@ -58,10 +58,10 @@ public class CheckinCountManagerImpl implements CheckinCountManager {
                     String.valueOf(EXPIRE_SECONDS)
             );
             Objects.requireNonNull(count);
-            log.debug("递增日登录计数成功，日期: {}, 当前计数: {}", date, count);
+            log.debug("递增日签到计数成功，日期: {}, 当前计数: {}", date, count);
             return count;
         } catch (Exception e) {
-            log.error("递增日登录计数失败，日期: {}", date, e);
+            log.error("递增日签到计数失败，日期: {}", date, e);
             return 0L;
         }
     }
@@ -77,7 +77,7 @@ public class CheckinCountManagerImpl implements CheckinCountManager {
         try {
             return Long.parseLong(value);
         } catch (NumberFormatException e) {
-            log.warn("登录计数值格式异常，键: {}, 值: {}", key, value);
+            log.warn("签到计数值格式异常，键: {}, 值: {}", key, value);
             return 0L;
         }
     }

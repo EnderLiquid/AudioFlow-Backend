@@ -8,7 +8,7 @@ public final class FieldLengthConstants {
     }
 
     // 密码
-    public static final int PASSWORD_MIN = 6;
+    public static final int PASSWORD_MIN = 8;
     public static final int PASSWORD_MAX = 64;
 
     // 邮箱

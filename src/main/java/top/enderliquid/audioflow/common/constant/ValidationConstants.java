@@ -15,6 +15,5 @@ public final class ValidationConstants {
     public static final long FILE_SIZE_MIN = 1;
 
     // 批量上传
-    public static final int BATCH_SIZE_MIN = 1;
     public static final int BATCH_SIZE_MAX = 10;
 }

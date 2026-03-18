@@ -5,6 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
+// 最大长度: 20
 public enum SongStatus {
     UPLOADING,
     DELETING,

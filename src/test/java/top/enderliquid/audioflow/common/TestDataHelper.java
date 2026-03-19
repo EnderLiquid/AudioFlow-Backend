@@ -36,6 +36,9 @@ public class TestDataHelper {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    // 缓存 DELETE SQL 语句数组，只在第一次运行时初始化
+    private volatile String[] cachedDeleteSqls;
+
     public void cleanAll() {
         long startTime = System.currentTimeMillis();
         try {
@@ -55,20 +58,30 @@ public class TestDataHelper {
     }
 
     public void cleanDatabase() {
-        // 禁用外键检查以避免约束错误
+        // 1. 延迟初始化（双重检查锁定保证线程安全）
+        if (cachedDeleteSqls == null) {
+            synchronized (this) {
+                if (cachedDeleteSqls == null) {
+                    List<String> tables = jdbcTemplate.queryForList(
+                        "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE()",
+                        String.class
+                    );
+                    cachedDeleteSqls = tables.stream()
+                        .map(table -> "DELETE FROM `" + table + "`") // 反引号防止关键字冲突
+                        .toArray(String[]::new);
+                }
+            }
+        }
+
+        // 2. 执行批量清理
+        // 外键开关单独执行，确保驱动稳定运行
         jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 0");
         try {
-            // 从元数据查询当前数据库的所有表名
-            List<String> tables = jdbcTemplate.queryForList(
-                "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE()",
-                String.class
-            );
-            // 批量清空所有表
-            for (String table : tables) {
-                jdbcTemplate.execute("TRUNCATE TABLE " + table);
-            }
+            // batchUpdate 配合 rewriteBatchedStatements=true 参数，
+            // 多条 DELETE 打包发送给 MySQL 驱动。
+            // 底层仍然为逐条发送，除非开启 allowMultiQueries 然后改为用分号拼接 SQL。
+            jdbcTemplate.batchUpdate(cachedDeleteSqls);
         } finally {
-            // 重新启用外键检查
             jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 1");
         }
     }

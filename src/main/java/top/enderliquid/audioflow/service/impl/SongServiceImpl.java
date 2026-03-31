@@ -474,18 +474,18 @@ public class SongServiceImpl implements SongService {
     }
 
     @Override
-    public BatchResult<Object> batchRemoveSongs(SongBatchDeleteDTO dto, Long userId) {
+    public BatchResult<Void> batchRemoveSongs(SongBatchDeleteDTO dto, Long userId) {
         log.info("请求批量删除歌曲，用户ID: {}, 数量: {}", userId, dto.getSongIds().size());
-        BatchResult<Object> result = new BatchResult<>();
+        BatchResult<Void> result = new BatchResult<>();
         List<Long> songIds = dto.getSongIds();
         for (int i = 0; i < songIds.size(); i++) {
             Long songId = songIds.get(i);
             try {
                 removeSong(songId, userId);
-                BatchResultItem<Object> successItem = new BatchResultItem<>(i, true, null, null);
+                BatchResultItem<Void> successItem = new BatchResultItem<>(i, true, null, null);
                 result.add(successItem);
             } catch (Exception e) {
-                BatchResultItem<Object> failureItem = new BatchResultItem<>(i, false, exceptionTranslator.translate(e).getMessage(), null);
+                BatchResultItem<Void> failureItem = new BatchResultItem<>(i, false, exceptionTranslator.translate(e).getMessage(), null);
                 result.add(failureItem);
                 if (!(e instanceof BusinessException)) break;
             }
@@ -529,18 +529,18 @@ public class SongServiceImpl implements SongService {
     }
 
     @Override
-    public BatchResult<Object> batchCancelUpload(SongBatchCancelDTO dto, Long userId) {
+    public BatchResult<Void> batchCancelUpload(SongBatchCancelDTO dto, Long userId) {
         log.info("请求批量取消上传歌曲，用户ID: {}，数量: {}", userId, dto.getSongIds().size());
-        BatchResult<Object> result = new BatchResult<>();
+        BatchResult<Void> result = new BatchResult<>();
         List<Long> songIds = dto.getSongIds();
         for (int i = 0; i < songIds.size(); i++) {
             Long songId = songIds.get(i);
             try {
                 cancelUpload(songId, userId);
-                BatchResultItem<Object> successItem = new BatchResultItem<>(i, true, null, null);
+                BatchResultItem<Void> successItem = new BatchResultItem<>(i, true, null, null);
                 result.add(successItem);
             } catch (Exception e) {
-                BatchResultItem<Object> failureItem = new BatchResultItem<>(i, false, exceptionTranslator.translate(e).getMessage(), null);
+                BatchResultItem<Void> failureItem = new BatchResultItem<>(i, false, exceptionTranslator.translate(e).getMessage(), null);
                 result.add(failureItem);
                 if (!(e instanceof BusinessException)) break;
             }

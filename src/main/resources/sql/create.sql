@@ -5,8 +5,8 @@ CREATE TABLE IF NOT EXISTS `user` (
     `name` VARCHAR(255) NOT NULL COMMENT '用户名',
     `password` VARCHAR(255) NOT NULL COMMENT '密码',
     `points` INT NOT NULL COMMENT '积分余额',
-    `create_time` DATETIME NOT NULL COMMENT '创建时间',
-    `update_time` DATETIME NOT NULL COMMENT '更新时间',
+    `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_email` (`email`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户表';
@@ -21,8 +21,8 @@ CREATE TABLE IF NOT EXISTS `song` (
     `duration` BIGINT COMMENT '音频时长（毫秒）',
     `uploader_id` BIGINT NOT NULL COMMENT '上传者ID',
     `status` VARCHAR(20) NOT NULL DEFAULT 'UPLOADING' COMMENT '歌曲状态: UPLOADING, NORMAL, DELETING',
-    `create_time` DATETIME NOT NULL COMMENT '创建时间',
-    `update_time` DATETIME NOT NULL COMMENT '更新时间',
+    `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
     INDEX `idx_create_time` (`create_time`),
     INDEX `idx_uploader_id` (`uploader_id`),
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS `points_record`(
     `balance` INT NOT NULL COMMENT '变动后余额',
     `type` VARCHAR(30) NOT NULL COMMENT '业务类型',
     `ref_id` BIGINT COMMENT '关联业务ID',
-    `create_time` DATETIME NOT NULL COMMENT '创建时间',
+    `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     PRIMARY KEY (`id`),
     INDEX `idx_user_id_create_time` (`user_id`, `create_time`)
     ) ENGINE = InnoDB
@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS `checkin_log`(
     `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '记录ID',
     `user_id` BIGINT NOT NULL COMMENT '用户ID',
     `checkin_date` DATE NOT NULL COMMENT '签到日期',
-    `create_time` DATETIME NOT NULL COMMENT '实际签到时间',
+    `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '实际签到时间',
     `reward_points` INT NOT NULL DEFAULT 0 COMMENT '签到奖励积分',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_user_date` (`user_id`,`checkin_date`),
@@ -65,8 +65,8 @@ CREATE TABLE IF NOT EXISTS `checkin_summary` (
     `continuous_days` INT NOT NULL DEFAULT 0 COMMENT '当前连续签到天数',
     `max_continuous` INT NOT NULL DEFAULT 0 COMMENT '历史最大连续签到天数',
     `last_checkin_date` DATE COMMENT '最后一次签到日期',
-    `create_time` DATETIME NOT NULL COMMENT '创建时间',
-    `update_time` DATETIME NOT NULL COMMENT '更新时间',
+    `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`user_id`)
     ) ENGINE = InnoDB
     DEFAULT CHARSET = utf8mb4
@@ -84,7 +84,7 @@ CREATE TABLE IF NOT EXISTS `login_log` (
     `os` VARCHAR(100) NULL COMMENT '操作系统',
     `browser` VARCHAR(100) NULL COMMENT '浏览器',
     `user_agent` VARCHAR(512) NULL COMMENT '完整的 User-Agent',
-    `create_time` DATETIME NOT NULL COMMENT '创建时间',
+    `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     PRIMARY KEY (`id`),
     INDEX `idx_user_id` (`user_id`),
     INDEX `idx_create_time` (`create_time`)
@@ -97,8 +97,8 @@ CREATE TABLE IF NOT EXISTS `dau` (
     `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
     `date` DATE NOT NULL COMMENT '统计日期',
     `count` BIGINT NOT NULL DEFAULT 0 COMMENT '日活数',
-    `create_time` DATETIME NOT NULL COMMENT '创建时间',
-    `update_time` DATETIME NOT NULL COMMENT '更新时间',
+    `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_date` (`date`)
     ) ENGINE = InnoDB
@@ -110,8 +110,8 @@ CREATE TABLE IF NOT EXISTS `checkin_count` (
     `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
     `date` DATE NOT NULL COMMENT '统计日期',
     `count` BIGINT NOT NULL DEFAULT 0 COMMENT '签到数',
-    `create_time` DATETIME NOT NULL COMMENT '创建时间',
-    `update_time` DATETIME NOT NULL COMMENT '更新时间',
+    `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_date` (`date`)
     ) ENGINE = InnoDB

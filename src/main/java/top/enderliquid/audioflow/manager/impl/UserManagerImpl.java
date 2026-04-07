@@ -17,21 +17,21 @@ public class UserManagerImpl extends ServiceImpl<UserMapper, User> implements Us
     public User getByEmail(String email) {
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(User::getEmail, email);
-        return super.getOne(wrapper);
+        return getOne(wrapper);
     }
 
     @Override
     public boolean existsByEmail(String email) {
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(User::getEmail, email);
-        return super.exists(wrapper);
+        return exists(wrapper);
     }
 
     @Override
     public boolean existsById(Long Id) {
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(User::getId, Id);
-        return super.exists(wrapper);
+        return exists(wrapper);
     }
 
     @Override

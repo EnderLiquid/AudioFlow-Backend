@@ -15,14 +15,14 @@ public class CheckinSummaryManagerImpl extends ServiceImpl<CheckinSummaryMapper,
 
     @Override
     public CheckinSummary getByUserId(Long userId) {
-        return super.getById(userId);
+        return getById(userId);
     }
 
     @Override
     public boolean existsByUserId(Long userId) {
         LambdaQueryWrapper<CheckinSummary> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(CheckinSummary::getUserId, userId);
-        return super.exists(wrapper);
+        return exists(wrapper);
     }
 
     @Override

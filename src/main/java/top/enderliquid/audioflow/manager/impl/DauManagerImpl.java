@@ -1,5 +1,6 @@
 package top.enderliquid.audioflow.manager.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -96,9 +97,9 @@ public class DauManagerImpl extends ServiceImpl<DauMapper, Dau> implements DauMa
             }
 
             // 查询数据库中是否已存在该日期的记录
-            Dau existing = lambdaQuery()
-                    .eq(Dau::getDate, date)
-                    .one();
+            LambdaQueryWrapper<Dau> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(Dau::getDate, date);
+            Dau existing = getOne(queryWrapper);
 
             if (existing == null) {
                 // 记录不存在，尝试插入

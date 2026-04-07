@@ -17,6 +17,6 @@ public class PointsRecordManagerImpl extends ServiceImpl<PointsRecordMapper, Poi
         record.setBalance(balance);
         record.setType(type);
         record.setRefId(refId);
-        super.save(record);
+        save(record);
     }
 }

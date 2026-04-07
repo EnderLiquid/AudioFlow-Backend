@@ -1,5 +1,6 @@
 package top.enderliquid.audioflow.manager.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -102,9 +103,9 @@ public class CheckinCountManagerImpl extends ServiceImpl<CheckinCountMapper, Che
             }
 
             // 查询数据库中是否已存在该日期的记录
-            CheckinCount existing = lambdaQuery()
-                    .eq(CheckinCount::getDate, date)
-                    .one();
+            LambdaQueryWrapper<CheckinCount> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(CheckinCount::getDate, date);
+            CheckinCount existing = getOne(queryWrapper);
 
             if (existing == null) {
                 // 记录不存在，尝试插入

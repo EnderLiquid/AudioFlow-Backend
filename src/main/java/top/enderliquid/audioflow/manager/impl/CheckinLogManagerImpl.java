@@ -16,7 +16,7 @@ public class CheckinLogManagerImpl extends ServiceImpl<CheckinLogMapper, Checkin
         LambdaQueryWrapper<CheckinLog> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(CheckinLog::getUserId, userId)
                .eq(CheckinLog::getCheckinDate, date);
-        return super.exists(wrapper);
+        return exists(wrapper);
     }
 
     @Override
@@ -24,7 +24,7 @@ public class CheckinLogManagerImpl extends ServiceImpl<CheckinLogMapper, Checkin
         LambdaQueryWrapper<CheckinLog> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(CheckinLog::getUserId, userId)
                .eq(CheckinLog::getCheckinDate, date);
-        return super.getOne(wrapper);
+        return getOne(wrapper);
     }
 
     @Override

@@ -36,7 +36,7 @@ public class LoginLogManagerImpl extends ServiceImpl<LoginLogMapper, LoginLog> i
         } else {
             wrapper.orderByDesc(LoginLog::getCreateTime);
         }
-        return super.page(page, wrapper);
+        return page(page, wrapper);
     }
 
     public void addRecord(Long userId, String email, boolean success, LoginFailReason failReason, LoginContext context) {
@@ -50,7 +50,7 @@ public class LoginLogManagerImpl extends ServiceImpl<LoginLogMapper, LoginLog> i
         loginLog.setOs(truncate(context.getOs(), LOGIN_LOG_OS_MAX));
         loginLog.setBrowser(truncate(context.getBrowser(), LOGIN_LOG_BROWSER_MAX));
         loginLog.setUserAgent(truncate(context.getUserAgent(), LOGIN_LOG_USER_AGENT_MAX));
-        super.save(loginLog);
+        save(loginLog);
     }
 
     /**

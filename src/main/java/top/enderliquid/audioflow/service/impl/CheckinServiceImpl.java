@@ -34,9 +34,6 @@ public class CheckinServiceImpl implements CheckinService {
     private UserManager userManager;
 
     @Autowired
-    private PointsRecordManager pointsRecordManager;
-
-    @Autowired
     private CheckinRewardConfig checkinRewardConfig;
 
     @Autowired
@@ -107,15 +104,7 @@ public class CheckinServiceImpl implements CheckinService {
             checkinSummaryManager.updateById(summary);
 
             // 先读后写，拿到行锁，无并发问题
-            userManager.addPoints(userId, rewardPoints);
-            int balance = userManager.getById(userId).getPoints();
-            pointsRecordManager.addRecord(
-                    userId,
-                    rewardPoints,
-                    balance,
-                    USER_CHECKIN,
-                    checkinLog.getId()
-            );
+            userManager.addPoints(userId, rewardPoints, USER_CHECKIN, checkinLog.getId());
 
             tx.commit();
         }

@@ -4,14 +4,20 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import top.enderliquid.audioflow.common.enums.PointsType;
+import top.enderliquid.audioflow.entity.PointsRecord;
 import top.enderliquid.audioflow.entity.User;
 import top.enderliquid.audioflow.manager.UserManager;
+import top.enderliquid.audioflow.mapper.PointsRecordMapper;
 import top.enderliquid.audioflow.mapper.UserMapper;
 
 @Repository
 public class UserManagerImpl extends ServiceImpl<UserMapper, User> implements UserManager {
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private PointsRecordMapper pointsRecordMapper;
 
     @Override
     public User getByEmail(String email) {
@@ -34,9 +40,26 @@ public class UserManagerImpl extends ServiceImpl<UserMapper, User> implements Us
         return exists(wrapper);
     }
 
+    /*
+     * 原子更新积分
+     * 注意: User 对象需要手动更新
+     */
     @Override
-    public boolean addPoints(Long userId, int delta) {
-        return userMapper.addPoints(userId, delta) > 0;
+    public int addPoints(Long userId, int delta, PointsType type, Long refId) {
+        int affected = userMapper.addPoints(userId, delta);
+        if (affected <= 0) {
+            return -1;
+        }
+        User user = userMapper.selectById(userId);
+        int balance = user.getPoints();
+        PointsRecord record = new PointsRecord();
+        record.setUserId(userId);
+        record.setDelta(delta);
+        record.setBalance(balance);
+        record.setType(type);
+        record.setRefId(refId);
+        pointsRecordMapper.insert(record);
+        return balance;
     }
 
     @Override

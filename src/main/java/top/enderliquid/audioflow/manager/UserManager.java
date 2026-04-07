@@ -1,7 +1,7 @@
 package top.enderliquid.audioflow.manager;
 
-
 import com.baomidou.mybatisplus.extension.service.IService;
+import top.enderliquid.audioflow.common.enums.PointsType;
 import top.enderliquid.audioflow.entity.User;
 
 public interface UserManager extends IService<User> {
@@ -11,7 +11,7 @@ public interface UserManager extends IService<User> {
 
     boolean existsById(Long Id);
 
-    boolean addPoints(Long userId, int delta);
+    int addPoints(Long userId, int delta, PointsType type, Long refId);
 
     User getByIdForUpdate(Long id);
 }

@@ -14,7 +14,6 @@ import top.enderliquid.audioflow.dto.request.user.UserSaveDTO;
 import top.enderliquid.audioflow.dto.request.user.UserUpdatePasswordDTO;
 import top.enderliquid.audioflow.dto.response.user.UserVO;
 import top.enderliquid.audioflow.entity.User;
-import top.enderliquid.audioflow.manager.PointsRecordManager;
 import top.enderliquid.audioflow.manager.UserManager;
 import top.enderliquid.audioflow.service.UserService;
 
@@ -33,9 +32,6 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private PointsRecordManager pointsRecordManager;
-
     @Value("${points.register}")
     private int pointsWhenRegister;
 
@@ -47,7 +43,7 @@ public class UserServiceImpl implements UserService {
         user.setName(dto.getName());
         String encryptedPassword = passwordEncoder.encode(dto.getPassword());
         user.setPassword(encryptedPassword);
-        user.setPoints(pointsWhenRegister);
+        user.setPoints(0);
         try (TransactionHelper tx = new TransactionHelper(txManager)) {
             // 依赖数据库唯一键防止邮箱重复
             try {
@@ -56,9 +52,10 @@ public class UserServiceImpl implements UserService {
                 throw new BusinessException("邮箱已被注册");
             }
 
-            pointsRecordManager.addRecord(user.getId(), pointsWhenRegister, pointsWhenRegister, USER_REGISTER, null);
+            userManager.addPoints(user.getId(), pointsWhenRegister, USER_REGISTER, null);
             tx.commit();
         }
+        user.setPoints(pointsWhenRegister);
         UserVO userVO = new UserVO();
         BeanUtils.copyProperties(user, userVO);
         log.info("注册用户成功，用户ID: {}", user.getId());

@@ -6,19 +6,18 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
-import top.enderliquid.audioflow.common.enums.PointsType;
 import top.enderliquid.audioflow.common.enums.SongStatus;
 import top.enderliquid.audioflow.common.transaction.TransactionHelper;
 import top.enderliquid.audioflow.entity.Song;
-import top.enderliquid.audioflow.entity.User;
 import top.enderliquid.audioflow.manager.OSSManager;
-import top.enderliquid.audioflow.manager.PointsRecordManager;
 import top.enderliquid.audioflow.manager.SongManager;
 import top.enderliquid.audioflow.manager.UserManager;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+
+import static top.enderliquid.audioflow.common.enums.PointsType.SONG_UPLOAD_CANCEL;
 
 @Slf4j
 @Component
@@ -38,9 +37,6 @@ public class SongUploadCleanupTask {
 
     @Autowired
     private UserManager userManager;
-
-    @Autowired
-    private PointsRecordManager pointsRecordManager;
 
     @Autowired
     private PlatformTransactionManager txManager;
@@ -68,11 +64,9 @@ public class SongUploadCleanupTask {
             }
             try (TransactionHelper tx = new TransactionHelper(txManager)) {
                 if (song.getStatus() == SongStatus.UPLOADING) {
-                    if (!userManager.addPoints(song.getUploaderId(), pointsPerUpload)) {
+                    int balance = userManager.addPoints(song.getUploaderId(), pointsPerUpload, SONG_UPLOAD_CANCEL, song.getId());
+                    if (balance < 0) {
                         log.info("返还用户积分失败");
-                    } else {
-                        User uploader = userManager.getById(song.getUploaderId());
-                        pointsRecordManager.addRecord(uploader.getId(), pointsPerUpload, uploader.getPoints(), PointsType.SONG_UPLOAD_CANCEL, song.getId());
                     }
                 }
                 if (!songManager.removeById(song)) {

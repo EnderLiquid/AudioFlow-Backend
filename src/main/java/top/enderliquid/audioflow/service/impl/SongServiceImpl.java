@@ -33,7 +33,6 @@ import top.enderliquid.audioflow.dto.response.song.SongVO;
 import top.enderliquid.audioflow.entity.Song;
 import top.enderliquid.audioflow.entity.User;
 import top.enderliquid.audioflow.manager.OSSManager;
-import top.enderliquid.audioflow.manager.PointsRecordManager;
 import top.enderliquid.audioflow.manager.SongManager;
 import top.enderliquid.audioflow.manager.UserManager;
 import top.enderliquid.audioflow.service.SongService;
@@ -83,8 +82,6 @@ public class SongServiceImpl implements SongService {
     private SongManager songManager;
     @Autowired
     private OSSManager ossManager;
-    @Autowired
-    private PointsRecordManager pointsRecordManager;
     @Autowired
     private ExceptionTranslator exceptionTranslator;
     @Autowired
@@ -136,12 +133,10 @@ public class SongServiceImpl implements SongService {
         song.setStatus(SongStatus.UPLOADING);
 
         try (TransactionHelper tx = new TransactionHelper(txManager)) {
-            if (!userManager.addPoints(userId, -pointsPerUpload)) {
-                // 可能是积分不足，也有可能是用户已经不存在
+            int balance = userManager.addPoints(userId, -pointsPerUpload, SONG_UPLOAD, songId);
+            if (balance < 0) {
                 throw new BusinessException("扣除积分失败");
             }
-            uploader = userManager.getById(uploader.getId());
-            pointsRecordManager.addRecord(uploader.getId(), -pointsPerUpload, uploader.getPoints(), SONG_UPLOAD, songId);
             songManager.save(song);
             tx.commit();
         }
@@ -517,11 +512,10 @@ public class SongServiceImpl implements SongService {
             if (!songManager.updateById(song)) {
                 throw new BusinessException("更新歌曲状态失败");
             }
-            if (!userManager.addPoints(song.getUploaderId(), pointsPerUpload)) {
+            int balance = userManager.addPoints(song.getUploaderId(), pointsPerUpload, SONG_UPLOAD_CANCEL, songId);
+            if (balance < 0) {
                 throw new BusinessException("返还用户积分失败");
             }
-            User uploader = userManager.getById(userId);
-            pointsRecordManager.addRecord(song.getUploaderId(), pointsPerUpload, uploader.getPoints(), SONG_UPLOAD_CANCEL, songId);
             tx.commit();
         }
 

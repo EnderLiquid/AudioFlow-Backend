@@ -1,6 +1,6 @@
 package top.enderliquid.audioflow.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -22,7 +22,7 @@ public class CheckinLog {
     private Long id;
     private Long userId;
     private LocalDate checkinDate;
-    @TableField(value = "create_time", fill = FieldFill.INSERT)
+    @TableField(value = "create_time", insertStrategy = FieldStrategy.NEVER, updateStrategy = FieldStrategy.NEVER)
     private LocalDateTime createTime;
     private Integer rewardPoints;
 }

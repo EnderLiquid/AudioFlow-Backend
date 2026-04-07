@@ -1,6 +1,6 @@
 package top.enderliquid.audioflow.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -41,6 +41,6 @@ public class LoginLog {
     private String browser;
     // 完整的 User-Agent
     private String userAgent;
-    @TableField(value = "create_time", fill = FieldFill.INSERT)
+    @TableField(value = "create_time", insertStrategy = FieldStrategy.NEVER, updateStrategy = FieldStrategy.NEVER)
     private LocalDateTime createTime;
 }

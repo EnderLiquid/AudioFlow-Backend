@@ -5,7 +5,7 @@ import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import top.enderliquid.audioflow.common.annotation.RateLimit;
@@ -22,10 +22,10 @@ import top.enderliquid.audioflow.service.SessionService;
 @RestController
 @RequestMapping("/api/sessions")
 @Validated
+@RequiredArgsConstructor
 public class SessionController {
 
-    @Autowired
-    private SessionService sessionService;
+    private final SessionService sessionService;
 
     /**
      * 用户登录

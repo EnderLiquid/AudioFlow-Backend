@@ -1,7 +1,7 @@
 package top.enderliquid.audioflow.common.task;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -21,6 +21,7 @@ import static top.enderliquid.audioflow.common.enums.PointsType.SONG_UPLOAD_CANC
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class SongUploadCleanupTask {
 
     @Value("${points.upload}")
@@ -29,17 +30,10 @@ public class SongUploadCleanupTask {
     @Value("${file.storage.s3.presigned-url-expiration}")
     private int presignedUrlExpirationSeconds;
 
-    @Autowired
-    private SongManager songManager;
-
-    @Autowired
-    private OSSManager ossManager;
-
-    @Autowired
-    private UserManager userManager;
-
-    @Autowired
-    private PlatformTransactionManager txManager;
+    private final SongManager songManager;
+    private final OSSManager ossManager;
+    private final UserManager userManager;
+    private final PlatformTransactionManager txManager;
 
     @Scheduled(cron = "0 0,20,40 * * * ? ")
     public void cleanupExpiredUploads() {

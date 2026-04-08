@@ -3,6 +3,7 @@ package top.enderliquid.audioflow.service.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
 import org.apache.tika.metadata.Metadata;
@@ -11,7 +12,6 @@ import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
@@ -51,6 +51,7 @@ import static top.enderliquid.audioflow.common.enums.PointsType.SONG_UPLOAD_CANC
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class SongServiceImpl implements SongService {
 
     private static final Tika TIKA = new Tika();
@@ -76,16 +77,11 @@ public class SongServiceImpl implements SongService {
         MIME_TYPE_TO_EXTENSION_MAP.put("audio/x-flac", "flac");
     }
 
-    @Autowired
-    private UserManager userManager;
-    @Autowired
-    private SongManager songManager;
-    @Autowired
-    private OSSManager ossManager;
-    @Autowired
-    private ExceptionTranslator exceptionTranslator;
-    @Autowired
-    private PlatformTransactionManager txManager;
+    private final UserManager userManager;
+    private final SongManager songManager;
+    private final OSSManager ossManager;
+    private final ExceptionTranslator exceptionTranslator;
+    private final PlatformTransactionManager txManager;
 
     @Value("${file.storage.max-file-size:20MB}")
     private String maxFileSizeStr;

@@ -1,8 +1,8 @@
 package top.enderliquid.audioflow.service.impl;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import top.enderliquid.audioflow.common.exception.BusinessException;
@@ -23,19 +23,13 @@ import static top.enderliquid.audioflow.common.enums.LoginFailReason.USER_NOT_FO
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class SessionServiceImpl implements SessionService {
 
-    @Autowired
-    private UserManager userManager;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private DauManager dauManager;
-
-    @Autowired
-    private LoginLogManager loginLogManager;
+    private final UserManager userManager;
+    private final PasswordEncoder passwordEncoder;
+    private final DauManager dauManager;
+    private final LoginLogManager loginLogManager;
 
     @Override
     public UserVO login(UserLoginDTO dto, LoginContext context) {

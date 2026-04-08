@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import top.enderliquid.audioflow.common.enums.SongStatus;
 import top.enderliquid.audioflow.common.util.id.SnowflakeIdConverter;
@@ -19,12 +19,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
+@RequiredArgsConstructor
 public class SongManagerImpl extends ServiceImpl<SongMapper, Song> implements SongManager {
-    @Autowired
-    private SongMapper songMapper;
-
-    @Autowired
-    private SnowflakeIdConverter snowflakeIdConverter;
+    private final SongMapper songMapper;
+    private final SnowflakeIdConverter snowflakeIdConverter;
 
     @Override
     public IPage<SongBO> pageByUploaderKeywordAndSongKeyword(SongPageDTO dto) {

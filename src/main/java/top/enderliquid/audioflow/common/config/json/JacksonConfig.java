@@ -3,7 +3,7 @@ package top.enderliquid.audioflow.common.config.json;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
@@ -15,9 +15,9 @@ import java.util.TimeZone;
 import static top.enderliquid.audioflow.common.constant.TimeZoneConstants.GLOBAL_TIME_ZONE_ID;
 
 @Configuration
+@RequiredArgsConstructor
 public class JacksonConfig {
-    @Autowired
-    private MessageSource messageSource;
+    private final MessageSource messageSource;
 
     // 自动 Trim JSON 表单 (application/json) 请求传入的字符串
     // 字符串为空则设为 null

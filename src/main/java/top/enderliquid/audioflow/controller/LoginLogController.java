@@ -3,7 +3,7 @@ package top.enderliquid.audioflow.controller;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.stp.StpUtil;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,10 +20,10 @@ import top.enderliquid.audioflow.service.LoginLogService;
 @RestController
 @RequestMapping("/api/login-logs")
 @Validated
+@RequiredArgsConstructor
 public class LoginLogController {
 
-    @Autowired
-    private LoginLogService loginLogService;
+    private final LoginLogService loginLogService;
 
     /**
      * 查询登录流水

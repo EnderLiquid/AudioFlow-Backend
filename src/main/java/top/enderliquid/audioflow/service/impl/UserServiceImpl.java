@@ -1,8 +1,8 @@
 package top.enderliquid.audioflow.service.impl;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,16 +21,12 @@ import static top.enderliquid.audioflow.common.enums.PointsType.USER_REGISTER;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    @Autowired
-    private UserManager userManager;
-
-    @Autowired
-    private PlatformTransactionManager txManager;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final UserManager userManager;
+    private final PlatformTransactionManager txManager;
+    private final PasswordEncoder passwordEncoder;
 
     @Value("${points.register}")
     private int pointsWhenRegister;

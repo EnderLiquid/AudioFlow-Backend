@@ -40,8 +40,7 @@
 
 ```java
 // 注入 PlatformTransactionManager 
-@Autowired
-private PlatformTransactionManager txManager;
+private final PlatformTransactionManager txManager;
 
 public void someServiceMethod() {
     // 开启事务
@@ -53,6 +52,36 @@ public void someServiceMethod() {
         tx.commit();
     }
     // 若未调用 commit()，close() 会自动回滚
+}
+```
+
+### 依赖注入规范
+
+1. **统一使用构造器注入**：禁止使用 `@Autowired` 字段注入，使用 Lombok 的 `@RequiredArgsConstructor` 配合 `private final` 字段实现构造器注入。
+2. **配置值注入例外**：`@Value` 配置值注入保持字段注入方式，不纳入构造器注入。
+3. **测试类例外**：测试类保持使用 `@Autowired` 字段注入，以兼容 Spring Test 框架。
+
+示例代码：
+
+```java
+// 正确：构造器注入
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class UserServiceImpl implements UserService {
+    private final UserManager userManager;
+    private final PlatformTransactionManager txManager;
+    
+    // @Value 配置值保持字段注入
+    @Value("${points.register}")
+    private int pointsWhenRegister;
+}
+
+// 错误：字段注入（禁止）
+@Service
+public class UserServiceImpl implements UserService {
+    @Autowired
+    private UserManager userManager;  // 禁止
 }
 ```
 

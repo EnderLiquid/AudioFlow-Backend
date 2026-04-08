@@ -1,7 +1,7 @@
 package top.enderliquid.audioflow.service.impl;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import top.enderliquid.audioflow.common.annotation.RateLimit;
 import top.enderliquid.audioflow.common.enums.LimitType;
@@ -12,9 +12,9 @@ import top.enderliquid.audioflow.service.RateLimitService;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class RateLimitServiceImpl implements RateLimitService {
-    @Autowired
-    private RateLimitManager rateLimitManager;
+    private final RateLimitManager rateLimitManager;
 
     @Override
     public void verifyRateLimit(RateLimit limit, String ip, Long userId, String entry, String message) {

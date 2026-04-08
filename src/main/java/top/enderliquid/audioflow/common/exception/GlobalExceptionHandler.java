@@ -1,7 +1,7 @@
 package top.enderliquid.audioflow.common.exception;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -13,10 +13,10 @@ import top.enderliquid.audioflow.common.response.HttpResponseBody;
  */
 @Slf4j
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
 
-    @Autowired
-    private ExceptionTranslator translator;
+    private final ExceptionTranslator translator;
 
     @ExceptionHandler(Exception.class) // 拦截所有
     public ResponseEntity<HttpResponseBody<?>> handleAll(Exception e) {

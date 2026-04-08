@@ -2,7 +2,7 @@ package top.enderliquid.audioflow.manager.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import top.enderliquid.audioflow.common.enums.PointsType;
 import top.enderliquid.audioflow.entity.PointsRecord;
@@ -12,12 +12,10 @@ import top.enderliquid.audioflow.mapper.PointsRecordMapper;
 import top.enderliquid.audioflow.mapper.UserMapper;
 
 @Repository
+@RequiredArgsConstructor
 public class UserManagerImpl extends ServiceImpl<UserMapper, User> implements UserManager {
-    @Autowired
-    private UserMapper userMapper;
-
-    @Autowired
-    private PointsRecordMapper pointsRecordMapper;
+    private final UserMapper userMapper;
+    private final PointsRecordMapper pointsRecordMapper;
 
     @Override
     public User getByEmail(String email) {

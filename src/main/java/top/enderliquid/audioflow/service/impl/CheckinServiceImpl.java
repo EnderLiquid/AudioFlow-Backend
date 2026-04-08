@@ -1,7 +1,7 @@
 package top.enderliquid.audioflow.service.impl;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -22,25 +22,15 @@ import static top.enderliquid.audioflow.common.enums.PointsType.USER_CHECKIN;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class CheckinServiceImpl implements CheckinService {
 
-    @Autowired
-    private CheckinLogManager checkinLogManager;
-
-    @Autowired
-    private CheckinSummaryManager checkinSummaryManager;
-
-    @Autowired
-    private UserManager userManager;
-
-    @Autowired
-    private CheckinRewardConfig checkinRewardConfig;
-
-    @Autowired
-    private PlatformTransactionManager txManager;
-
-    @Autowired
-    private CheckinCountManager checkinCountManager;
+    private final CheckinLogManager checkinLogManager;
+    private final CheckinSummaryManager checkinSummaryManager;
+    private final UserManager userManager;
+    private final CheckinRewardConfig checkinRewardConfig;
+    private final PlatformTransactionManager txManager;
+    private final CheckinCountManager checkinCountManager;
 
     @Override
     public CheckinResultVO checkin(Long userId) {

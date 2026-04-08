@@ -19,9 +19,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class UserControllerTest extends BaseControllerTest {
 
     @Autowired
-    protected TestDataHelper testDataHelper;
-
-    @Autowired
     protected ObjectMapper objectMapper;
 
     @Test

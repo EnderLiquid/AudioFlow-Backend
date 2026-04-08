@@ -1,7 +1,7 @@
 package top.enderliquid.audioflow.common.config;
 
 import cn.dev33.satoken.interceptor.SaInterceptor;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -15,13 +15,13 @@ import top.enderliquid.audioflow.common.handler.HttpMethodOverrideFilter;
 import top.enderliquid.audioflow.common.handler.RateLimitInterceptor;
 
 @Configuration
+@RequiredArgsConstructor
 public class WebMvcConfig implements WebMvcConfigurer {
 
     @Value("${app.cors.allowed-origin-patterns}")
     private String[] allowedOriginPatterns;
 
-    @Autowired
-    private RateLimitInterceptor rateLimitInterceptor;
+    private final RateLimitInterceptor rateLimitInterceptor;
 
     @Bean
     public FilterRegistrationBean<HttpMethodOverrideFilter> httpMethodOverrideFilterRegistration() {

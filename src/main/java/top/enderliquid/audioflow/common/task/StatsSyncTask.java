@@ -1,7 +1,7 @@
 package top.enderliquid.audioflow.common.task;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import top.enderliquid.audioflow.manager.CheckinCountManager;
@@ -13,13 +13,11 @@ import top.enderliquid.audioflow.manager.DauManager;
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class StatsSyncTask {
 
-    @Autowired
-    private DauManager dauManager;
-
-    @Autowired
-    private CheckinCountManager checkinCountManager;
+    private final DauManager dauManager;
+    private final CheckinCountManager checkinCountManager;
 
     /**
      * 每5分钟执行一次统计数据同步

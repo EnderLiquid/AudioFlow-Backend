@@ -16,9 +16,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class SongControllerTest extends BaseControllerTest {
 
     @Autowired
-    protected TestDataHelper testDataHelper;
-
-    @Autowired
     protected ObjectMapper objectMapper;
 
     @Autowired

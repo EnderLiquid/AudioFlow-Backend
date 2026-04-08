@@ -2,7 +2,7 @@ package top.enderliquid.audioflow.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.stp.StpUtil;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import top.enderliquid.audioflow.common.annotation.RateLimit;
@@ -17,10 +17,10 @@ import top.enderliquid.audioflow.service.CheckinService;
 @RestController
 @RequestMapping("/api/checkins")
 @Validated
+@RequiredArgsConstructor
 public class CheckinController {
 
-    @Autowired
-    private CheckinService checkinService;
+    private final CheckinService checkinService;
 
     /**
      * 用户签到

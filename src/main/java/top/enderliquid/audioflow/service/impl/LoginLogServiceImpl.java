@@ -1,9 +1,9 @@
 package top.enderliquid.audioflow.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import top.enderliquid.audioflow.dto.request.loginlog.LoginLogPageDTO;
 import top.enderliquid.audioflow.dto.response.PageVO;
@@ -19,10 +19,10 @@ import static top.enderliquid.audioflow.common.constant.DefaultConstants.*;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class LoginLogServiceImpl implements LoginLogService {
 
-    @Autowired
-    private LoginLogManager loginLogManager;
+    private final LoginLogManager loginLogManager;
 
     @Override
     public PageVO<LoginLogVO> page(Long userId, LoginLogPageDTO dto) {

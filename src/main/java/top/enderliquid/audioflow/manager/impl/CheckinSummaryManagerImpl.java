@@ -2,16 +2,16 @@ package top.enderliquid.audioflow.manager.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import top.enderliquid.audioflow.entity.CheckinSummary;
 import top.enderliquid.audioflow.manager.CheckinSummaryManager;
 import top.enderliquid.audioflow.mapper.CheckinSummaryMapper;
 
 @Repository
+@RequiredArgsConstructor
 public class CheckinSummaryManagerImpl extends ServiceImpl<CheckinSummaryMapper, CheckinSummary> implements CheckinSummaryManager {
-    @Autowired
-    private CheckinSummaryMapper checkinSummaryMapper;
+    private final CheckinSummaryMapper checkinSummaryMapper;
 
     @Override
     public CheckinSummary getByUserId(Long userId) {

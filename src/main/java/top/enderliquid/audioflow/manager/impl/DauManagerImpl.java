@@ -3,8 +3,8 @@ package top.enderliquid.audioflow.manager.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.dao.DuplicateKeyException;
@@ -33,10 +33,10 @@ import static top.enderliquid.audioflow.common.constant.DefaultConstants.DAILY_S
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class DauManagerImpl extends ServiceImpl<DauMapper, Dau> implements DauManager {
 
-    @Autowired
-    private StringRedisTemplate redisTemplate;
+    private final StringRedisTemplate redisTemplate;
 
     private RedisScript<Long> dauAddScript;
 

@@ -4,8 +4,8 @@ import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.stp.StpUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import top.enderliquid.audioflow.common.annotation.RateLimit;
@@ -25,10 +25,10 @@ import java.io.IOException;
 @RestController
 @RequestMapping("/api/songs")
 @Validated
+@RequiredArgsConstructor
 public class SongController {
 
-    @Autowired
-    private SongService songService;
+    private final SongService songService;
 
     /**
      * 准备上传歌曲

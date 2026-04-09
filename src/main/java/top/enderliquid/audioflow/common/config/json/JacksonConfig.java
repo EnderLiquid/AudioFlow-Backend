@@ -5,7 +5,6 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
-import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -17,14 +16,11 @@ import static top.enderliquid.audioflow.common.constant.TimeZoneConstants.GLOBAL
 @Configuration
 @RequiredArgsConstructor
 public class JacksonConfig {
-    private final MessageSource messageSource;
-
-    // 自动 Trim JSON 表单 (application/json) 请求传入的字符串
-    // 字符串为空则设为 null
     @Bean
     public Jackson2ObjectMapperBuilderCustomizer jacksonTrimmingCustomizer() {
         return builder -> {
-            // 自动 trim 字符串
+            // 自动 Trim JSON 表单 (application/json) 请求传入的字符串
+            // 字符串为空则设为 null
             builder.deserializerByType(String.class, new StringTrimmingDeserializer());
 
             // 时区

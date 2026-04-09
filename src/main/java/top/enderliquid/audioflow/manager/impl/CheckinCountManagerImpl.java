@@ -91,7 +91,7 @@ public class CheckinCountManagerImpl extends ServiceImpl<CheckinCountMapper, Che
     }
 
     @Override
-    public int syncAllFromRedis() {
+    public int persistToDatabase() {
         LocalDate startDate = LocalDate.now().minusDays(DAILY_STATS_REDIS_EXPIRE_DAYS - 1);
         LocalDate today = LocalDate.now();
         int syncCount = 0;

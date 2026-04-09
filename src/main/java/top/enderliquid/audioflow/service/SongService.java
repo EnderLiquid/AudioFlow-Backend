@@ -36,4 +36,12 @@ public interface SongService {
     void cancelUpload(@NotNull(message = "歌曲Id不能为空") Long songId, @NotNull(message = "用户Id不能为空") Long userId);
 
     BatchResult<Void> batchCancelUpload(@Valid SongBatchCancelDTO dto, @NotNull(message = "用户Id不能为空") Long userId);
+
+    /**
+     * 清理过期的歌曲上传记录
+     * 定时任务调用，清理状态为UPLOADING或DELETING且超过预签名URL有效期的记录
+     *
+     * @return 清理的记录条数
+     */
+    int cleanupExpiredUploads();
 }

@@ -29,10 +29,10 @@ public interface DauManager extends IService<Dau> {
     long getDauCount(LocalDate date);
 
     /**
-     * 同步指定日期范围内所有日活数据到数据库
-     * 遍历日期，从Redis获取数据并同步
+     * 持久化Redis中的日活数据到数据库
+     * 遍历日期，从Redis获取数据并写入MySQL
      *
-     * @return 同步成功的记录数
+     * @return 持久化成功的记录数
      */
-    int syncAllFromRedis();
+    int persistToDatabase();
 }

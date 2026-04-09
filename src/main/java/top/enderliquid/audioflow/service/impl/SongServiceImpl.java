@@ -40,7 +40,9 @@ import top.enderliquid.audioflow.service.SongService;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -87,6 +89,8 @@ public class SongServiceImpl implements SongService {
     private String maxFileSizeStr;
     @Value("${points.upload}")
     private int pointsPerUpload;
+    @Value("${file.storage.s3.presigned-url-expiration}")
+    private int presignedUrlExpirationSeconds;
 
     private long maxFileSizeBytes;
 
@@ -537,5 +541,45 @@ public class SongServiceImpl implements SongService {
         }
         log.info("批量取消上传歌曲完成，成功: {}，失败: {}", result.getSuccessCount(), result.getFailureCount());
         return result;
+    }
+
+    @Override
+    public int cleanupExpiredUploads() {
+        log.info("开始清理过期歌曲记录");
+        LocalDateTime cutoffTime = LocalDateTime.now().minusSeconds(presignedUrlExpirationSeconds);
+        List<Song> expiredSongs = songManager.listByStatusesAndBeforeTime(
+                Arrays.asList(SongStatus.UPLOADING, SongStatus.DELETING), cutoffTime);
+        if (expiredSongs == null || expiredSongs.isEmpty()) {
+            log.info("没有需要清理的过期歌曲记录");
+            return 0;
+        }
+        int cleanedCount = 0;
+        for (Song song : expiredSongs) {
+            log.info("开始尝试清除过期歌曲记录，歌曲ID: {}, 状态: {}", song.getId(), song.getStatus());
+            if (ossManager.checkFileExists(song.getFileName())) {
+                if (!ossManager.deleteFile(song.getFileName())) {
+                    log.error("从OSS删除已存在的歌曲文件失败，文件名: {}", song.getFileName());
+                    continue;
+                }
+            } else {
+                log.info("歌曲文件还未上传至OSS，跳过文件清除逻辑");
+            }
+            try (TransactionHelper tx = new TransactionHelper(txManager)) {
+                if (song.getStatus() == SongStatus.UPLOADING) {
+                    int balance = userManager.addPoints(song.getUploaderId(), pointsPerUpload, SONG_UPLOAD_CANCEL, song.getId());
+                    if (balance < 0) {
+                        log.info("返还用户积分失败");
+                    }
+                }
+                if (!songManager.removeById(song)) {
+                    log.info("删除歌曲记录失败");
+                    continue;
+                }
+                tx.commit();
+            }
+            cleanedCount++;
+        }
+        log.info("清理过期歌曲记录完成，清理记录条数: {}", cleanedCount);
+        return cleanedCount;
     }
 }

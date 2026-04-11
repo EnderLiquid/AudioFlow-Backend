@@ -45,6 +45,7 @@ public class UserServiceImpl implements UserService {
             try {
                 userManager.save(user);
             } catch (DuplicateKeyException e) {
+                log.info("注册失败，邮箱已被注册");
                 throw new BusinessException("邮箱已被注册");
             }
 
@@ -63,6 +64,7 @@ public class UserServiceImpl implements UserService {
         log.info("请求获取用户信息，用户ID: {}", userId);
         User user = userManager.getById(userId);
         if (user == null) {
+            log.info("获取用户信息失败，用户不存在");
             throw new BusinessException("用户不存在");
         }
         UserVO userVO = new UserVO();
@@ -75,22 +77,26 @@ public class UserServiceImpl implements UserService {
     public UserVO updateUserPassword(UserUpdatePasswordDTO dto, Long userId) {
         log.info("请求更新用户密码，用户ID: {}", userId);
         if (dto.getNewPassword().equals(dto.getOldPassword())) {
+            log.info("更新密码失败，新密码与旧密码相同");
             throw new BusinessException("新密码与旧密码相同");
         }
         User user;
         try (TransactionHelper tx = new TransactionHelper(txManager)) {
             user = userManager.getByIdForUpdate(userId);
             if (user == null) {
+                log.info("更新密码失败，用户不存在");
                 throw new BusinessException("用户不存在");
             }
             if (!passwordEncoder.matches(
                     dto.getOldPassword(), // 明文
                     user.getPassword() // 密文
             )) {
+                log.info("更新密码失败，旧密码错误");
                 throw new BusinessException("旧密码错误");
             }
             user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
             if (!userManager.updateById(user)) {
+                log.info("更新密码失败，数据库更新返回失败");
                 throw new BusinessException("更新密码失败");
             }
             tx.commit();

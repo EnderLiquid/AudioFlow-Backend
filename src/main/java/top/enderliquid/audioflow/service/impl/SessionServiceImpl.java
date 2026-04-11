@@ -41,6 +41,7 @@ public class SessionServiceImpl implements SessionService {
         // 用户不存在
         if (user == null) {
             loginLogManager.addRecord(null, dto.getEmail(), false, USER_NOT_FOUND, context);
+            log.info("登录失败，用户不存在，邮箱: {}", dto.getEmail());
             throw new BusinessException("用户名或密码错误");
         }
 
@@ -50,6 +51,7 @@ public class SessionServiceImpl implements SessionService {
                 user.getPassword() // 密文
         )) {
             loginLogManager.addRecord(user.getId(), dto.getEmail(), false, PASSWORD_WRONG, context);
+            log.info("登录失败，密码错误，邮箱: {}", dto.getEmail());
             throw new BusinessException("用户名或密码错误");
         }
 

@@ -71,7 +71,7 @@ public void someServiceMethod() {
 public class UserServiceImpl implements UserService {
     private final UserManager userManager;
     private final PlatformTransactionManager txManager;
-    
+
     // @Value 配置值保持字段注入
     @Value("${points.register}")
     private int pointsWhenRegister;
@@ -133,3 +133,4 @@ public class UserServiceImpl implements UserService {
 
 - 请求日志：`请求XXX，参数名: {}`。
 - 成功日志：`XXX成功` 或 `XXX成功，关键信息: {}`。
+- **业务异常日志**：在抛出 `BusinessException` 前使用 `log.info` 记录失败原因及调试信息，格式为 `XXX失败，原因/关键信息: {}`。日志内容应包含对调试有用但不需暴露给用户的详细信息，且不应与之前的日志重复（链路追踪可关联同一请求的所有日志）。

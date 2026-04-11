@@ -13,7 +13,10 @@ import top.enderliquid.audioflow.dto.response.checkin.CheckinStatusVO;
 import top.enderliquid.audioflow.dto.response.checkin.CheckinSummaryVO;
 import top.enderliquid.audioflow.entity.CheckinLog;
 import top.enderliquid.audioflow.entity.CheckinSummary;
-import top.enderliquid.audioflow.manager.*;
+import top.enderliquid.audioflow.manager.CheckinCountManager;
+import top.enderliquid.audioflow.manager.CheckinLogManager;
+import top.enderliquid.audioflow.manager.CheckinSummaryManager;
+import top.enderliquid.audioflow.manager.UserManager;
 import top.enderliquid.audioflow.service.CheckinService;
 
 import java.time.LocalDate;
@@ -40,10 +43,12 @@ public class CheckinServiceImpl implements CheckinService {
 
         // 初步判断是否签到，快速失败
         if (checkinLogManager.existsByUserIdAndDate(userId, today)) {
+            log.info("签到失败，初步检查发现今日已签到");
             throw new BusinessException("今日已签到");
         }
 
         if (!userManager.existsById(userId)) {
+            log.info("签到失败，用户不存在");
             throw new BusinessException("用户不存在");
         }
 
@@ -67,12 +72,14 @@ public class CheckinServiceImpl implements CheckinService {
                     checkinSummaryManager.save(summary);
                 } catch (DuplicateKeyException e) {
                     // 如果抛出唯一键冲突异常，说明别的并发请求抢先初始化并提交了
+                    log.info("签到失败，并发初始化冲突");
                     throw new BusinessException("签到初始化失败，请重试");
                 }
             }
 
             // 再次校验今日是否已签到
             if (summary.getLastCheckinDate() != null && summary.getLastCheckinDate().equals(today)) {
+                log.info("签到失败，持有锁后再次检查发现今日已签到");
                 throw new BusinessException("今日已签到");
             }
 
@@ -87,6 +94,7 @@ public class CheckinServiceImpl implements CheckinService {
                   依赖 user_id + checkin_date 联合唯一索引
                   防御性编程兜底，有前面排他锁保障，理论上不可能走到这一个分支
                 */
+                log.info("签到失败，防御性编程触发唯一键冲突，理论上不应发生");
                 throw new BusinessException("今日已签到");
             }
 

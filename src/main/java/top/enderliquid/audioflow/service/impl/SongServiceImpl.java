@@ -41,11 +41,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static top.enderliquid.audioflow.common.constant.DefaultConstants.*;
 import static top.enderliquid.audioflow.common.enums.PointsType.SONG_UPLOAD;
@@ -104,19 +100,23 @@ public class SongServiceImpl implements SongService {
         log.info("请求准备上传歌曲，用户ID: {}", userId);
         User uploader = userManager.getById(userId);
         if (uploader == null) {
+            log.info("准备上传失败，用户不存在");
             throw new BusinessException("用户不存在");
         }
         // 快速检查积分是否足够
         if (uploader.getPoints() < pointsPerUpload) {
+            log.info("准备上传失败，积分不足，当前积分: {}", uploader.getPoints());
             throw new BusinessException("积分不足");
         }
         // 初步校验文件类型
         String extension = MIME_TYPE_TO_EXTENSION_MAP.get(dto.getMimeType());
         if (extension == null) {
+            log.info("准备上传失败，不支持该文件类型，MIME类型: {}", dto.getMimeType());
             throw new BusinessException("不支持该文件类型");
         }
         // 初步校验文件大小
         if (dto.getSize() > maxFileSizeBytes) {
+            log.info("准备上传失败，文件大小超过限制，文件大小: {}", dto.getSize());
             throw new BusinessException(StrFormatter.format("文件大小超过限制，最大仅允许 {}", maxFileSizeStr));
         }
 
@@ -135,6 +135,7 @@ public class SongServiceImpl implements SongService {
         try (TransactionHelper tx = new TransactionHelper(txManager)) {
             int balance = userManager.addPoints(userId, -pointsPerUpload, SONG_UPLOAD, songId);
             if (balance < 0) {
+                log.info("准备上传失败，扣除积分后余额为负，余额: {}", balance);
                 throw new BusinessException("扣除积分失败");
             }
             songManager.save(song);
@@ -144,6 +145,7 @@ public class SongServiceImpl implements SongService {
         // 生成上传URL
         String uploadUrl = ossManager.generatePresignedPutUrl(fileName, dto.getMimeType());
         if (uploadUrl == null) {
+            log.info("准备上传失败，生成上传URL失败，文件名: {}", fileName);
             throw new BusinessException("生成上传URL失败");
         }
 
@@ -162,34 +164,41 @@ public class SongServiceImpl implements SongService {
 
         User uploader = userManager.getById(userId);
         if (uploader == null) {
+            log.info("完成上传失败，用户不存在");
             throw new BusinessException("用户不存在");
         }
 
         // 初步检查，快速失败
         Song song = songManager.getById(dto.getSongId());
         if (song == null) {
+            log.info("完成上传失败，歌曲不存在，歌曲ID: {}", dto.getSongId());
             throw new BusinessException("歌曲不存在");
         }
         // 先检查上传者是否匹配，再检查状态是否正常，防止状态泄露
         if (!song.getUploaderId().equals(userId)) {
+            log.info("完成上传失败，非歌曲上传者，歌曲上传者ID: {}", song.getUploaderId());
             throw new BusinessException("非歌曲上传者，无权操作");
         }
         if (!(song.getStatus() == SongStatus.UPLOADING)) {
+            log.info("完成上传失败，歌曲状态异常，当前状态: {}", song.getStatus());
             throw new BusinessException("歌曲状态异常，无法完成上传");
         }
         if (!ossManager.checkFileExists(song.getFileName())) {
+            log.info("完成上传失败，上传文件不存在，文件名: {}", song.getFileName());
             throw new BusinessException("上传文件不存在");
         }
 
         // 校验文件类型
         InputStream inputStream = ossManager.getFileInputStream(song.getFileName());
         if (inputStream == null) {
+            log.info("完成上传失败，获取文件流失败，文件名: {}", song.getFileName());
             throw new BusinessException("获取文件流失败");
         }
         String actualMimeType;
         try {
             actualMimeType = TIKA.detect(inputStream);
         } catch (IOException e) {
+            log.info("完成上传失败，无法获取文件类型，文件名: {}", song.getFileName());
             throw new BusinessException("无法获取文件类型", e);
         }
         try {
@@ -198,23 +207,28 @@ public class SongServiceImpl implements SongService {
             log.error("关闭文件流失败", e);
         }
         if (actualMimeType == null) {
+            log.info("完成上传失败，无法获取文件类型（检测结果为空），文件名: {}", song.getFileName());
             throw new BusinessException("无法获取文件类型");
         }
         String actualExtension = MIME_TYPE_TO_EXTENSION_MAP.get(actualMimeType);
         if (actualExtension == null) {
+            log.info("完成上传失败，文件类型不支持，检测到的MIME类型: {}", actualMimeType);
             throw new BusinessException("文件类型不支持");
         }
         String expectedExtension = song.getFileName().substring(song.getFileName().lastIndexOf('.') + 1);
         if (!actualExtension.equals(expectedExtension)) {
+            log.info("完成上传失败，文件类型与后缀名不匹配，期望后缀: {}，实际后缀: {}", expectedExtension, actualExtension);
             throw new BusinessException("文件类型与后缀名不匹配");
         }
 
         // 校验文件大小
         Long fileSize = ossManager.getFileSize(song.getFileName());
         if (fileSize == null) {
+            log.info("完成上传失败，获取文件大小失败，文件名: {}", song.getFileName());
             throw new BusinessException("获取文件大小失败");
         }
         if (fileSize > maxFileSizeBytes) {
+            log.info("完成上传失败，文件大小超过限制，文件大小: {}", fileSize);
             throw new BusinessException(StrFormatter.format("文件大小超过限制，最大仅允许 {}", maxFileSizeStr));
         }
 
@@ -239,19 +253,23 @@ public class SongServiceImpl implements SongService {
             // 再次检查
             song = songManager.getByIdForUpdate(song.getId());
             if (song == null) {
+                log.info("完成上传失败，持有锁后歌曲不存在，歌曲ID: {}", dto.getSongId());
                 throw new BusinessException("歌曲不存在");
             }
             // 先检查上传者是否匹配，再检查状态是否正常，防止状态泄露
             if (!song.getUploaderId().equals(userId)) {
+                log.info("完成上传失败，持有锁后非歌曲上传者，歌曲上传者ID: {}", song.getUploaderId());
                 throw new BusinessException("非歌曲上传者，无权操作");
             }
             if (!(song.getStatus() == SongStatus.UPLOADING)) {
+                log.info("完成上传失败，持有锁后歌曲状态异常，当前状态: {}", song.getStatus());
                 throw new BusinessException("歌曲状态异常，无法完成上传");
             }
             song.setSize(fileSize);
             song.setDuration(duration);
             song.setStatus(SongStatus.NORMAL);
             if (!songManager.updateById(song)) {
+                log.info("完成上传失败，歌曲信息更新返回失败");
                 throw new BusinessException("歌曲信息更新失败");
             }
             tx.commit();
@@ -327,22 +345,27 @@ public class SongServiceImpl implements SongService {
     public void removeSong(Long songId, Long userId) {
         log.info("请求删除歌曲，用户ID: {}，歌曲ID: {}", userId, songId);
         if (!userManager.existsById(userId)) {
+            log.info("删除歌曲失败，用户不存在");
             throw new BusinessException("用户不存在");
         }
         try (TransactionHelper tx = new TransactionHelper(txManager)) {
             Song song = songManager.getByIdForUpdate(songId);
             if (song == null) {
+                log.info("删除歌曲失败，歌曲不存在，歌曲ID: {}", songId);
                 throw new BusinessException("歌曲不存在");
             }
             // 先检查上传者是否匹配，再检查状态是否正常，防止状态泄露
             if (!song.getUploaderId().equals(userId)) {
+                log.info("删除歌曲失败，非歌曲上传者，歌曲上传者ID: {}", song.getUploaderId());
                 throw new BusinessException("无权删除他人上传的歌曲");
             }
             if (song.getStatus() != SongStatus.NORMAL) {
+                log.info("删除歌曲失败，歌曲状态异常，当前状态: {}", song.getStatus());
                 throw new BusinessException("歌曲状态异常，无法删除");
             }
             song.setStatus(SongStatus.DELETING);
             if (!songManager.updateById(song)) {
+                log.info("删除歌曲失败，数据库更新返回失败");
                 throw new BusinessException("删除歌曲失败");
             }
             tx.commit();
@@ -355,9 +378,11 @@ public class SongServiceImpl implements SongService {
         log.info("请求获取歌曲信息，歌曲ID: {}", songId);
         Song song = songManager.getById(songId);
         if (song == null) {
+            log.info("获取歌曲信息失败，歌曲不存在，歌曲ID: {}", songId);
             throw new BusinessException("歌曲不存在");
         }
         if (song.getStatus() != SongStatus.NORMAL) {
+            log.info("获取歌曲信息失败，歌曲状态异常，当前状态: {}", song.getStatus());
             throw new BusinessException("歌曲状态异常，无法查看");
         }
         SongVO songVO = new SongVO();
@@ -387,27 +412,33 @@ public class SongServiceImpl implements SongService {
     public SongVO updateSong(SongUpdateDTO dto, Long songId, Long userId) {
         log.info("请求更新歌曲信息，歌曲ID: {}", songId);
         if (dto.getName() == null && dto.getDescription() == null) {
+            log.info("更新歌曲信息失败，更新信息全为空");
             throw new BusinessException("更新信息不能全为空");
         }
         if (!userManager.existsById(userId)) {
+            log.info("更新歌曲信息失败，用户不存在");
             throw new BusinessException("用户不存在");
         }
         Song song;
         try (TransactionHelper tx = new TransactionHelper(txManager)) {
             song = songManager.getByIdForUpdate(songId);
             if (song == null) {
+                log.info("更新歌曲信息失败，歌曲不存在，歌曲ID: {}", songId);
                 throw new BusinessException("歌曲不存在");
             }
             // 先检查上传者是否匹配，再检查状态是否正常，防止状态泄露
             if (!song.getUploaderId().equals(userId)) {
+                log.info("更新歌曲信息失败，非歌曲上传者，歌曲上传者ID: {}", song.getUploaderId());
                 throw new BusinessException("无权更新他人上传歌曲的信息");
             }
             if (song.getStatus() != SongStatus.NORMAL) {
+                log.info("更新歌曲信息失败，歌曲状态异常，当前状态: {}", song.getStatus());
                 throw new BusinessException("歌曲状态异常，无法更新");
             }
             if (dto.getName() != null) song.setName(dto.getName());
             if (dto.getDescription() != null) song.setDescription(dto.getDescription());
             if (!songManager.updateById(song)) {
+                log.info("更新歌曲信息失败，数据库更新返回失败");
                 throw new BusinessException("歌曲信息更新失败");
             }
             tx.commit();
@@ -427,6 +458,7 @@ public class SongServiceImpl implements SongService {
         log.info("请求批量准备上传歌曲，用户ID: {}, 数量: {}", userId, dto.getSongs().size());
         User uploader = userManager.getById(userId);
         if (uploader == null) {
+            log.info("批量准备上传失败，用户不存在");
             throw new BusinessException("用户不存在");
         }
         BatchResult<SongUploadPrepareVO> result = new BatchResult<>();
@@ -493,27 +525,33 @@ public class SongServiceImpl implements SongService {
     public void cancelUpload(Long songId, Long userId) {
         log.info("请求取消上传歌曲，用户ID: {}，歌曲ID: {}", userId, songId);
         if (!userManager.existsById(userId)) {
+            log.info("取消上传歌曲失败，用户不存在");
             throw new BusinessException("用户不存在");
         }
         Song song;
         try (TransactionHelper tx = new TransactionHelper(txManager)) {
             song = songManager.getByIdForUpdate(songId);
             if (song == null) {
+                log.info("取消上传歌曲失败，歌曲不存在，歌曲ID: {}", songId);
                 throw new BusinessException("歌曲不存在");
             }
             // 先检查上传者是否匹配，再检查状态是否正常，防止状态泄露
             if (!song.getUploaderId().equals(userId)) {
+                log.info("取消上传歌曲失败，非歌曲上传者，歌曲上传者ID: {}", song.getUploaderId());
                 throw new BusinessException("非歌曲上传者，无权操作");
             }
             if (song.getStatus() != SongStatus.UPLOADING) {
+                log.info("取消上传歌曲失败，歌曲状态异常，当前状态: {}", song.getStatus());
                 throw new BusinessException("歌曲状态异常，无法取消");
             }
             song.setStatus(SongStatus.DELETING);
             if (!songManager.updateById(song)) {
+                log.info("取消上传歌曲失败，更新歌曲状态返回失败");
                 throw new BusinessException("更新歌曲状态失败");
             }
             int balance = userManager.addPoints(song.getUploaderId(), pointsPerUpload, SONG_UPLOAD_CANCEL, songId);
             if (balance < 0) {
+                log.info("取消上传歌曲失败，返还用户积分失败，用户可能已不存在");
                 throw new BusinessException("返还用户积分失败");
             }
             tx.commit();

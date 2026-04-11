@@ -35,7 +35,7 @@
 
         </where>
 
-        <!-- 3. 排序逻辑 -->
+        <!-- 4. 排序逻辑 -->
         ORDER BY s.create_time
         <choose>
             <when test="param.asc">ASC</when>

@@ -11,17 +11,17 @@ public final class DefaultConstants {
     /**
      * 默认页码
      */
-    public static final Long PAGE_DEFAULT_INDEX = 1L;
+    public static final long PAGE_DEFAULT_INDEX = 1L;
 
     /**
      * 默认每页大小
      */
-    public static final Long PAGE_DEFAULT_SIZE = 10L;
+    public static final long PAGE_DEFAULT_SIZE = 10L;
 
     /**
      * 默认排序方式（false=倒序）
      */
-    public static final Boolean PAGE_DEFAULT_ASC = false;
+    public static final boolean PAGE_DEFAULT_ASC = false;
 
     // Redis统计数据过期时间
     /**

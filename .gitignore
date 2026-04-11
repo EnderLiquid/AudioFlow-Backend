@@ -3,12 +3,7 @@ target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
-/upload
-/remove-nul.bat
-*.log
-settings.local.json
-/run-claude-code.bat
-/docs
+/logs
 
 ### STS ###
 .apt_generated
@@ -53,3 +48,12 @@ build/
 ### OMC and Claude ###
 .omc/
 .claude/
+CLAUDE.md
+
+### Superpowers ###
+/docs
+
+### OpenCode and OMO ###
+AGENTS.md
+/.opencode
+/.sisyphus

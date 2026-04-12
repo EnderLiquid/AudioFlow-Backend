@@ -134,3 +134,26 @@ public class UserServiceImpl implements UserService {
 - 请求日志：`请求XXX，参数名: {}`。
 - 成功日志：`XXX成功` 或 `XXX成功，关键信息: {}`。
 - **业务异常日志**：在抛出 `BusinessException` 前使用 `log.info` 记录失败原因及调试信息，格式为 `XXX失败，原因/关键信息: {}`。日志内容应包含对调试有用但不需暴露给用户的详细信息，且不应与之前的日志重复（链路追踪可关联同一请求的所有日志）。
+
+### 积分扣除规范
+
+**积分不足时的日志和异常格式必须统一**：
+
+```java
+// 正确：统一格式，包含当前积分和需要积分
+if (user.getPoints() < pointsCost) {
+    log.info("XXX失败，积分不足，当前积分: {}, 需要: {}", user.getPoints(), pointsCost);
+    throw new BusinessException("积分不足，当前积分 " + user.getPoints() + "，需要 " + pointsCost + " 积分");
+}
+
+// 错误：缺少具体积分信息
+if (user.getPoints() < pointsCost) {
+    log.info("XXX失败，积分不足");
+    throw new BusinessException("积分不足");
+}
+```
+
+**要求**：
+- 日志必须包含 `当前积分` 和 `需要` 两个关键信息
+- 异常消息必须包含具体的积分数值
+- 格式统一为：`积分不足，当前积分 X，需要 Y 积分`

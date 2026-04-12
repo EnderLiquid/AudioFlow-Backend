@@ -105,8 +105,8 @@ public class SongServiceImpl implements SongService {
         }
         // 快速检查积分是否足够
         if (uploader.getPoints() < pointsPerUpload) {
-            log.info("准备上传失败，积分不足");
-            throw new BusinessException("积分不足");
+            log.info("准备上传失败，积分不足，当前积分: {}, 需要: {}", uploader.getPoints(), pointsPerUpload);
+            throw new BusinessException("积分不足，当前积分 " + uploader.getPoints() + "，需要 " + pointsPerUpload + " 积分");
         }
         // 初步校验文件类型
         String extension = MIME_TYPE_TO_EXTENSION_MAP.get(dto.getMimeType());
@@ -135,8 +135,8 @@ public class SongServiceImpl implements SongService {
         try (TransactionHelper tx = new TransactionHelper(txManager)) {
             int balance = userManager.addPoints(userId, -pointsPerUpload, SONG_UPLOAD, songId);
             if (balance < 0) {
-                log.info("准备上传失败，积分不足");
-                throw new BusinessException("扣除积分失败");
+                log.info("准备上传失败，积分不足，当前积分: {}, 需要: {}", uploader.getPoints(), pointsPerUpload);
+                throw new BusinessException("积分不足，当前积分 " + uploader.getPoints() + "，需要 " + pointsPerUpload + " 积分");
             }
             songManager.save(song);
             tx.commit();

@@ -105,7 +105,7 @@ public class SongServiceImpl implements SongService {
         }
         // 快速检查积分是否足够
         if (uploader.getPoints() < pointsPerUpload) {
-            log.info("准备上传失败，积分不足，当前积分: {}", uploader.getPoints());
+            log.info("准备上传失败，积分不足");
             throw new BusinessException("积分不足");
         }
         // 初步校验文件类型
@@ -135,7 +135,7 @@ public class SongServiceImpl implements SongService {
         try (TransactionHelper tx = new TransactionHelper(txManager)) {
             int balance = userManager.addPoints(userId, -pointsPerUpload, SONG_UPLOAD, songId);
             if (balance < 0) {
-                log.info("准备上传失败，扣除积分后余额为负，余额: {}", balance);
+                log.info("准备上传失败，积分不足");
                 throw new BusinessException("扣除积分失败");
             }
             songManager.save(song);
@@ -410,7 +410,7 @@ public class SongServiceImpl implements SongService {
 
     @Override
     public SongVO updateSong(SongUpdateDTO dto, Long songId, Long userId) {
-        log.info("请求更新歌曲信息，歌曲ID: {}", songId);
+        log.info("请求更新歌曲信息，歌曲ID: {}，用户ID: {}", songId, userId);
         if (dto.getName() == null && dto.getDescription() == null) {
             log.info("更新歌曲信息失败，更新信息全为空");
             throw new BusinessException("更新信息不能全为空");
@@ -551,7 +551,7 @@ public class SongServiceImpl implements SongService {
             }
             int balance = userManager.addPoints(song.getUploaderId(), pointsPerUpload, SONG_UPLOAD_CANCEL, songId);
             if (balance < 0) {
-                log.info("取消上传歌曲失败，返还用户积分失败，用户可能已不存在");
+                log.info("取消上传歌曲失败，返还用户积分失败");
                 throw new BusinessException("返还用户积分失败");
             }
             tx.commit();
@@ -606,7 +606,7 @@ public class SongServiceImpl implements SongService {
                 if (song.getStatus() == SongStatus.UPLOADING) {
                     int balance = userManager.addPoints(song.getUploaderId(), pointsPerUpload, SONG_UPLOAD_CANCEL, song.getId());
                     if (balance < 0) {
-                        log.info("返还用户积分失败");
+                        log.info("返还用户积分失败，用户可能已不存在");
                     }
                 }
                 if (!songManager.removeById(song)) {

@@ -13,10 +13,7 @@ import top.enderliquid.audioflow.common.annotation.RateLimits;
 import top.enderliquid.audioflow.common.enums.LimitType;
 import top.enderliquid.audioflow.common.response.HttpResponseBody;
 import top.enderliquid.audioflow.dto.request.song.*;
-import top.enderliquid.audioflow.dto.response.BatchResult;
-import top.enderliquid.audioflow.dto.response.PageResult;
-import top.enderliquid.audioflow.dto.response.song.SongPrepareUploadVO;
-import top.enderliquid.audioflow.dto.response.song.SongVO;
+import top.enderliquid.audioflow.dto.response.song.*;
 import top.enderliquid.audioflow.service.SongService;
 
 import java.io.IOException;
@@ -75,8 +72,8 @@ public class SongController {
             value = @RateLimit(type = LimitType.IP, refillRate = "1/1", capacity = 5),
             message = "查询过于频繁，请稍后再试"
     )
-    public HttpResponseBody<PageResult<SongVO>> pageSongs(@Valid @ModelAttribute SongPageDTO dto) {
-        PageResult<SongVO> result = songService.pageSongsByUploaderKeywordAndSongKeyword(dto);
+    public HttpResponseBody<SongPageVO> pageSongs(@Valid @ModelAttribute SongPageDTO dto) {
+        SongPageVO result = songService.pageSongsByUploaderKeywordAndSongKeyword(dto);
         return HttpResponseBody.ok(result, "查询成功");
     }
 
@@ -159,9 +156,9 @@ public class SongController {
             },
             message = "批量准备上传过于频繁，请稍后再试"
     )
-    public HttpResponseBody<BatchResult<SongPrepareUploadVO>> batchPrepareUpload(@Valid @RequestBody SongBatchPrepareDTO dto) {
+    public HttpResponseBody<SongBatchPrepareUploadVO> batchPrepareUpload(@Valid @RequestBody SongBatchPrepareDTO dto) {
         long userId = StpUtil.getLoginIdAsLong();
-        BatchResult<SongPrepareUploadVO> result = songService.batchPrepareUpload(dto, userId);
+        SongBatchPrepareUploadVO result = songService.batchPrepareUpload(dto, userId);
         return HttpResponseBody.ok(result, "批量准备上传成功");
     }
 
@@ -178,9 +175,9 @@ public class SongController {
             },
             message = "批量完成上传过于频繁，请稍后再试"
     )
-    public HttpResponseBody<BatchResult<SongVO>> batchCompleteUpload(@Valid @RequestBody SongBatchCompleteDTO dto) {
+    public HttpResponseBody<SongBatchCompleteUploadVO> batchCompleteUpload(@Valid @RequestBody SongBatchCompleteDTO dto) {
         long userId = StpUtil.getLoginIdAsLong();
-        BatchResult<SongVO> result = songService.batchCompleteUpload(dto, userId);
+        SongBatchCompleteUploadVO result = songService.batchCompleteUpload(dto, userId);
         return HttpResponseBody.ok(result, "批量上传成功");
     }
 
@@ -197,9 +194,9 @@ public class SongController {
             },
             message = "批量删除过于频繁，请稍后再试"
     )
-    public HttpResponseBody<BatchResult<Void>> batchRemoveSongs(@Valid @RequestBody SongBatchDeleteDTO dto) {
+    public HttpResponseBody<SongBatchDeleteVO> batchRemoveSongs(@Valid @RequestBody SongBatchDeleteDTO dto) {
         long userId = StpUtil.getLoginIdAsLong();
-        BatchResult<Void> result = songService.batchRemoveSongs(dto, userId);
+        SongBatchDeleteVO result = songService.batchRemoveSongs(dto, userId);
         return HttpResponseBody.ok(result, "批量删除成功");
     }
 
@@ -235,9 +232,9 @@ public class SongController {
             },
             message = "批量取消上传过于频繁，请稍后再试"
     )
-    public HttpResponseBody<BatchResult<Void>> batchCancelUpload(@Valid @RequestBody SongBatchCancelDTO dto) {
+    public HttpResponseBody<SongBatchCancelUploadVO> batchCancelUpload(@Valid @RequestBody SongBatchCancelDTO dto) {
         long userId = StpUtil.getLoginIdAsLong();
-        BatchResult<Void> result = songService.batchCancelUpload(dto, userId);
+        SongBatchCancelUploadVO result = songService.batchCancelUpload(dto, userId);
         return HttpResponseBody.ok(result, "批量取消上传成功");
     }
 }

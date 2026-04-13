@@ -5,7 +5,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MvcResult;
-import top.enderliquid.audioflow.common.TestDataHelper;
 import top.enderliquid.audioflow.entity.Song;
 import top.enderliquid.audioflow.entity.User;
 
@@ -289,8 +288,8 @@ class SongControllerTest extends BaseControllerTest {
                         .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.successCount").value(2))
-                .andExpect(jsonPath("$.data.successList").isArray());
+                .andExpect(jsonPath("$.data.result.successCount").value(2))
+                .andExpect(jsonPath("$.data.result.successList").isArray());
     }
 
     @Test
@@ -363,7 +362,7 @@ class SongControllerTest extends BaseControllerTest {
                         .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.successCount").value(1));
+                .andExpect(jsonPath("$.data.result.successCount").value(1));
     }
 
     @Test
@@ -416,7 +415,7 @@ class SongControllerTest extends BaseControllerTest {
                         .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.successCount").value(2));
+                .andExpect(jsonPath("$.data.result.successCount").value(2));
     }
 
     @Test
@@ -467,7 +466,7 @@ class SongControllerTest extends BaseControllerTest {
                         .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.failureCount").value(1));
+                .andExpect(jsonPath("$.data.result.failureCount").value(1));
     }
 
     @Test
@@ -564,7 +563,7 @@ class SongControllerTest extends BaseControllerTest {
                         .cookie(new org.springframework.mock.web.MockCookie("satoken", cookie)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.successCount").value(2));
+                .andExpect(jsonPath("$.data.result.successCount").value(2));
     }
 
     @Test

@@ -28,8 +28,7 @@ import top.enderliquid.audioflow.dto.request.song.*;
 import top.enderliquid.audioflow.dto.response.BatchResult;
 import top.enderliquid.audioflow.dto.response.BatchResultItem;
 import top.enderliquid.audioflow.dto.response.PageResult;
-import top.enderliquid.audioflow.dto.response.song.SongPrepareUploadVO;
-import top.enderliquid.audioflow.dto.response.song.SongVO;
+import top.enderliquid.audioflow.dto.response.song.*;
 import top.enderliquid.audioflow.entity.Song;
 import top.enderliquid.audioflow.entity.User;
 import top.enderliquid.audioflow.manager.OSSManager;
@@ -307,7 +306,7 @@ public class SongServiceImpl implements SongService {
     }
 
     @Override
-    public PageResult<SongVO> pageSongsByUploaderKeywordAndSongKeyword(SongPageDTO dto) {
+    public SongPageVO pageSongsByUploaderKeywordAndSongKeyword(SongPageDTO dto) {
         log.info("请求分页查询歌曲");
 
         // 设置默认值
@@ -338,7 +337,9 @@ public class SongServiceImpl implements SongService {
         pageResult.setPageSize(page.getSize());
         pageResult.setTotal(page.getTotal());
         log.info("分页查询歌曲成功");
-        return pageResult;
+        SongPageVO vo = new SongPageVO();
+        vo.setResult(pageResult);
+        return vo;
     }
 
     @Override
@@ -454,7 +455,7 @@ public class SongServiceImpl implements SongService {
     }
 
     @Override
-    public BatchResult<SongPrepareUploadVO> batchPrepareUpload(SongBatchPrepareDTO dto, Long userId) {
+    public SongBatchPrepareUploadVO batchPrepareUpload(SongBatchPrepareDTO dto, Long userId) {
         log.info("请求批量准备上传歌曲，用户ID: {}, 数量: {}", userId, dto.getSongs().size());
         User uploader = userManager.getById(userId);
         if (uploader == null) {
@@ -476,11 +477,13 @@ public class SongServiceImpl implements SongService {
             }
         }
         log.info("批量准备上传歌曲完成，成功: {}, 失败: {}", result.getSuccessCount(), result.getFailureCount());
-        return result;
+        SongBatchPrepareUploadVO vo = new SongBatchPrepareUploadVO();
+        vo.setResult(result);
+        return vo;
     }
 
     @Override
-    public BatchResult<SongVO> batchCompleteUpload(SongBatchCompleteDTO dto, Long userId) {
+    public SongBatchCompleteUploadVO batchCompleteUpload(SongBatchCompleteDTO dto, Long userId) {
         log.info("请求批量确认上传歌曲，用户ID: {}, 数量: {}", userId, dto.getSongIds().size());
         BatchResult<SongVO> result = new BatchResult<>();
         List<Long> songIds = dto.getSongIds();
@@ -497,11 +500,13 @@ public class SongServiceImpl implements SongService {
             }
         }
         log.info("批量确认上传歌曲完成，成功: {}, 失败: {}", result.getSuccessCount(), result.getFailureCount());
-        return result;
+        SongBatchCompleteUploadVO vo = new SongBatchCompleteUploadVO();
+        vo.setResult(result);
+        return vo;
     }
 
     @Override
-    public BatchResult<Void> batchRemoveSongs(SongBatchDeleteDTO dto, Long userId) {
+    public SongBatchDeleteVO batchRemoveSongs(SongBatchDeleteDTO dto, Long userId) {
         log.info("请求批量删除歌曲，用户ID: {}, 数量: {}", userId, dto.getSongIds().size());
         BatchResult<Void> result = new BatchResult<>();
         List<Long> songIds = dto.getSongIds();
@@ -518,7 +523,9 @@ public class SongServiceImpl implements SongService {
             }
         }
         log.info("批量删除歌曲完成，成功: {}, 失败: {}", result.getSuccessCount(), result.getFailureCount());
-        return result;
+        SongBatchDeleteVO vo = new SongBatchDeleteVO();
+        vo.setResult(result);
+        return vo;
     }
 
     @Override
@@ -561,7 +568,7 @@ public class SongServiceImpl implements SongService {
     }
 
     @Override
-    public BatchResult<Void> batchCancelUpload(SongBatchCancelDTO dto, Long userId) {
+    public SongBatchCancelUploadVO batchCancelUpload(SongBatchCancelDTO dto, Long userId) {
         log.info("请求批量取消上传歌曲，用户ID: {}，数量: {}", userId, dto.getSongIds().size());
         BatchResult<Void> result = new BatchResult<>();
         List<Long> songIds = dto.getSongIds();
@@ -578,7 +585,9 @@ public class SongServiceImpl implements SongService {
             }
         }
         log.info("批量取消上传歌曲完成，成功: {}，失败: {}", result.getSuccessCount(), result.getFailureCount());
-        return result;
+        SongBatchCancelUploadVO vo = new SongBatchCancelUploadVO();
+        vo.setResult(result);
+        return vo;
     }
 
     @Override

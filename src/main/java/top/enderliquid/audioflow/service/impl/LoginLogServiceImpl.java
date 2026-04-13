@@ -7,6 +7,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import top.enderliquid.audioflow.dto.request.loginlog.LoginLogPageDTO;
 import top.enderliquid.audioflow.dto.response.PageResult;
+import top.enderliquid.audioflow.dto.response.loginlog.LoginLogPageVO;
 import top.enderliquid.audioflow.dto.response.loginlog.LoginLogVO;
 import top.enderliquid.audioflow.entity.LoginLog;
 import top.enderliquid.audioflow.manager.LoginLogManager;
@@ -25,7 +26,7 @@ public class LoginLogServiceImpl implements LoginLogService {
     private final LoginLogManager loginLogManager;
 
     @Override
-    public PageResult<LoginLogVO> page(Long userId, LoginLogPageDTO dto) {
+    public LoginLogPageVO page(Long userId, LoginLogPageDTO dto) {
         log.info("查询登录流水，用户ID: {}", userId);
 
         // 设置默认值
@@ -58,6 +59,8 @@ public class LoginLogServiceImpl implements LoginLogService {
         pageResult.setPageSize(page.getSize());
         pageResult.setTotal(page.getTotal());
         log.info("登录流水查询成功，共 {} 条", page.getTotal());
-        return pageResult;
+        LoginLogPageVO vo = new LoginLogPageVO();
+        vo.setResult(pageResult);
+        return vo;
     }
 }

@@ -14,7 +14,7 @@ public class HttpResponseBody<T> {
 
     // 成功快捷方法
     public static <T> HttpResponseBody<T> ok(T data) {
-        return new HttpResponseBody<>(true, "", data);
+        return new HttpResponseBody<>(true, null, data);
     }
 
     public static <T> HttpResponseBody<T> ok(T data, String message) {

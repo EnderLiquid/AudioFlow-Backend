@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import nl.basjes.parse.useragent.UserAgent;
 import nl.basjes.parse.useragent.UserAgentAnalyzer;
 import org.springframework.lang.Nullable;
+import top.enderliquid.audioflow.dto.request.session.LoginContext;
 
 /**
  * 请求工具类
@@ -123,6 +124,24 @@ public final class RequestUtil {
 
     public static String getUserAgent(HttpServletRequest request) {
         return getHeaderIfNotBlank(request, "User-Agent");
+    }
+
+    /**
+     * 构建登录上下文，封装设备信息
+     * <p>
+     * 从请求中提取 IP、设备类型、操作系统、浏览器和 User-Agent 信息
+     *
+     * @param request HTTP 请求对象
+     * @return 登录上下文对象
+     */
+    public static LoginContext getLoginContext(HttpServletRequest request) {
+        return new LoginContext(
+                getClientIp(request),
+                getDeviceType(request),
+                getOs(request),
+                getBrowser(request),
+                getUserAgent(request)
+        );
     }
 
     @Nullable

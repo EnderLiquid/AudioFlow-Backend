@@ -35,16 +35,9 @@ public class SessionController {
             value = @RateLimit(type = LimitType.IP, refillRate = "1/10", capacity = 5),
             message = "登录尝试过于频繁，请稍后再试"
     )
-    public HttpResponseBody<LoginResult> login(@Valid @RequestBody UserLoginDTO dto,
-                                               HttpServletRequest request) {
-        // 获取设备信息
-        LoginContext context = new LoginContext();
-        context.setIp(RequestUtil.getClientIp(request));
-        context.setDeviceType(RequestUtil.getDeviceType(request));
-        context.setOs(RequestUtil.getOs(request));
-        context.setBrowser(RequestUtil.getBrowser(request));
-        context.setUserAgent(RequestUtil.getUserAgent(request));
-
+public HttpResponseBody<LoginResult> login(@Valid @RequestBody UserLoginDTO dto,
+                                                HttpServletRequest request) {
+        LoginContext context = RequestUtil.getLoginContext(request);
         UserVO userVO = sessionService.login(dto, context);
         StpUtil.login(userVO.getId());
         SaTokenInfo tokenInfo = StpUtil.getTokenInfo();

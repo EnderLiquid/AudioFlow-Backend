@@ -52,7 +52,7 @@ public class UserController {
     public HttpResponseBody<UserVO> getUserInfo() {
         long userId = StpUtil.getLoginIdAsLong();
         UserVO userVO = userService.getUser(userId);
-        return HttpResponseBody.ok(userVO);
+        return HttpResponseBody.ok(userVO, "获取用户信息成功");
     }
 
     /**

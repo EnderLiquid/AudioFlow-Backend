@@ -37,6 +37,6 @@ public class LoginLogController {
     public HttpResponseBody<PageVO<LoginLogVO>> page(@Valid LoginLogPageDTO dto) {
         long userId = StpUtil.getLoginIdAsLong();
         PageVO<LoginLogVO> result = loginLogService.page(userId, dto);
-        return HttpResponseBody.ok(result);
+        return HttpResponseBody.ok(result, "查询登录流水成功");
     }
 }

@@ -46,7 +46,7 @@ public class SongController {
     public HttpResponseBody<SongUploadPrepareVO> prepareUpload(@Valid @RequestBody SongPrepareUploadDTO dto) {
         long userId = StpUtil.getLoginIdAsLong();
         SongUploadPrepareVO prepareVO = songService.prepareUpload(dto, userId);
-        return HttpResponseBody.ok(prepareVO);
+        return HttpResponseBody.ok(prepareVO, "准备上传成功");
     }
 
     /**
@@ -64,7 +64,7 @@ public class SongController {
     public HttpResponseBody<SongVO> completeUpload(@Valid @RequestBody SongCompleteUploadDTO dto) {
         long userId = StpUtil.getLoginIdAsLong();
         SongVO songVO = songService.completeUpload(dto, userId);
-        return HttpResponseBody.ok(songVO);
+        return HttpResponseBody.ok(songVO, "上传成功");
     }
 
     /**
@@ -77,7 +77,7 @@ public class SongController {
     )
     public HttpResponseBody<PageVO<SongVO>> pageSongs(@Valid @ModelAttribute SongPageDTO dto) {
         PageVO<SongVO> result = songService.pageSongsByUploaderKeywordAndSongKeyword(dto);
-        return HttpResponseBody.ok(result);
+        return HttpResponseBody.ok(result, "查询成功");
     }
 
     /**
@@ -106,7 +106,7 @@ public class SongController {
     @RateLimits(@RateLimit(type = LimitType.IP))
     public HttpResponseBody<SongVO> getSongInfo(@PathVariable Long songId) {
         SongVO songVO = songService.getSong(songId);
-        return HttpResponseBody.ok(songVO, null);
+        return HttpResponseBody.ok(songVO, "获取歌曲信息成功");
     }
 
     /**
@@ -143,7 +143,7 @@ public class SongController {
     public HttpResponseBody<SongVO> updateSong(@PathVariable Long songId, @Valid @RequestBody SongUpdateDTO dto) {
         long userId = StpUtil.getLoginIdAsLong();
         SongVO songVO = songService.updateSong(dto, songId, userId);
-        return HttpResponseBody.ok(songVO);
+        return HttpResponseBody.ok(songVO, "更新成功");
     }
 
     /**
@@ -162,7 +162,7 @@ public class SongController {
     public HttpResponseBody<BatchResult<SongUploadPrepareVO>> batchPrepareUpload(@Valid @RequestBody SongBatchPrepareDTO dto) {
         long userId = StpUtil.getLoginIdAsLong();
         BatchResult<SongUploadPrepareVO> result = songService.batchPrepareUpload(dto, userId);
-        return HttpResponseBody.ok(result);
+        return HttpResponseBody.ok(result, "批量准备上传成功");
     }
 
     /**
@@ -181,7 +181,7 @@ public class SongController {
     public HttpResponseBody<BatchResult<SongVO>> batchCompleteUpload(@Valid @RequestBody SongBatchCompleteDTO dto) {
         long userId = StpUtil.getLoginIdAsLong();
         BatchResult<SongVO> result = songService.batchCompleteUpload(dto, userId);
-        return HttpResponseBody.ok(result);
+        return HttpResponseBody.ok(result, "批量上传成功");
     }
 
     /**
@@ -200,7 +200,7 @@ public class SongController {
     public HttpResponseBody<BatchResult<Void>> batchRemoveSongs(@Valid @RequestBody SongBatchDeleteDTO dto) {
         long userId = StpUtil.getLoginIdAsLong();
         BatchResult<Void> result = songService.batchRemoveSongs(dto, userId);
-        return HttpResponseBody.ok(result);
+        return HttpResponseBody.ok(result, "批量删除成功");
     }
 
     /**
@@ -238,6 +238,6 @@ public class SongController {
     public HttpResponseBody<BatchResult<Void>> batchCancelUpload(@Valid @RequestBody SongBatchCancelDTO dto) {
         long userId = StpUtil.getLoginIdAsLong();
         BatchResult<Void> result = songService.batchCancelUpload(dto, userId);
-        return HttpResponseBody.ok(result);
+        return HttpResponseBody.ok(result, "批量取消上传成功");
     }
 }

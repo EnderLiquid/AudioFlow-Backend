@@ -49,7 +49,7 @@ public class CheckinController {
     public HttpResponseBody<CheckinStatusVO> getTodayStatus() {
         long userId = StpUtil.getLoginIdAsLong();
         CheckinStatusVO status = checkinService.getTodayStatus(userId);
-        return HttpResponseBody.ok(status);
+        return HttpResponseBody.ok(status, "查询签到状态成功");
     }
 
     /**
@@ -64,6 +64,6 @@ public class CheckinController {
     public HttpResponseBody<CheckinSummaryVO> getSummary() {
         long userId = StpUtil.getLoginIdAsLong();
         CheckinSummaryVO summary = checkinService.getSummary(userId);
-        return HttpResponseBody.ok(summary);
+        return HttpResponseBody.ok(summary, "查询签到统计成功");
     }
 }

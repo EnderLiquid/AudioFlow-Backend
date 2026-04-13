@@ -9,7 +9,6 @@ import top.enderliquid.audioflow.common.exception.BusinessException;
 import top.enderliquid.audioflow.dto.request.session.LoginContext;
 import top.enderliquid.audioflow.dto.request.user.UserLoginDTO;
 import top.enderliquid.audioflow.dto.response.user.UserVO;
-import top.enderliquid.audioflow.entity.LoginLog;
 import top.enderliquid.audioflow.entity.User;
 import top.enderliquid.audioflow.manager.DauManager;
 import top.enderliquid.audioflow.manager.LoginLogManager;
@@ -35,8 +34,6 @@ public class SessionServiceImpl implements SessionService {
     public UserVO login(UserLoginDTO dto, LoginContext context) {
         log.info("用户请求登录，邮箱: {}", dto.getEmail());
         User user = userManager.getByEmail(dto.getEmail());
-        LoginLog loginLog = new LoginLog();
-        BeanUtils.copyProperties(context, loginLog);
 
         // 用户不存在
         if (user == null) {

@@ -13,7 +13,7 @@ import top.enderliquid.audioflow.common.enums.LimitType;
 import top.enderliquid.audioflow.common.response.HttpResponseBody;
 import top.enderliquid.audioflow.dto.request.user.UserSaveDTO;
 import top.enderliquid.audioflow.dto.request.user.UserUpdatePasswordDTO;
-import top.enderliquid.audioflow.dto.response.session.LoginResult;
+import top.enderliquid.audioflow.dto.response.session.LoginVO;
 import top.enderliquid.audioflow.dto.response.user.UserVO;
 import top.enderliquid.audioflow.service.UserService;
 
@@ -33,11 +33,11 @@ public class UserController {
             value = @RateLimit(type = LimitType.IP, refillRate = "1/10", capacity = 5),
             message = "注册过于频繁，请稍后再试"
     )
-    public HttpResponseBody<LoginResult> register(@Valid @RequestBody UserSaveDTO dto) {
+    public HttpResponseBody<LoginVO> register(@Valid @RequestBody UserSaveDTO dto) {
         UserVO userVO = userService.saveUser(dto);
         StpUtil.login(userVO.getId());
         SaTokenInfo tokenInfo = StpUtil.getTokenInfo();
-        return HttpResponseBody.ok(new LoginResult(userVO, tokenInfo), "注册成功");
+        return HttpResponseBody.ok(new LoginVO(userVO, tokenInfo), "注册成功");
     }
 
     /**

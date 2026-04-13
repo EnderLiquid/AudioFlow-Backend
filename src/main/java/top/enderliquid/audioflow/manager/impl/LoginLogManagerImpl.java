@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Repository;
 import top.enderliquid.audioflow.common.enums.LoginFailReason;
 import top.enderliquid.audioflow.dto.request.loginlog.LoginLogPageDTO;
-import top.enderliquid.audioflow.dto.request.session.LoginContext;
+import top.enderliquid.audioflow.dto.request.session.LoginContextDTO;
 import top.enderliquid.audioflow.entity.LoginLog;
 import top.enderliquid.audioflow.manager.LoginLogManager;
 import top.enderliquid.audioflow.mapper.LoginLogMapper;
@@ -39,7 +39,7 @@ public class LoginLogManagerImpl extends ServiceImpl<LoginLogMapper, LoginLog> i
         return page(page, wrapper);
     }
 
-    public void addRecord(Long userId, String email, boolean success, LoginFailReason failReason, LoginContext context) {
+    public void addRecord(Long userId, String email, boolean success, LoginFailReason failReason, LoginContextDTO context) {
         LoginLog loginLog = new LoginLog();
         loginLog.setUserId(userId);
         loginLog.setEmail(email);

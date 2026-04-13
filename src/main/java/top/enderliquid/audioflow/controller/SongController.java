@@ -14,8 +14,8 @@ import top.enderliquid.audioflow.common.enums.LimitType;
 import top.enderliquid.audioflow.common.response.HttpResponseBody;
 import top.enderliquid.audioflow.dto.request.song.*;
 import top.enderliquid.audioflow.dto.response.BatchResult;
-import top.enderliquid.audioflow.dto.response.PageVO;
-import top.enderliquid.audioflow.dto.response.song.SongUploadPrepareVO;
+import top.enderliquid.audioflow.dto.response.PageResult;
+import top.enderliquid.audioflow.dto.response.song.SongPrepareUploadVO;
 import top.enderliquid.audioflow.dto.response.song.SongVO;
 import top.enderliquid.audioflow.service.SongService;
 
@@ -43,9 +43,9 @@ public class SongController {
             },
             message = "上传过于频繁，请稍后再试"
     )
-    public HttpResponseBody<SongUploadPrepareVO> prepareUpload(@Valid @RequestBody SongPrepareUploadDTO dto) {
+    public HttpResponseBody<SongPrepareUploadVO> prepareUpload(@Valid @RequestBody SongPrepareUploadDTO dto) {
         long userId = StpUtil.getLoginIdAsLong();
-        SongUploadPrepareVO prepareVO = songService.prepareUpload(dto, userId);
+        SongPrepareUploadVO prepareVO = songService.prepareUpload(dto, userId);
         return HttpResponseBody.ok(prepareVO, "准备上传成功");
     }
 
@@ -75,8 +75,8 @@ public class SongController {
             value = @RateLimit(type = LimitType.IP, refillRate = "1/1", capacity = 5),
             message = "查询过于频繁，请稍后再试"
     )
-    public HttpResponseBody<PageVO<SongVO>> pageSongs(@Valid @ModelAttribute SongPageDTO dto) {
-        PageVO<SongVO> result = songService.pageSongsByUploaderKeywordAndSongKeyword(dto);
+    public HttpResponseBody<PageResult<SongVO>> pageSongs(@Valid @ModelAttribute SongPageDTO dto) {
+        PageResult<SongVO> result = songService.pageSongsByUploaderKeywordAndSongKeyword(dto);
         return HttpResponseBody.ok(result, "查询成功");
     }
 
@@ -159,9 +159,9 @@ public class SongController {
             },
             message = "批量准备上传过于频繁，请稍后再试"
     )
-    public HttpResponseBody<BatchResult<SongUploadPrepareVO>> batchPrepareUpload(@Valid @RequestBody SongBatchPrepareDTO dto) {
+    public HttpResponseBody<BatchResult<SongPrepareUploadVO>> batchPrepareUpload(@Valid @RequestBody SongBatchPrepareDTO dto) {
         long userId = StpUtil.getLoginIdAsLong();
-        BatchResult<SongUploadPrepareVO> result = songService.batchPrepareUpload(dto, userId);
+        BatchResult<SongPrepareUploadVO> result = songService.batchPrepareUpload(dto, userId);
         return HttpResponseBody.ok(result, "批量准备上传成功");
     }
 

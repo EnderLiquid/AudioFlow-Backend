@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import nl.basjes.parse.useragent.UserAgent;
 import nl.basjes.parse.useragent.UserAgentAnalyzer;
 import org.springframework.lang.Nullable;
-import top.enderliquid.audioflow.dto.request.session.LoginContext;
+import top.enderliquid.audioflow.dto.request.session.LoginContextDTO;
 
 /**
  * 请求工具类
@@ -134,8 +134,8 @@ public final class RequestUtil {
      * @param request HTTP 请求对象
      * @return 登录上下文对象
      */
-    public static LoginContext getLoginContext(HttpServletRequest request) {
-        return new LoginContext(
+    public static LoginContextDTO getLoginContext(HttpServletRequest request) {
+        return new LoginContextDTO(
                 getClientIp(request),
                 getDeviceType(request),
                 getOs(request),

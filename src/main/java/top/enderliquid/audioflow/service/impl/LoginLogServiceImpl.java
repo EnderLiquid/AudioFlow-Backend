@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import top.enderliquid.audioflow.dto.request.loginlog.LoginLogPageDTO;
-import top.enderliquid.audioflow.dto.response.PageVO;
+import top.enderliquid.audioflow.dto.response.PageResult;
 import top.enderliquid.audioflow.dto.response.loginlog.LoginLogVO;
 import top.enderliquid.audioflow.entity.LoginLog;
 import top.enderliquid.audioflow.manager.LoginLogManager;
@@ -25,7 +25,7 @@ public class LoginLogServiceImpl implements LoginLogService {
     private final LoginLogManager loginLogManager;
 
     @Override
-    public PageVO<LoginLogVO> page(Long userId, LoginLogPageDTO dto) {
+    public PageResult<LoginLogVO> page(Long userId, LoginLogPageDTO dto) {
         log.info("查询登录流水，用户ID: {}", userId);
 
         // 设置默认值
@@ -52,12 +52,12 @@ public class LoginLogServiceImpl implements LoginLogService {
             }
         }
 
-        PageVO<LoginLogVO> pageVO = new PageVO<>();
-        pageVO.setList(logVOList);
-        pageVO.setPageIndex(page.getCurrent());
-        pageVO.setPageSize(page.getSize());
-        pageVO.setTotal(page.getTotal());
+        PageResult<LoginLogVO> pageResult = new PageResult<>();
+        pageResult.setList(logVOList);
+        pageResult.setPageIndex(page.getCurrent());
+        pageResult.setPageSize(page.getSize());
+        pageResult.setTotal(page.getTotal());
         log.info("登录流水查询成功，共 {} 条", page.getTotal());
-        return pageVO;
+        return pageResult;
     }
 }

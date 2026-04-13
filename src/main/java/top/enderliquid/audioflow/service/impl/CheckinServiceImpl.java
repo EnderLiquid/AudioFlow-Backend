@@ -8,9 +8,9 @@ import org.springframework.transaction.PlatformTransactionManager;
 import top.enderliquid.audioflow.common.exception.BusinessException;
 import top.enderliquid.audioflow.common.transaction.TransactionHelper;
 import top.enderliquid.audioflow.config.CheckinRewardConfig;
-import top.enderliquid.audioflow.dto.response.checkin.CheckinResultVO;
 import top.enderliquid.audioflow.dto.response.checkin.CheckinStatusVO;
 import top.enderliquid.audioflow.dto.response.checkin.CheckinSummaryVO;
+import top.enderliquid.audioflow.dto.response.checkin.CheckinVO;
 import top.enderliquid.audioflow.entity.CheckinLog;
 import top.enderliquid.audioflow.entity.CheckinSummary;
 import top.enderliquid.audioflow.manager.CheckinCountManager;
@@ -36,7 +36,7 @@ public class CheckinServiceImpl implements CheckinService {
     private final CheckinCountManager checkinCountManager;
 
     @Override
-    public CheckinResultVO checkin(Long userId) {
+    public CheckinVO checkin(Long userId) {
         log.info("请求签到，用户ID: {}", userId);
 
         LocalDate today = LocalDate.now();
@@ -111,7 +111,7 @@ public class CheckinServiceImpl implements CheckinService {
 
         log.info("签到成功，获得积分: {}", rewardPoints);
 
-        return new CheckinResultVO(
+        return new CheckinVO(
                 rewardPoints,
                 summary.getTotalDays(),
                 summary.getContinuousDays(),

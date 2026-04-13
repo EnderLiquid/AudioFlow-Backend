@@ -27,8 +27,8 @@ import top.enderliquid.audioflow.dto.bo.SongBO;
 import top.enderliquid.audioflow.dto.request.song.*;
 import top.enderliquid.audioflow.dto.response.BatchResult;
 import top.enderliquid.audioflow.dto.response.BatchResultItem;
-import top.enderliquid.audioflow.dto.response.PageVO;
-import top.enderliquid.audioflow.dto.response.song.SongUploadPrepareVO;
+import top.enderliquid.audioflow.dto.response.PageResult;
+import top.enderliquid.audioflow.dto.response.song.SongPrepareUploadVO;
 import top.enderliquid.audioflow.dto.response.song.SongVO;
 import top.enderliquid.audioflow.entity.Song;
 import top.enderliquid.audioflow.entity.User;
@@ -96,7 +96,7 @@ public class SongServiceImpl implements SongService {
     }
 
     @Override
-    public SongUploadPrepareVO prepareUpload(SongPrepareUploadDTO dto, Long userId) {
+    public SongPrepareUploadVO prepareUpload(SongPrepareUploadDTO dto, Long userId) {
         log.info("请求准备上传歌曲，用户ID: {}", userId);
         User uploader = userManager.getById(userId);
         if (uploader == null) {
@@ -149,7 +149,7 @@ public class SongServiceImpl implements SongService {
             throw new BusinessException("生成上传URL失败");
         }
 
-        SongUploadPrepareVO prepareVO = new SongUploadPrepareVO();
+        SongPrepareUploadVO prepareVO = new SongPrepareUploadVO();
         prepareVO.setId(song.getId());
         prepareVO.setFileName(fileName);
         prepareVO.setUploadUrl(uploadUrl);
@@ -307,7 +307,7 @@ public class SongServiceImpl implements SongService {
     }
 
     @Override
-    public PageVO<SongVO> pageSongsByUploaderKeywordAndSongKeyword(SongPageDTO dto) {
+    public PageResult<SongVO> pageSongsByUploaderKeywordAndSongKeyword(SongPageDTO dto) {
         log.info("请求分页查询歌曲");
 
         // 设置默认值
@@ -332,13 +332,13 @@ public class SongServiceImpl implements SongService {
                 songVOList.add(songVO);
             }
         }
-        PageVO<SongVO> pageVO = new PageVO<>();
-        pageVO.setList(songVOList);
-        pageVO.setPageIndex(page.getCurrent());
-        pageVO.setPageSize(page.getSize());
-        pageVO.setTotal(page.getTotal());
+        PageResult<SongVO> pageResult = new PageResult<>();
+        pageResult.setList(songVOList);
+        pageResult.setPageIndex(page.getCurrent());
+        pageResult.setPageSize(page.getSize());
+        pageResult.setTotal(page.getTotal());
         log.info("分页查询歌曲成功");
-        return pageVO;
+        return pageResult;
     }
 
     @Override
@@ -454,23 +454,23 @@ public class SongServiceImpl implements SongService {
     }
 
     @Override
-    public BatchResult<SongUploadPrepareVO> batchPrepareUpload(SongBatchPrepareDTO dto, Long userId) {
+    public BatchResult<SongPrepareUploadVO> batchPrepareUpload(SongBatchPrepareDTO dto, Long userId) {
         log.info("请求批量准备上传歌曲，用户ID: {}, 数量: {}", userId, dto.getSongs().size());
         User uploader = userManager.getById(userId);
         if (uploader == null) {
             log.info("批量准备上传失败，用户不存在");
             throw new BusinessException("用户不存在");
         }
-        BatchResult<SongUploadPrepareVO> result = new BatchResult<>();
+        BatchResult<SongPrepareUploadVO> result = new BatchResult<>();
         List<SongPrepareUploadDTO> songs = dto.getSongs();
         for (int i = 0; i < songs.size(); i++) {
             SongPrepareUploadDTO songDto = songs.get(i);
             try {
-                SongUploadPrepareVO prepareVO = prepareUpload(songDto, userId);
-                BatchResultItem<SongUploadPrepareVO> successItem = new BatchResultItem<>(i, true, null, prepareVO);
+                SongPrepareUploadVO prepareVO = prepareUpload(songDto, userId);
+                BatchResultItem<SongPrepareUploadVO> successItem = new BatchResultItem<>(i, true, null, prepareVO);
                 result.add(successItem);
             } catch (Exception e) {
-                BatchResultItem<SongUploadPrepareVO> failureItem = new BatchResultItem<>(i, false, exceptionTranslator.translate(e).getMessage(), null);
+                BatchResultItem<SongPrepareUploadVO> failureItem = new BatchResultItem<>(i, false, exceptionTranslator.translate(e).getMessage(), null);
                 result.add(failureItem);
                 if (!(e instanceof BusinessException)) break;
             }

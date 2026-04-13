@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class StatsSyncResultVO {
+public class StatsSyncVO {
     /**
      * 日活数据同步条数
      */

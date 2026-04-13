@@ -6,7 +6,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import top.enderliquid.audioflow.common.exception.BusinessException;
-import top.enderliquid.audioflow.dto.request.session.LoginContext;
+import top.enderliquid.audioflow.dto.request.session.LoginContextDTO;
 import top.enderliquid.audioflow.dto.request.user.UserLoginDTO;
 import top.enderliquid.audioflow.dto.response.user.UserVO;
 import top.enderliquid.audioflow.entity.User;
@@ -31,7 +31,7 @@ public class SessionServiceImpl implements SessionService {
     private final LoginLogManager loginLogManager;
 
     @Override
-    public UserVO login(UserLoginDTO dto, LoginContext context) {
+    public UserVO login(UserLoginDTO dto, LoginContextDTO context) {
         log.info("用户请求登录，邮箱: {}", dto.getEmail());
         User user = userManager.getByEmail(dto.getEmail());
 

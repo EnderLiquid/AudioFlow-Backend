@@ -9,7 +9,7 @@ import top.enderliquid.audioflow.dto.response.user.UserVO;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class LoginResult {
+public class LoginVO {
     private UserVO user;
     private SaTokenInfo tokenInfo;
 }

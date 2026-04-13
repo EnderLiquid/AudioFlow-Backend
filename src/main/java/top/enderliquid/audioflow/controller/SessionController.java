@@ -13,9 +13,9 @@ import top.enderliquid.audioflow.common.annotation.RateLimits;
 import top.enderliquid.audioflow.common.enums.LimitType;
 import top.enderliquid.audioflow.common.response.HttpResponseBody;
 import top.enderliquid.audioflow.common.util.RequestUtil;
-import top.enderliquid.audioflow.dto.request.session.LoginContext;
+import top.enderliquid.audioflow.dto.request.session.LoginContextDTO;
 import top.enderliquid.audioflow.dto.request.user.UserLoginDTO;
-import top.enderliquid.audioflow.dto.response.session.LoginResult;
+import top.enderliquid.audioflow.dto.response.session.LoginVO;
 import top.enderliquid.audioflow.dto.response.user.UserVO;
 import top.enderliquid.audioflow.service.SessionService;
 
@@ -35,13 +35,13 @@ public class SessionController {
             value = @RateLimit(type = LimitType.IP, refillRate = "1/10", capacity = 5),
             message = "登录尝试过于频繁，请稍后再试"
     )
-public HttpResponseBody<LoginResult> login(@Valid @RequestBody UserLoginDTO dto,
-                                                HttpServletRequest request) {
-        LoginContext context = RequestUtil.getLoginContext(request);
+public HttpResponseBody<LoginVO> login(@Valid @RequestBody UserLoginDTO dto,
+                                       HttpServletRequest request) {
+        LoginContextDTO context = RequestUtil.getLoginContext(request);
         UserVO userVO = sessionService.login(dto, context);
         StpUtil.login(userVO.getId());
         SaTokenInfo tokenInfo = StpUtil.getTokenInfo();
-        return HttpResponseBody.ok(new LoginResult(userVO, tokenInfo), "登录成功");
+        return HttpResponseBody.ok(new LoginVO(userVO, tokenInfo), "登录成功");
     }
 
     /**

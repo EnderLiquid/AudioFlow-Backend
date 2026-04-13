@@ -4,14 +4,17 @@ import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.stp.StpUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import top.enderliquid.audioflow.common.annotation.RateLimit;
 import top.enderliquid.audioflow.common.annotation.RateLimits;
 import top.enderliquid.audioflow.common.enums.LimitType;
 import top.enderliquid.audioflow.common.response.HttpResponseBody;
-import top.enderliquid.audioflow.dto.response.checkin.CheckinResultVO;
 import top.enderliquid.audioflow.dto.response.checkin.CheckinStatusVO;
 import top.enderliquid.audioflow.dto.response.checkin.CheckinSummaryVO;
+import top.enderliquid.audioflow.dto.response.checkin.CheckinVO;
 import top.enderliquid.audioflow.service.CheckinService;
 
 @RestController
@@ -31,9 +34,9 @@ public class CheckinController {
             @RateLimit(type = LimitType.IP),
             @RateLimit(type = LimitType.USER)
     })
-    public HttpResponseBody<CheckinResultVO> checkin() {
+    public HttpResponseBody<CheckinVO> checkin() {
         long userId = StpUtil.getLoginIdAsLong();
-        CheckinResultVO result = checkinService.checkin(userId);
+        CheckinVO result = checkinService.checkin(userId);
         return HttpResponseBody.ok(result, "签到成功");
     }
 

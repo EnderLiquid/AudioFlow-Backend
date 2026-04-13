@@ -5,9 +5,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import top.enderliquid.audioflow.common.TestDataHelper;
-import top.enderliquid.audioflow.dto.response.checkin.CheckinResultVO;
 import top.enderliquid.audioflow.dto.response.checkin.CheckinStatusVO;
 import top.enderliquid.audioflow.dto.response.checkin.CheckinSummaryVO;
+import top.enderliquid.audioflow.dto.response.checkin.CheckinVO;
 import top.enderliquid.audioflow.entity.CheckinLog;
 import top.enderliquid.audioflow.entity.CheckinSummary;
 import top.enderliquid.audioflow.entity.User;
@@ -43,7 +43,7 @@ class CheckinServiceTest {
         User user = testDataHelper.createTestUser();
         Long userId = user.getId();
 
-        CheckinResultVO result = checkinService.checkin(userId);
+        CheckinVO result = checkinService.checkin(userId);
 
         assertNotNull(result);
         assertTrue(result.getRewardPoints() >= 3 && result.getRewardPoints() <= 100);
@@ -83,7 +83,7 @@ class CheckinServiceTest {
         Long userId = user.getId();
 
         // 第一次签到成功
-        CheckinResultVO result1 = checkinService.checkin(userId);
+        CheckinVO result1 = checkinService.checkin(userId);
         assertNotNull(result1);
         assertEquals(1, result1.getTotalDays());
 
@@ -114,7 +114,7 @@ class CheckinServiceTest {
         checkinSummaryManager.save(summary);
 
         // 今天再次签到，应该是连续签到
-        CheckinResultVO result = checkinService.checkin(userId);
+        CheckinVO result = checkinService.checkin(userId);
 
         assertNotNull(result);
         assertEquals(2, result.getTotalDays());
@@ -145,7 +145,7 @@ class CheckinServiceTest {
         checkinSummaryManager.save(summary);
 
         // 今天签到，由于昨天未签到，连续天数应该重置为1
-        CheckinResultVO result = checkinService.checkin(userId);
+        CheckinVO result = checkinService.checkin(userId);
 
         assertNotNull(result);
         assertEquals(2, result.getTotalDays());

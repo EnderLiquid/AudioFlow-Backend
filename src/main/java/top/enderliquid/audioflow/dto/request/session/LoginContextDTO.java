@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class LoginContext {
+public class LoginContextDTO {
     // IP地址
     private String ip;
     // 设备类型

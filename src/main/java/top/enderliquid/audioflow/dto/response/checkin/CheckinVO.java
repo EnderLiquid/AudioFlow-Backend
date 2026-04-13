@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CheckinResultVO {
+public class CheckinVO {
     private Integer rewardPoints;
     private Integer totalDays;
     private Integer continuousDays;

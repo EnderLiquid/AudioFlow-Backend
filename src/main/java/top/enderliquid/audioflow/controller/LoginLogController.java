@@ -13,7 +13,7 @@ import top.enderliquid.audioflow.common.annotation.RateLimits;
 import top.enderliquid.audioflow.common.enums.LimitType;
 import top.enderliquid.audioflow.common.response.HttpResponseBody;
 import top.enderliquid.audioflow.dto.request.loginlog.LoginLogPageDTO;
-import top.enderliquid.audioflow.dto.response.PageVO;
+import top.enderliquid.audioflow.dto.response.PageResult;
 import top.enderliquid.audioflow.dto.response.loginlog.LoginLogVO;
 import top.enderliquid.audioflow.service.LoginLogService;
 
@@ -34,9 +34,9 @@ public class LoginLogController {
             @RateLimit(type = LimitType.IP),
             @RateLimit(type = LimitType.USER)
     })
-    public HttpResponseBody<PageVO<LoginLogVO>> page(@Valid LoginLogPageDTO dto) {
+    public HttpResponseBody<PageResult<LoginLogVO>> page(@Valid LoginLogPageDTO dto) {
         long userId = StpUtil.getLoginIdAsLong();
-        PageVO<LoginLogVO> result = loginLogService.page(userId, dto);
+        PageResult<LoginLogVO> result = loginLogService.page(userId, dto);
         return HttpResponseBody.ok(result, "查询登录流水成功");
     }
 }

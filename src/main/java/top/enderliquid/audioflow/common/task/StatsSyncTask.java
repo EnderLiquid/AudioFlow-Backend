@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import top.enderliquid.audioflow.dto.response.stats.StatsSyncResultVO;
+import top.enderliquid.audioflow.dto.response.stats.StatsSyncVO;
 import top.enderliquid.audioflow.service.StatsService;
 
 /**
@@ -23,7 +23,7 @@ public class StatsSyncTask {
      */
     @Scheduled(cron = "0 */5 * * * ?")
     public void syncStatsToDatabase() {
-        StatsSyncResultVO result = statsService.syncStatsToDatabase();
+        StatsSyncVO result = statsService.syncStatsToDatabase();
         log.info("统计数据同步任务执行完毕，日活同步: {}条，签到同步: {}条",
                 result.getDauSyncCount(), result.getCheckinSyncCount());
     }

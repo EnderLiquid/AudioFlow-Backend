@@ -4,7 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.validation.annotation.Validated;
 import top.enderliquid.audioflow.dto.request.loginlog.LoginLogPageDTO;
-import top.enderliquid.audioflow.dto.response.PageVO;
+import top.enderliquid.audioflow.dto.response.PageResult;
 import top.enderliquid.audioflow.dto.response.loginlog.LoginLogVO;
 
 @Validated
@@ -15,6 +15,6 @@ public interface LoginLogService {
      * @param dto 分页参数
      * @return 分页结果
      */
-    PageVO<LoginLogVO> page(@NotNull(message = "用户ID不能为空") Long userId,
-                            @Valid LoginLogPageDTO dto);
+    PageResult<LoginLogVO> page(@NotNull(message = "用户ID不能为空") Long userId,
+                                @Valid LoginLogPageDTO dto);
 }

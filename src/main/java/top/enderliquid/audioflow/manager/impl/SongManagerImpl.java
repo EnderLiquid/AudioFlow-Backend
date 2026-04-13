@@ -48,7 +48,7 @@ public class SongManagerImpl extends ServiceImpl<SongMapper, Song> implements So
         LambdaQueryWrapper<Song> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.in(Song::getStatus, statuses)
                 .lt(Song::getCreateTime, time);
-        return this.list(queryWrapper);
+        return list(queryWrapper);
     }
 
     @Override

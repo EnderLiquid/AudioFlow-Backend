@@ -1,6 +1,7 @@
 package top.enderliquid.audioflow.dto.request.song;
 
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,5 +17,5 @@ import static top.enderliquid.audioflow.common.constant.ValidationConstants.BATC
 public class SongBatchCancelDTO {
     @NotEmpty(message = "歌曲ID列表不能为空")
     @Size(max = BATCH_SIZE_MAX, message = "批量取消数量不能超过{max}")
-    private List<Long> songIds;
+    private List<@NotNull(message = "歌曲Id不能为空") Long> songIds;
 }

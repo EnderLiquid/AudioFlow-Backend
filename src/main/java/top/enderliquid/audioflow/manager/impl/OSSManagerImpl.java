@@ -113,6 +113,7 @@ public class OSSManagerImpl implements OSSManager {
                                     .key(fileName)
                                     .contentType(mimeType)
                                     .contentDisposition("inline")
+                                    .ifNoneMatch("*")  // 防止覆盖已存在的文件
                             )
                             .build()
             );
